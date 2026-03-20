@@ -26,8 +26,81 @@ interface AdjustedItem extends RotinaItem {
   adjustedTime: string | null; // null = no adjustment
   deltaMinutes: number; // how many minutes shifted
 }
+const SWIPE_THRESHOLD = 80;
 
-const Checklist = () => {
+interface SwipeableItemProps {
+  children: React.ReactNode;
+  index: number;
+  isDone: boolean;
+  onSwipeRight: () => void;
+  onSwipeLeft: () => void;
+}
+
+const SwipeableItem = ({ children, index, isDone, onSwipeRight, onSwipeLeft }: SwipeableItemProps) => {
+  const x = useMotionValue(0);
+  const bgOpacity = useTransform(x, [-120, -60, 0, 60, 120], [1, 0.6, 0, 0.6, 1]);
+  const checkScale = useTransform(x, [0, 60, 120], [0, 0.8, 1]);
+  const editScale = useTransform(x, [-120, -60, 0], [1, 0.8, 0]);
+
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    if (info.offset.x > SWIPE_THRESHOLD) {
+      onSwipeRight();
+    } else if (info.offset.x < -SWIPE_THRESHOLD) {
+      onSwipeLeft();
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.02 }}
+      className="relative overflow-hidden rounded-lg"
+    >
+      {/* Background reveal — right swipe (check) */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-start pl-5 rounded-lg"
+        style={{
+          opacity: bgOpacity,
+          background: "linear-gradient(90deg, hsl(142 72% 50% / 0.15), transparent)",
+        }}
+      >
+        <motion.div style={{ scale: checkScale }}>
+          <Check size={22} className="text-primary" />
+        </motion.div>
+      </motion.div>
+
+      {/* Background reveal — left swipe (edit time) */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-end pr-5 rounded-lg"
+        style={{
+          opacity: bgOpacity,
+          background: "linear-gradient(270deg, rgba(251,146,60,0.15), transparent)",
+        }}
+      >
+        <motion.div style={{ scale: editScale }}>
+          <Clock size={20} style={{ color: "#FB923C" }} />
+        </motion.div>
+      </motion.div>
+
+      {/* Draggable content */}
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.4}
+        onDragEnd={handleDragEnd}
+        style={{ x }}
+        className={`relative z-10 surface-card px-4 py-3 flex items-start gap-3 cursor-grab active:cursor-grabbing ${
+          isDone ? "opacity-50" : ""
+        }`}
+      >
+        {children}
+      </motion.div>
+    </motion.div>
+  );
+};
+
+
   const [selectedDay, setSelectedDay] = useState(getTodayIndex());
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [realTimes, setRealTimes] = useState<Record<string, string>>({}); // id → "HH:MM"
