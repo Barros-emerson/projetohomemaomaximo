@@ -185,7 +185,7 @@ const Biblia = () => {
     window.open(url, "_blank");
 
     toast.success("WhatsApp aberto! Confirme o envio 💛");
-  }, [numeroCamila, reflexao, audioBlob, streak, leiturasPlano, devocionalHoje]);
+  }, [numeroCamila, reflexao, anotacoes, audioBlob, streak, leiturasPlano, devocionalHoje]);
 
   const salvarNumeroCamila = (num: string) => {
     setNumeroCamila(num);
