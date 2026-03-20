@@ -483,6 +483,32 @@ const Biblia = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal número da Camila */}
+      <Dialog open={showNumeroModal} onOpenChange={setShowNumeroModal}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-mono text-sm tracking-widest">NÚMERO DA CAMILA</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            Digite o número com código do país (ex: 5561999999999)
+          </p>
+          <Input
+            placeholder="5561999999999"
+            value={numeroCamila}
+            onChange={e => setNumeroCamila(e.target.value)}
+            className="bg-secondary/50 border-border"
+          />
+          <Button
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            onClick={() => salvarNumeroCamila(numeroCamila)}
+            disabled={!numeroCamila.trim()}
+          >
+            <Send size={14} className="mr-2" />
+            Salvar e enviar
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
