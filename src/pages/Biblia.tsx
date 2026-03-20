@@ -35,6 +35,15 @@ const Biblia = () => {
   const [showPlanoModal, setShowPlanoModal] = useState(false);
   const [modoLeitura, setModoLeitura] = useState(false);
   const [leituraSelecionada, setLeituraSelecionada] = useState<LeituraDia | null>(null);
+  const [numeroCamila, setNumeroCamila] = useState(() => localStorage.getItem("ham-numero-camila") || "");
+  const [showNumeroModal, setShowNumeroModal] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
   const planoAtual = planosDisponiveis.find(p => p.id === planoId)!;
   const leiturasPlano = leituras[planoId] || planoAtual.leituras;
