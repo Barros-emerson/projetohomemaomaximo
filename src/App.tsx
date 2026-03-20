@@ -10,6 +10,10 @@ import Treino from "@/pages/Treino";
 import Sono from "@/pages/Sono";
 import Historico from "@/pages/Historico";
 import Config from "@/pages/Config";
+import Tarefas from "@/pages/Tarefas";
+import Biblia from "@/pages/Biblia";
+import Notas from "@/pages/Notas";
+import Performance from "@/pages/Performance";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,11 +27,15 @@ const App = () => (
         <Routes>
           <Route element={<AppLayout />}>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/checklist" element={<Checklist />} />
+            <Route path="/rotina" element={<Checklist />} />
             <Route path="/treino" element={<Treino />} />
             <Route path="/sono" element={<Sono />} />
             <Route path="/historico" element={<Historico />} />
             <Route path="/config" element={<Config />} />
+            <Route path="/tarefas" element={<Tarefas />} />
+            <Route path="/biblia" element={<Biblia />} />
+            <Route path="/notas" element={<Notas />} />
+            <Route path="/performance" element={<Performance />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
