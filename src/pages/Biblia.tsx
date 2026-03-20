@@ -98,6 +98,94 @@ const Biblia = () => {
     return d.toISOString().split("T")[0] === y.toISOString().split("T")[0];
   };
 
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        setAudioBlob(blob);
+        setAudioUrl(URL.createObjectURL(blob));
+        stream.getTracks().forEach(t => t.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch {
+      toast.error("Permissão de microfone negada");
+    }
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+  }, []);
+
+  const playAudio = useCallback(() => {
+    if (!audioUrl) return;
+    const audio = new Audio(audioUrl);
+    audioPlayerRef.current = audio;
+    audio.onended = () => setIsPlaying(false);
+    audio.play();
+    setIsPlaying(true);
+  }, [audioUrl]);
+
+  const deleteAudio = useCallback(() => {
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    setAudioUrl(null);
+    setAudioBlob(null);
+    setIsPlaying(false);
+  }, [audioUrl]);
+
+  const enviarParaCamila = useCallback(() => {
+    if (!numeroCamila) {
+      setShowNumeroModal(true);
+      return;
+    }
+
+    const leituraAtual = leiturasPlano.find(l => l.concluido) 
+      ? leiturasPlano.filter(l => l.concluido).slice(-1)[0]
+      : devocionalHoje;
+
+    const dataFormatada = new Date().toLocaleDateString("pt-BR", { 
+      weekday: "long", day: "numeric", month: "long" 
+    });
+
+    let mensagem = `✝️ *Devocional — ${dataFormatada}*\n\n`;
+    mensagem += `📖 *Leitura:* ${leituraAtual?.passagem || "—"}\n\n`;
+    
+    if (reflexao.trim()) {
+      mensagem += `💭 *Reflexão:*\n${reflexao.trim()}\n\n`;
+    }
+
+    if (audioBlob) {
+      mensagem += `🎙️ _Gravei uma mensagem de voz pra você — te envio em seguida!_\n\n`;
+    }
+
+    mensagem += `🔥 Streak: ${streak.count} dia(s)\n`;
+    mensagem += `\n— Emerson, via HOMEM AO MÁXIMO`;
+
+    const numero = numeroCamila.replace(/\D/g, "");
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, "_blank");
+
+    toast.success("WhatsApp aberto! Confirme o envio 💛");
+  }, [numeroCamila, reflexao, audioBlob, streak, leiturasPlano, devocionalHoje]);
+
+  const salvarNumeroCamila = (num: string) => {
+    setNumeroCamila(num);
+    localStorage.setItem("ham-numero-camila", num);
+    setShowNumeroModal(false);
+    toast.success("Número salvo!");
+  };
+
   // Modo leitura limpo
   if (modoLeitura && leituraSelecionada) {
     return (
