@@ -187,22 +187,33 @@ const Checklist = () => {
         </div>
       </motion.div>
 
+      {/* Swipe hint */}
+      <div className="flex items-center justify-between px-2">
+        <div className="flex items-center gap-1 text-[9px] font-mono text-muted-foreground/40">
+          <ChevronRight size={10} />
+          <span>DESLIZAR → CONCLUIR</span>
+        </div>
+        <div className="flex items-center gap-1 text-[9px] font-mono text-muted-foreground/40">
+          <span>EDITAR HORÁRIO ← DESLIZAR</span>
+          <ChevronLeft size={10} />
+        </div>
+      </div>
+
       {/* Timeline */}
       <div className="space-y-1">
         {adjustedItems.map((item, i) => {
           const isDone = checked.has(item.id);
           const hasRealTime = !!realTimes[item.id];
           const isAdjusted = item.adjustedTime !== null && item.deltaMinutes > 0;
+          const canEditTime = !item.immutable && parseTime(item.time) !== null;
 
           return (
-            <motion.div
+            <SwipeableItem
               key={item.id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.02 }}
-              className={`w-full surface-card px-4 py-3 flex items-start gap-3 transition-all duration-200 ${
-                isDone ? "opacity-50" : ""
-              }`}
+              index={i}
+              isDone={isDone}
+              onSwipeRight={() => { if (!isDone) toggle(item.id); }}
+              onSwipeLeft={() => { if (!isDone && canEditTime) openEdit(item); }}
             >
               {/* Check circle */}
               <button
@@ -225,20 +236,14 @@ const Checklist = () => {
 
               {/* Time column */}
               <div className="w-12 shrink-0 mt-0.5">
-                {/* Ideal time */}
-                <span
-                  className="font-mono text-xs block"
-                  style={{ color: item.alert ? "#F5C542" : "hsl(var(--muted-foreground))" }}
-                >
+                <span className="font-mono text-xs block" style={{ color: item.alert ? "#F5C542" : "hsl(var(--muted-foreground))" }}>
                   {item.time}
                 </span>
-                {/* Real time (if set) shown in amber below */}
                 {hasRealTime && (
                   <span className="font-mono text-[10px] block" style={{ color: "#FB923C" }}>
                     {realTimes[item.id]}
                   </span>
                 )}
-                {/* Adjusted time from cascade */}
                 {isAdjusted && !hasRealTime && (
                   <span className="font-mono text-[10px] block" style={{ color: "#FB923C" }}>
                     → {item.adjustedTime}
@@ -249,67 +254,38 @@ const Checklist = () => {
               {/* Dot */}
               <div
                 className="w-2 h-2 rounded-full shrink-0 mt-2"
-                style={{
-                  background: item.dotColor,
-                  boxShadow: item.alert ? `0 0 6px ${item.dotColor}` : undefined,
-                }}
+                style={{ background: item.dotColor, boxShadow: item.alert ? `0 0 6px ${item.dotColor}` : undefined }}
               />
 
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span
-                    className={`font-mono text-sm block ${
-                      isDone ? "line-through text-muted-foreground" : "text-foreground"
-                    }`}
-                  >
+                  <span className={`font-mono text-sm block ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
                     {item.label}
                   </span>
                   {isAdjusted && !isDone && (
-                    <span
-                      className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-                      style={{ color: "#FB923C", background: "rgba(251,146,60,0.12)" }}
-                    >
+                    <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: "#FB923C", background: "rgba(251,146,60,0.12)" }}>
                       +{item.deltaMinutes}min
                     </span>
                   )}
                   {item.immutable && (
-                    <span
-                      className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-                      style={{ color: "#C084FC", background: "rgba(192,132,252,0.1)" }}
-                    >
+                    <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: "#C084FC", background: "rgba(192,132,252,0.1)" }}>
                       IMÓVEL
                     </span>
                   )}
                 </div>
-                <span className="font-mono text-[10px] text-muted-foreground/60 block mt-0.5">
-                  {item.detail}
-                </span>
+                <span className="font-mono text-[10px] text-muted-foreground/60 block mt-0.5">{item.detail}</span>
                 {item.tags && item.tags.length > 0 && (
                   <div className="flex gap-1 flex-wrap mt-1.5">
                     {item.tags.map((t) => (
-                      <span
-                        key={t.label}
-                        className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
-                        style={{ color: t.color, background: `${t.color}15` }}
-                      >
+                      <span key={t.label} className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ color: t.color, background: `${t.color}15` }}>
                         {t.label}
                       </span>
                     ))}
                   </div>
                 )}
               </div>
-
-              {/* Edit button */}
-              {!isDone && !item.immutable && parseTime(item.time) !== null && (
-                <button
-                  onClick={(e) => openEdit(item, e)}
-                  className="shrink-0 mt-0.5 p-1.5 rounded-md hover:bg-secondary transition-colors active:scale-90"
-                >
-                  <Clock size={14} className="text-muted-foreground" />
-                </button>
-              )}
-            </motion.div>
+            </SwipeableItem>
           );
         })}
       </div>
