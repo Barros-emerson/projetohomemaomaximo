@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { User, Target, Dumbbell, Heart, BookOpen, Settings } from "lucide-react";
+import { User, Target, Dumbbell, Heart, BookOpen, Settings, ChevronRight, Crown, TrendingUp, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const profileData = {
   name: "Emerson Barros",
@@ -52,6 +53,14 @@ const cardiac = [
   { label: "VO2Max", value: "—", unit: "mL/kg/min" },
 ];
 
+const sectionIcons: Record<string, React.ReactNode> = {
+  "Biometria Atual": <User size={14} className="text-primary" />,
+  "Painel Hormonal": <TrendingUp size={14} className="text-accent" />,
+  "Métricas Cardíacas": <Heart size={14} style={{ color: "hsl(var(--mod-treino))" }} />,
+  "Força Atual (1RM)": <Dumbbell size={14} style={{ color: "hsl(var(--mod-treino))" }} />,
+  "Objetivos e Metas": <Target size={14} className="text-primary" />,
+};
+
 interface FieldGroupProps {
   title: string;
   items: { label: string; value: string; unit: string; highlight?: boolean }[];
@@ -60,32 +69,40 @@ interface FieldGroupProps {
 
 const FieldGroup = ({ title, items, delay = 0 }: FieldGroupProps) => (
   <motion.div
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay }}
-    className="surface-card p-4"
+    initial={{ opacity: 0, y: 14, filter: "blur(4px)" }}
+    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+    transition={{ delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    className="surface-card overflow-hidden"
   >
-    <p className="font-mono text-[10px] font-bold tracking-widest text-muted-foreground mb-3 pb-2 border-b border-border uppercase">
-      {title}
-    </p>
-    <div className="grid grid-cols-2 gap-2">
+    <div className="px-4 pt-4 pb-3 flex items-center gap-2">
+      {sectionIcons[title]}
+      <p className="font-mono text-[10px] font-bold tracking-[0.15em] text-muted-foreground uppercase">
+        {title}
+      </p>
+    </div>
+    <div className="px-3 pb-3 grid grid-cols-3 gap-1.5">
       {items.map((item) => (
         <div
           key={item.label}
-          className="rounded-lg p-2.5"
+          className="rounded-xl px-3 py-2.5 text-center transition-colors"
           style={
             item.highlight
-              ? { background: "rgba(245,197,66,0.08)", border: "1px solid rgba(245,197,66,0.25)" }
-              : { background: "hsl(var(--secondary))", border: "1px solid hsl(var(--border))" }
+              ? { background: "hsla(var(--accent) / 0.08)", border: "1px solid hsla(var(--accent) / 0.2)" }
+              : { background: "hsl(var(--secondary))" }
           }
         >
-          <p className="font-mono text-[9px] font-bold tracking-wider uppercase" style={item.highlight ? { color: "#F5C542" } : { color: "hsl(var(--muted-foreground))" }}>
+          <p
+            className="font-mono text-[8px] font-semibold tracking-[0.12em] uppercase leading-tight"
+            style={item.highlight ? { color: "hsl(var(--accent))" } : { color: "hsl(var(--muted-foreground))" }}
+          >
             {item.label}
           </p>
-          <p className="font-mono text-sm font-semibold text-foreground mt-0.5">
+          <p className="font-mono text-sm font-bold text-foreground mt-1 leading-none">
             {item.value}
-            {item.unit && <span className="text-[10px] text-muted-foreground ml-1">{item.unit}</span>}
           </p>
+          {item.unit && (
+            <p className="font-mono text-[8px] text-muted-foreground mt-0.5">{item.unit}</p>
+          )}
         </div>
       ))}
     </div>
@@ -94,52 +111,113 @@ const FieldGroup = ({ title, items, delay = 0 }: FieldGroupProps) => (
 
 const Perfil = () => {
   const navigate = useNavigate();
+  const [userPhoto] = useState<string | null>(() =>
+    localStorage.getItem("ham-user-photo")
+  );
+
+  const quickLinks = [
+    { icon: BookOpen, label: "Bíblia & Devocional", path: "/biblia", color: "hsl(var(--mod-biblia))" },
+    { icon: Target, label: "Performance", path: "/performance", color: "hsl(var(--primary))" },
+    { icon: Settings, label: "Configurações", path: "/config", color: "hsl(var(--muted-foreground))" },
+  ];
 
   return (
-    <div className="p-4 space-y-3">
-      {/* Avatar + Name */}
+    <div className="p-4 space-y-3 pb-8">
+      {/* Hero Card */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="surface-card p-5 border-glow"
+        initial={{ opacity: 0, y: 14, filter: "blur(4px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="relative overflow-hidden rounded-2xl border border-border"
+        style={{
+          background: "linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%)",
+        }}
       >
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center">
-            <span className="font-mono text-2xl font-extrabold text-primary">EB</span>
+        {/* Subtle glow */}
+        <div
+          className="absolute -top-20 -right-20 w-48 h-48 rounded-full opacity-[0.07] blur-3xl pointer-events-none"
+          style={{ background: "hsl(var(--primary))" }}
+        />
+        <div
+          className="absolute -bottom-16 -left-16 w-40 h-40 rounded-full opacity-[0.05] blur-3xl pointer-events-none"
+          style={{ background: "hsl(var(--accent))" }}
+        />
+
+        <div className="relative px-5 pt-6 pb-5">
+          <div className="flex items-start gap-4">
+            {/* Avatar */}
+            <div className="relative">
+              {userPhoto ? (
+                <img
+                  src={userPhoto}
+                  alt="Perfil"
+                  className="w-[72px] h-[72px] rounded-2xl object-cover ring-2 ring-primary/20"
+                />
+              ) : (
+                <div className="w-[72px] h-[72px] rounded-2xl bg-secondary border border-border flex items-center justify-center">
+                  <span className="font-mono text-2xl font-black text-primary">EB</span>
+                </div>
+              )}
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--accent))" }}>
+                <Crown size={10} className="text-accent-foreground" />
+              </div>
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0 pt-1">
+              <h2 className="font-mono text-base font-black text-foreground tracking-wide leading-tight">
+                {profileData.name}
+              </h2>
+              <p className="font-mono text-[11px] text-muted-foreground mt-1">
+                {profileData.age} anos · {profileData.city}
+              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-mono font-bold tracking-wider uppercase" style={{ background: "hsla(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
+                  {profileData.occupation}
+                </span>
+              </div>
+            </div>
           </div>
-          <div>
-            <h2 className="font-mono text-base font-extrabold text-foreground tracking-wide">{profileData.name}</h2>
-            <p className="font-mono text-[11px] text-muted-foreground">{profileData.age} anos · {profileData.city}</p>
-            <p className="font-mono text-[11px] text-muted-foreground">{profileData.occupation} · {profileData.ministry}</p>
+
+          {/* Sub-info row */}
+          <div className="mt-4 pt-3 border-t border-border/50 flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <Heart size={12} style={{ color: "hsl(var(--mod-treino))" }} />
+              <span className="font-mono text-[10px] text-muted-foreground">{profileData.spouse}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Shield size={12} style={{ color: "hsl(var(--mod-biblia))" }} />
+              <span className="font-mono text-[10px] text-muted-foreground">{profileData.ministry}</span>
+            </div>
           </div>
         </div>
       </motion.div>
 
-      <FieldGroup title="Biometria Atual" items={biometrics} delay={0.05} />
-      <FieldGroup title="Painel Hormonal" items={hormones} delay={0.1} />
-      <FieldGroup title="Métricas Cardíacas" items={cardiac} delay={0.15} />
-      <FieldGroup title="Força Atual (1RM)" items={strength} delay={0.2} />
-      <FieldGroup title="Objetivos e Metas" items={goals} delay={0.25} />
+      {/* Data Sections */}
+      <FieldGroup title="Biometria Atual" items={biometrics} delay={0.06} />
+      <FieldGroup title="Painel Hormonal" items={hormones} delay={0.12} />
+      <FieldGroup title="Métricas Cardíacas" items={cardiac} delay={0.18} />
+      <FieldGroup title="Força Atual (1RM)" items={strength} delay={0.24} />
+      <FieldGroup title="Objetivos e Metas" items={goals} delay={0.3} />
 
       {/* Quick links */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="surface-card p-3 space-y-1"
+        initial={{ opacity: 0, y: 14, filter: "blur(4px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        transition={{ delay: 0.36, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="surface-card overflow-hidden divide-y divide-border/50"
       >
-        {[
-          { icon: BookOpen, label: "Bíblia", path: "/biblia", color: "#C084FC" },
-          { icon: Target, label: "Performance", path: "/performance", color: "#4ADE80" },
-          { icon: Settings, label: "Configurações", path: "/config", color: "hsl(var(--muted-foreground))" },
-        ].map((link) => (
+        {quickLinks.map((link) => (
           <button
             key={link.path}
             onClick={() => navigate(link.path)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary transition-colors active:scale-[0.98]"
+            className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/50 transition-colors active:scale-[0.98] active:bg-secondary"
           >
-            <link.icon size={18} style={{ color: link.color }} />
-            <span className="font-mono text-sm text-foreground">{link.label}</span>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${link.color}15` }}>
+              <link.icon size={16} style={{ color: link.color }} />
+            </div>
+            <span className="font-mono text-xs font-semibold text-foreground flex-1 text-left">{link.label}</span>
+            <ChevronRight size={14} className="text-muted-foreground" />
           </button>
         ))}
       </motion.div>
