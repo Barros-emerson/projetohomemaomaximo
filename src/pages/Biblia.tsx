@@ -169,6 +169,10 @@ const Biblia = () => {
       mensagem += `💭 *Reflexão:*\n${reflexao.trim()}\n\n`;
     }
 
+    if (anotacoes.trim()) {
+      mensagem += `📝 *Anotações:*\n${anotacoes.trim()}\n\n`;
+    }
+
     if (audioBlob) {
       mensagem += `🎙️ _Gravei uma mensagem de voz pra você — te envio em seguida!_\n\n`;
     }
