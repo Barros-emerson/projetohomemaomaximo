@@ -99,8 +99,7 @@ const SwipeableItem = ({ children, index, isDone, onSwipeRight, onSwipeLeft }: S
     </motion.div>
   );
 };
-
-
+const Checklist = () => {
   const [selectedDay, setSelectedDay] = useState(getTodayIndex());
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [realTimes, setRealTimes] = useState<Record<string, string>>({}); // id → "HH:MM"
