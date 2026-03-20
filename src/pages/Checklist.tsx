@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Check, Clock, Pencil, X } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
+import { Check, Clock, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { rotinaSemanal, type RotinaItem } from "@/data/rotina-diaria";
 
 const getTodayIndex = () => {
