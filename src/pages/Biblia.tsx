@@ -338,13 +338,79 @@ const Biblia = () => {
           placeholder="O que Deus falou com você hoje? Escreva aqui sua reflexão..."
           className="bg-secondary/50 border-border text-sm min-h-[100px] resize-none focus:border-violet-500/50"
         />
-        <Button
-          size="sm"
-          className="mt-2 bg-violet-600 hover:bg-violet-700 text-white text-xs"
-          onClick={salvarReflexao}
-        >
-          Salvar reflexão
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            className="bg-violet-600 hover:bg-violet-700 text-white text-xs"
+            onClick={salvarReflexao}
+          >
+            Salvar reflexão
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10"
+            onClick={enviarParaCamila}
+          >
+            <Send size={12} className="mr-1" />
+            Enviar para Camila
+          </Button>
+        </div>
+      </motion.div>
+
+      {/* Gravar voz para Camila */}
+      <motion.div
+        initial={{ y: 12, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.35, duration: 0.5 }}
+        className="surface-card p-4"
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <Mic size={16} className="text-green-500" />
+          <span className="font-mono text-xs tracking-widest text-foreground">MENSAGEM DE VOZ</span>
+          <span className="text-[10px] text-muted-foreground">opcional</span>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">
+          Grave uma mensagem de voz para enviar junto com o devocional.
+        </p>
+
+        {!audioUrl ? (
+          <Button
+            size="sm"
+            variant={isRecording ? "destructive" : "outline"}
+            className={`text-xs ${!isRecording ? "border-green-600/30 text-green-500 hover:bg-green-600/10" : ""}`}
+            onClick={isRecording ? stopRecording : startRecording}
+          >
+            {isRecording ? (
+              <>
+                <Square size={12} className="mr-1" />
+                Parar gravação
+                <motion.span
+                  animate={{ opacity: [1, 0] }}
+                  transition={{ repeat: Infinity, duration: 1 }}
+                  className="ml-2 w-2 h-2 rounded-full bg-red-500 inline-block"
+                />
+              </>
+            ) : (
+              <>
+                <Mic size={12} className="mr-1" />
+                Gravar mensagem
+              </>
+            )}
+          </Button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="text-xs" onClick={playAudio} disabled={isPlaying}>
+              <Play size={12} className="mr-1" />
+              {isPlaying ? "Tocando..." : "Ouvir"}
+            </Button>
+            <Button size="sm" variant="outline" className="text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={deleteAudio}>
+              <Trash2 size={12} className="mr-1" />
+              Apagar
+            </Button>
+            <span className="text-[10px] text-primary">✓ Áudio gravado</span>
+          </div>
+        )}
       </motion.div>
 
       {/* Seção de oração */}
