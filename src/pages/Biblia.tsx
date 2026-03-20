@@ -1,14 +1,15 @@
-import { useState, useMemo } from "react";
-import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
+import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { planosDisponiveis, versiculosMemorizacao, type LeituraDia } from "@/data/biblia-planos";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 const getWeekOfYear = () => Math.ceil(((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7);
 
@@ -34,6 +35,15 @@ const Biblia = () => {
   const [showPlanoModal, setShowPlanoModal] = useState(false);
   const [modoLeitura, setModoLeitura] = useState(false);
   const [leituraSelecionada, setLeituraSelecionada] = useState<LeituraDia | null>(null);
+  const [numeroCamila, setNumeroCamila] = useState(() => localStorage.getItem("ham-numero-camila") || "");
+  const [showNumeroModal, setShowNumeroModal] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
   const planoAtual = planosDisponiveis.find(p => p.id === planoId)!;
   const leiturasPlano = leituras[planoId] || planoAtual.leituras;
@@ -86,6 +96,94 @@ const Biblia = () => {
     const y = new Date();
     y.setDate(y.getDate() - 1);
     return d.toISOString().split("T")[0] === y.toISOString().split("T")[0];
+  };
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        setAudioBlob(blob);
+        setAudioUrl(URL.createObjectURL(blob));
+        stream.getTracks().forEach(t => t.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch {
+      toast.error("Permissão de microfone negada");
+    }
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+  }, []);
+
+  const playAudio = useCallback(() => {
+    if (!audioUrl) return;
+    const audio = new Audio(audioUrl);
+    audioPlayerRef.current = audio;
+    audio.onended = () => setIsPlaying(false);
+    audio.play();
+    setIsPlaying(true);
+  }, [audioUrl]);
+
+  const deleteAudio = useCallback(() => {
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    setAudioUrl(null);
+    setAudioBlob(null);
+    setIsPlaying(false);
+  }, [audioUrl]);
+
+  const enviarParaCamila = useCallback(() => {
+    if (!numeroCamila) {
+      setShowNumeroModal(true);
+      return;
+    }
+
+    const leituraAtual = leiturasPlano.find(l => l.concluido) 
+      ? leiturasPlano.filter(l => l.concluido).slice(-1)[0]
+      : devocionalHoje;
+
+    const dataFormatada = new Date().toLocaleDateString("pt-BR", { 
+      weekday: "long", day: "numeric", month: "long" 
+    });
+
+    let mensagem = `✝️ *Devocional — ${dataFormatada}*\n\n`;
+    mensagem += `📖 *Leitura:* ${leituraAtual?.passagem || "—"}\n\n`;
+    
+    if (reflexao.trim()) {
+      mensagem += `💭 *Reflexão:*\n${reflexao.trim()}\n\n`;
+    }
+
+    if (audioBlob) {
+      mensagem += `🎙️ _Gravei uma mensagem de voz pra você — te envio em seguida!_\n\n`;
+    }
+
+    mensagem += `🔥 Streak: ${streak.count} dia(s)\n`;
+    mensagem += `\n— Emerson, via HOMEM AO MÁXIMO`;
+
+    const numero = numeroCamila.replace(/\D/g, "");
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, "_blank");
+
+    toast.success("WhatsApp aberto! Confirme o envio 💛");
+  }, [numeroCamila, reflexao, audioBlob, streak, leiturasPlano, devocionalHoje]);
+
+  const salvarNumeroCamila = (num: string) => {
+    setNumeroCamila(num);
+    localStorage.setItem("ham-numero-camila", num);
+    setShowNumeroModal(false);
+    toast.success("Número salvo!");
   };
 
   // Modo leitura limpo
@@ -240,13 +338,79 @@ const Biblia = () => {
           placeholder="O que Deus falou com você hoje? Escreva aqui sua reflexão..."
           className="bg-secondary/50 border-border text-sm min-h-[100px] resize-none focus:border-violet-500/50"
         />
-        <Button
-          size="sm"
-          className="mt-2 bg-violet-600 hover:bg-violet-700 text-white text-xs"
-          onClick={salvarReflexao}
-        >
-          Salvar reflexão
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            className="bg-violet-600 hover:bg-violet-700 text-white text-xs"
+            onClick={salvarReflexao}
+          >
+            Salvar reflexão
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10"
+            onClick={enviarParaCamila}
+          >
+            <Send size={12} className="mr-1" />
+            Enviar para Camila
+          </Button>
+        </div>
+      </motion.div>
+
+      {/* Gravar voz para Camila */}
+      <motion.div
+        initial={{ y: 12, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.35, duration: 0.5 }}
+        className="surface-card p-4"
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <Mic size={16} className="text-green-500" />
+          <span className="font-mono text-xs tracking-widest text-foreground">MENSAGEM DE VOZ</span>
+          <span className="text-[10px] text-muted-foreground">opcional</span>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">
+          Grave uma mensagem de voz para enviar junto com o devocional.
+        </p>
+
+        {!audioUrl ? (
+          <Button
+            size="sm"
+            variant={isRecording ? "destructive" : "outline"}
+            className={`text-xs ${!isRecording ? "border-green-600/30 text-green-500 hover:bg-green-600/10" : ""}`}
+            onClick={isRecording ? stopRecording : startRecording}
+          >
+            {isRecording ? (
+              <>
+                <Square size={12} className="mr-1" />
+                Parar gravação
+                <motion.span
+                  animate={{ opacity: [1, 0] }}
+                  transition={{ repeat: Infinity, duration: 1 }}
+                  className="ml-2 w-2 h-2 rounded-full bg-red-500 inline-block"
+                />
+              </>
+            ) : (
+              <>
+                <Mic size={12} className="mr-1" />
+                Gravar mensagem
+              </>
+            )}
+          </Button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="text-xs" onClick={playAudio} disabled={isPlaying}>
+              <Play size={12} className="mr-1" />
+              {isPlaying ? "Tocando..." : "Ouvir"}
+            </Button>
+            <Button size="sm" variant="outline" className="text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={deleteAudio}>
+              <Trash2 size={12} className="mr-1" />
+              Apagar
+            </Button>
+            <span className="text-[10px] text-primary">✓ Áudio gravado</span>
+          </div>
+        )}
       </motion.div>
 
       {/* Seção de oração */}
@@ -317,6 +481,32 @@ const Biblia = () => {
               );
             })}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal número da Camila */}
+      <Dialog open={showNumeroModal} onOpenChange={setShowNumeroModal}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-mono text-sm tracking-widest">NÚMERO DA CAMILA</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            Digite o número com código do país (ex: 5561999999999)
+          </p>
+          <Input
+            placeholder="5561999999999"
+            value={numeroCamila}
+            onChange={e => setNumeroCamila(e.target.value)}
+            className="bg-secondary/50 border-border"
+          />
+          <Button
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            onClick={() => salvarNumeroCamila(numeroCamila)}
+            disabled={!numeroCamila.trim()}
+          >
+            <Send size={14} className="mr-2" />
+            Salvar e enviar
+          </Button>
         </DialogContent>
       </Dialog>
     </div>
