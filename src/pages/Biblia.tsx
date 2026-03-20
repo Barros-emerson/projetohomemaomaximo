@@ -83,6 +83,9 @@ const Biblia = () => {
   const salvarReflexao = () => {
     localStorage.setItem("ham-biblia-reflexao-hoje", reflexao);
     localStorage.setItem(`ham-biblia-reflexao-${hoje}`, reflexao);
+    localStorage.setItem("ham-biblia-anotacoes-hoje", anotacoes);
+    localStorage.setItem(`ham-biblia-anotacoes-${hoje}`, anotacoes);
+    toast.success("Reflexão e anotações salvas!");
   };
 
   const salvarOracoes = (key: string, value: string) => {
