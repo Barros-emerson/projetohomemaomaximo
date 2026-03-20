@@ -7,7 +7,7 @@ export interface Exercise {
 }
 
 export interface TrainingDay {
-  dayIndex: number; // 0=seg, 6=dom
+  dayIndex: number;
   label: string;
   type: string;
   focus: string;
@@ -15,6 +15,7 @@ export interface TrainingDay {
   bgClass: string;
   borderClass: string;
   emoji: string;
+  jiuType?: string;
   exercises: Exercise[];
 }
 
@@ -28,6 +29,7 @@ export const weekPlan: TrainingDay[] = [
     bgClass: "bg-blue-400/10",
     borderClass: "border-blue-400/25",
     emoji: "💪",
+    jiuType: "ALUNO 19:00",
     exercises: [
       { id: "seg1", name: "Supino Reto", sets: "5", reps: "5", equipment: "Barra" },
       { id: "seg2", name: "Barra Fixa", sets: "4", reps: "Falha" },
@@ -45,6 +47,7 @@ export const weekPlan: TrainingDay[] = [
     bgClass: "bg-red-400/10",
     borderClass: "border-red-400/25",
     emoji: "🦵",
+    jiuType: "PROFESSOR 18:10",
     exercises: [
       { id: "ter1", name: "Agachamento Livre", sets: "5", reps: "5", equipment: "Barra" },
       { id: "ter2", name: "Levantamento Terra", sets: "4", reps: "5" },
@@ -56,30 +59,39 @@ export const weekPlan: TrainingDay[] = [
   {
     dayIndex: 2,
     label: "QUARTA",
-    type: "OFF",
-    focus: "RECUPERAÇÃO",
-    colorClass: "text-emerald-400",
-    bgClass: "bg-emerald-400/8",
-    borderClass: "border-emerald-400/20",
-    emoji: "🌿",
-    exercises: [],
-  },
-  {
-    dayIndex: 3,
-    label: "QUINTA",
     type: "UPPER",
     focus: "HIPERTROFIA",
     colorClass: "text-violet-400",
     bgClass: "bg-violet-400/10",
     borderClass: "border-violet-400/25",
     emoji: "🔥",
+    jiuType: "ALUNO 19:00 (pesado)",
     exercises: [
-      { id: "qui1", name: "Supino Inclinado", sets: "4", reps: "10-12", equipment: "Halter" },
-      { id: "qui2", name: "Puxador Frente", sets: "4", reps: "10" },
-      { id: "qui3", name: "Elevação Lateral", sets: "4", reps: "15" },
-      { id: "qui4", name: "Remada Baixa", sets: "3", reps: "12" },
-      { id: "qui5", name: "Rosca Direta", sets: "3", reps: "10", equipment: "Barra" },
-      { id: "qui6", name: "Tríceps Polia", sets: "3", reps: "12", equipment: "Corda" },
+      { id: "qua1", name: "Supino Inclinado", sets: "4", reps: "10-12", equipment: "Halter" },
+      { id: "qua2", name: "Puxador Frente", sets: "4", reps: "10" },
+      { id: "qua3", name: "Elevação Lateral", sets: "4", reps: "15" },
+      { id: "qua4", name: "Remada Baixa", sets: "3", reps: "12" },
+      { id: "qua5", name: "Rosca Direta", sets: "3", reps: "10", equipment: "Barra" },
+      { id: "qua6", name: "Tríceps Polia", sets: "3", reps: "12", equipment: "Corda" },
+    ],
+  },
+  {
+    dayIndex: 3,
+    label: "QUINTA",
+    type: "LOWER",
+    focus: "HIPERTROFIA",
+    colorClass: "text-purple-400",
+    bgClass: "bg-purple-400/10",
+    borderClass: "border-purple-400/25",
+    emoji: "⚡",
+    jiuType: "PROFESSOR 18:10",
+    exercises: [
+      { id: "qui1", name: "Agachamento Livre", sets: "4", reps: "10" },
+      { id: "qui2", name: "Stiff", sets: "4", reps: "10" },
+      { id: "qui3", name: "Extensora", sets: "3", reps: "15" },
+      { id: "qui4", name: "Flexora", sets: "3", reps: "15" },
+      { id: "qui5", name: "Elevação Pélvica", sets: "3", reps: "12" },
+      { id: "qui6", name: "Panturrilha", sets: "4", reps: "15" },
     ],
   },
   {
@@ -91,6 +103,7 @@ export const weekPlan: TrainingDay[] = [
     bgClass: "bg-amber-400/10",
     borderClass: "border-amber-400/22",
     emoji: "⚡",
+    jiuType: "SEM JIU",
     exercises: [
       { id: "sex1", name: "Agachamento Livre", sets: "4", reps: "10" },
       { id: "sex2", name: "Stiff", sets: "4", reps: "10" },
@@ -103,12 +116,13 @@ export const weekPlan: TrainingDay[] = [
   {
     dayIndex: 5,
     label: "SÁBADO",
-    type: "OPCIONAL",
-    focus: "JIU-JITSU",
+    type: "JIU",
+    focus: "PROFESSOR PESADO",
     colorClass: "text-cyan-400",
     bgClass: "bg-cyan-400/8",
     borderClass: "border-cyan-400/20",
     emoji: "🥋",
+    jiuType: "PROFESSOR 10:00 (pegado)",
     exercises: [],
   },
   {

@@ -1,63 +1,22 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Sun, Droplets, Pill, Dumbbell, Moon, Utensils, Eye, Coffee, Smartphone, Flame } from "lucide-react";
+import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { rotinaSemanal, type RotinaDia } from "@/data/rotina-diaria";
 
-interface CheckItem {
-  id: string;
-  label: string;
-  detail: string;
-  icon: React.ElementType;
-  section: string;
-  time: string;
-}
-
-const checklistItems: CheckItem[] = [
-  // MANHÃ
-  { id: "acordar", label: "Acordar", detail: "Água + sal + café", icon: Coffee, section: "MANHÃ", time: "05:40" },
-  { id: "pre_treino", label: "Pré-treino", detail: "Banana + Creatina 5g", icon: Pill, section: "MANHÃ", time: "06:00" },
-  { id: "treino", label: "Treino musculação", detail: "Sessão do dia", icon: Dumbbell, section: "MANHÃ", time: "06:50" },
-  { id: "sol", label: "Sol pós-treino", detail: "10-20min sem celular", icon: Sun, section: "MANHÃ", time: "08:00" },
-  { id: "pos_treino", label: "Pós-treino", detail: "Proteína + carbo + gordura", icon: Utensils, section: "MANHÃ", time: "08:30" },
-  // TRABALHO
-  { id: "agua_trabalho", label: "Hidratação no trabalho", detail: "Manter garrafão cheio", icon: Droplets, section: "TRABALHO", time: "—" },
-  { id: "almoco", label: "Almoço forte", detail: "Proteína + carboidrato complexo", icon: Utensils, section: "TRABALHO", time: "12:00" },
-  { id: "lanche", label: "Lanche da tarde", detail: "Frutas ou whey", icon: Utensils, section: "TRABALHO", time: "15:00" },
-  // JIU-JITSU
-  { id: "pre_jiu", label: "Pré-Jiu", detail: "Banana ou arroz 30min antes", icon: Flame, section: "JIU-JITSU", time: "17:30" },
-  { id: "jiu", label: "Treino Jiu-Jitsu", detail: "Sessão completa", icon: Dumbbell, section: "JIU-JITSU", time: "18:00" },
-  { id: "pos_jiu", label: "Pós-Jiu", detail: "Proteína + recuperação", icon: Utensils, section: "JIU-JITSU", time: "19:30" },
-  // NOITE
-  { id: "desacelerar", label: "Desacelerar digital", detail: "Telas off, dopamina resetar", icon: Smartphone, section: "NOITE", time: "22:00" },
-  { id: "dormir", label: "Dormir", detail: "Luzes apagadas", icon: Moon, section: "NOITE", time: "22:30" },
-];
-
-const sections = ["MANHÃ", "TRABALHO", "JIU-JITSU", "NOITE"];
-
-const sectionColors: Record<string, string> = {
-  "MANHÃ": "text-amber-400",
-  "TRABALHO": "text-blue-400",
-  "JIU-JITSU": "text-cyan-400",
-  "NOITE": "text-violet-400",
-};
-
-const motivationalPhrases = [
-  "O dia começa agora. Cada check é um voto.",
-  "Rotina alimentada. Continue no ritmo.",
-  "Mais da metade. Você não para no meio.",
-  "Quase lá. Disciplina é liberdade.",
-  "Protocolo completo. Você é a máquina.",
-];
-
-const getPhrase = (pct: number) => {
-  if (pct === 0) return motivationalPhrases[0];
-  if (pct < 40) return motivationalPhrases[1];
-  if (pct < 60) return motivationalPhrases[2];
-  if (pct < 100) return motivationalPhrases[3];
-  return motivationalPhrases[4];
+const getTodayIndex = () => {
+  const d = new Date().getDay();
+  return d === 0 ? 6 : d - 1;
 };
 
 const Checklist = () => {
+  const [selectedDay, setSelectedDay] = useState(getTodayIndex());
   const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  const day = rotinaSemanal[selectedDay];
+  const totalItems = day.items.length;
+  const doneItems = day.items.filter((i) => checked.has(i.id)).length;
+  const pct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
 
   const toggle = (id: string) => {
     setChecked((prev) => {
@@ -68,23 +27,76 @@ const Checklist = () => {
     });
   };
 
-  const completedCount = checked.size;
-  const totalCount = checklistItems.length;
-  const pct = Math.round((completedCount / totalCount) * 100);
+  const phrases = [
+    "O dia começa agora. Cada check é um voto.",
+    "Rotina alimentada. Continue no ritmo.",
+    "Mais da metade. Você não para no meio.",
+    "Quase lá. Disciplina é liberdade.",
+    "Protocolo completo. Você é a máquina.",
+  ];
+  const getPhrase = (p: number) => {
+    if (p === 0) return phrases[0];
+    if (p < 40) return phrases[1];
+    if (p < 60) return phrases[2];
+    if (p < 100) return phrases[3];
+    return phrases[4];
+  };
 
   return (
-    <div className="p-4 space-y-5">
+    <div className="p-4 space-y-4">
+      {/* Day selector */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+        {rotinaSemanal.map((d, i) => {
+          const isToday = i === getTodayIndex();
+          const isSelected = i === selectedDay;
+          return (
+            <button
+              key={i}
+              onClick={() => {
+                setSelectedDay(i);
+                setChecked(new Set());
+              }}
+              className="shrink-0 px-3 py-2 rounded-lg border font-mono text-[10px] font-bold tracking-wider transition-all duration-200 active:scale-95"
+              style={
+                isSelected
+                  ? { color: d.pillColor, borderColor: d.pillBorder, background: d.pillBg }
+                  : { borderColor: "hsl(var(--border))", color: "hsl(var(--muted-foreground))" }
+              }
+            >
+              <div>{d.dayShort}</div>
+              {isToday && (
+                <div className="w-1 h-1 rounded-full bg-primary mx-auto mt-1" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Progress header */}
       <motion.div
+        key={selectedDay}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         className="surface-card p-5 border-glow"
       >
-        <div className="flex items-center justify-between mb-2">
-          <p className="font-mono text-xs text-muted-foreground tracking-widest">ROTINA DIÁRIA</p>
-          <span className="font-mono text-xs text-primary font-bold">{completedCount}/{totalCount}</span>
+        <div className="flex items-center justify-between mb-1">
+          <div>
+            <p className="font-mono text-xs text-muted-foreground tracking-widest">ROTINA — {day.dayLabel.toUpperCase()}</p>
+            <div className="flex gap-1.5 mt-1.5 flex-wrap">
+              {day.badges.map((b) => (
+                <span
+                  key={b.label}
+                  className="text-[9px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-md"
+                  style={{ color: b.color, background: b.bg }}
+                >
+                  {b.label}
+                </span>
+              ))}
+            </div>
+          </div>
+          <span className="font-mono text-xs text-primary font-bold">{doneItems}/{totalItems}</span>
         </div>
-        <div className="w-full bg-secondary rounded-full h-2">
+        <div className="w-full bg-secondary rounded-full h-2 mt-3">
           <motion.div
             className="bg-primary h-2 rounded-full"
             initial={{ width: 0 }}
@@ -100,73 +112,76 @@ const Checklist = () => {
         </div>
       </motion.div>
 
-      {/* Sections */}
-      {sections.map((section) => {
-        const items = checklistItems.filter((i) => i.section === section);
-        const sectionDone = items.filter((i) => checked.has(i.id)).length;
+      {/* Timeline */}
+      <div className="space-y-1">
+        {day.items.map((item, i) => {
+          const isDone = checked.has(item.id);
+          return (
+            <motion.button
+              key={item.id}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.02 }}
+              onClick={() => toggle(item.id)}
+              className={`w-full surface-card px-4 py-3 flex items-start gap-3 transition-all duration-200 text-left active:scale-[0.98] ${
+                isDone ? "opacity-50" : ""
+              }`}
+            >
+              {/* Check circle */}
+              <div
+                className="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all"
+                style={
+                  isDone
+                    ? { background: "hsl(var(--primary))", borderColor: "hsl(var(--primary))" }
+                    : { borderColor: "hsl(var(--muted-foreground) / 0.3)" }
+                }
+              >
+                <AnimatePresence>
+                  {isDone && (
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                      <Check size={14} className="text-primary-foreground" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
-        return (
-          <div key={section}>
-            <div className="flex items-center gap-2 mb-2 px-1">
-              <span className={`font-mono text-[10px] font-bold tracking-widest ${sectionColors[section]}`}>
-                {section}
+              {/* Time */}
+              <span className="font-mono text-xs text-muted-foreground w-11 shrink-0 mt-0.5" style={item.alert ? { color: "#F5C542" } : undefined}>
+                {item.time}
               </span>
-              <span className="font-mono text-[9px] text-muted-foreground/50">
-                {sectionDone}/{items.length}
-              </span>
-              <div className="flex-1 h-px bg-border" />
-            </div>
 
-            <div className="space-y-1">
-              {items.map((item, i) => {
-                const Icon = item.icon;
-                const isDone = checked.has(item.id);
-                return (
-                  <motion.button
-                    key={item.id}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.02 }}
-                    onClick={() => toggle(item.id)}
-                    className={`w-full surface-card px-4 py-3 flex items-center gap-3 transition-all duration-200 text-left active:scale-[0.98] ${
-                      isDone ? "opacity-50" : ""
-                    }`}
-                  >
-                    <div
-                      className={`w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
-                        isDone ? "bg-primary border-primary" : "border-muted-foreground/30"
-                      }`}
-                    >
-                      <AnimatePresence>
-                        {isDone && (
-                          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                            <Check size={14} className="text-primary-foreground" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
+              {/* Dot */}
+              <div
+                className="w-2 h-2 rounded-full shrink-0 mt-2"
+                style={{ background: item.dotColor, boxShadow: item.alert ? `0 0 6px ${item.dotColor}` : undefined }}
+              />
 
-                    <span className="font-mono text-xs text-muted-foreground w-11 shrink-0">
-                      {item.time}
-                    </span>
-
-                    <Icon size={16} className={isDone ? "text-primary" : "text-muted-foreground"} />
-
-                    <div className="flex-1 min-w-0">
-                      <span className={`font-mono text-sm block ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                        {item.label}
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <span className={`font-mono text-sm block ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                  {item.label}
+                </span>
+                <span className="font-mono text-[10px] text-muted-foreground/60 block mt-0.5">
+                  {item.detail}
+                </span>
+                {item.tags && item.tags.length > 0 && (
+                  <div className="flex gap-1 flex-wrap mt-1.5">
+                    {item.tags.map((t) => (
+                      <span
+                        key={t.label}
+                        className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                        style={{ color: t.color, background: `${t.color}15` }}
+                      >
+                        {t.label}
                       </span>
-                      <span className="font-mono text-[10px] text-muted-foreground/60 block">
-                        {item.detail}
-                      </span>
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.button>
+          );
+        })}
+      </div>
     </div>
   );
 };

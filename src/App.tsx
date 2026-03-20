@@ -8,7 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import Checklist from "@/pages/Checklist";
 import Treino from "@/pages/Treino";
 import Sono from "@/pages/Sono";
-import Historico from "@/pages/Historico";
+import Perfil from "@/pages/Perfil";
 import Config from "@/pages/Config";
 import Tarefas from "@/pages/Tarefas";
 import Biblia from "@/pages/Biblia";
@@ -30,7 +30,7 @@ const App = () => (
             <Route path="/rotina" element={<Checklist />} />
             <Route path="/treino" element={<Treino />} />
             <Route path="/sono" element={<Sono />} />
-            <Route path="/historico" element={<Historico />} />
+            <Route path="/perfil" element={<Perfil />} />
             <Route path="/config" element={<Config />} />
             <Route path="/tarefas" element={<Tarefas />} />
             <Route path="/biblia" element={<Biblia />} />

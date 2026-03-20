@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   CheckSquare,
   Dumbbell,
@@ -7,18 +8,26 @@ import {
   Droplets,
   TrendingUp,
   Zap,
+  BookOpen,
+  ChevronRight,
 } from "lucide-react";
+import { rotinaSemanal } from "@/data/rotina-diaria";
+import { weekPlan } from "@/data/treino-plano";
+
+const getTodayIndex = () => {
+  const d = new Date().getDay();
+  return d === 0 ? 6 : d - 1;
+};
 
 const pillars = [
-  { name: "Checklist", icon: CheckSquare, weight: 35, score: 28, color: "text-primary" },
-  { name: "Treino", icon: Dumbbell, weight: 25, score: 20, color: "text-primary" },
-  { name: "Sono", icon: Moon, weight: 20, score: 14, color: "text-score-medium" },
-  { name: "Sol", icon: Sun, weight: 10, score: 8, color: "text-primary" },
-  { name: "Hidratação", icon: Droplets, weight: 10, score: 10, color: "text-primary" },
+  { name: "Checklist", icon: CheckSquare, weight: 35, score: 0, color: "text-primary" },
+  { name: "Treino", icon: Dumbbell, weight: 25, score: 0, color: "text-primary" },
+  { name: "Sono", icon: Moon, weight: 20, score: 0, color: "text-score-medium" },
+  { name: "Sol", icon: Sun, weight: 10, score: 0, color: "text-primary" },
+  { name: "Hidratação", icon: Droplets, weight: 10, score: 0, color: "text-primary" },
 ];
 
 const totalScore = pillars.reduce((acc, p) => acc + p.score, 0);
-const maxScore = 100;
 
 const getScoreColor = (score: number) => {
   if (score >= 85) return "text-score-excellent";
@@ -28,102 +37,171 @@ const getScoreColor = (score: number) => {
   return "text-score-critical";
 };
 
-const dailyFlow = [
-  { time: "05:40", task: "Acordar + Sol", done: true },
-  { time: "06:00", task: "Treino Musculação", done: true },
-  { time: "07:30", task: "Primeira refeição", done: true },
-  { time: "10:00", task: "Hidratação 1L", done: false },
-  { time: "12:00", task: "Almoço protocolo", done: false },
-  { time: "15:00", task: "Treino Jiu-Jitsu", done: false },
-  { time: "19:00", task: "Última refeição", done: false },
-  { time: "21:00", task: "Rotina do sono", done: false },
-  { time: "22:30", task: "Apagar luzes", done: false },
-];
-
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const todayIdx = getTodayIndex();
+  const todayRoutine = rotinaSemanal[todayIdx];
+  const todayTraining = weekPlan[todayIdx];
+
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return "Bom dia";
+    if (h < 18) return "Boa tarde";
+    return "Boa noite";
+  };
+
   return (
-    <div className="p-4 space-y-6">
-      {/* Score Principal */}
+    <div className="p-4 space-y-4">
+      {/* Greeting */}
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="surface-card p-6 text-center border-glow"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-3"
       >
-        <p className="font-mono text-xs text-muted-foreground tracking-widest mb-2">SCORE SEMANAL</p>
+        <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center">
+          <span className="font-mono text-lg font-extrabold text-primary">EB</span>
+        </div>
+        <div>
+          <p className="font-mono text-sm text-foreground font-bold">{greeting()}, Emerson</p>
+          <p className="font-mono text-[11px] text-muted-foreground">
+            {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Score */}
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.05 }}
+        className="surface-card p-5 text-center border-glow"
+      >
+        <p className="font-mono text-[10px] text-muted-foreground tracking-widest mb-1">SCORE SEMANAL</p>
         <div className="flex items-baseline justify-center gap-1">
-          <span className={`font-mono font-extrabold text-6xl ${getScoreColor(totalScore)} text-glow`}>
+          <span className={`font-mono font-extrabold text-5xl ${getScoreColor(totalScore)} text-glow`}>
             {totalScore}
           </span>
-          <span className="font-mono text-lg text-muted-foreground">/{maxScore}</span>
+          <span className="font-mono text-lg text-muted-foreground">/100</span>
         </div>
-        <div className="flex items-center justify-center gap-2 mt-3">
-          <TrendingUp size={14} className="text-primary" />
-          <span className="font-mono text-xs text-primary">+5 vs semana anterior</span>
+        <p className="font-mono text-[10px] text-muted-foreground mt-2">Complete rotina e treino para subir o score</p>
+      </motion.div>
+
+      {/* Stories-style progress circles */}
+      <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
+        {[
+          { label: "Rotina", pct: 0, color: "#F5C542", path: "/rotina" },
+          { label: "Treino", pct: 0, color: "#F87171", path: "/treino" },
+          { label: "Bíblia", pct: 0, color: "#C084FC", path: "/biblia" },
+          { label: "Sono", pct: 0, color: "#60A5FA", path: "/sono" },
+        ].map((s, i) => (
+          <motion.button
+            key={s.label}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 + i * 0.04 }}
+            onClick={() => navigate(s.path)}
+            className="flex flex-col items-center gap-1.5 shrink-0 active:scale-95 transition-transform"
+          >
+            <div className="w-14 h-14 rounded-full flex items-center justify-center relative">
+              <svg className="w-full h-full -rotate-90 absolute" viewBox="0 0 56 56">
+                <circle cx="28" cy="28" r="25" fill="none" stroke="hsl(var(--secondary))" strokeWidth="3" />
+                <circle
+                  cx="28" cy="28" r="25" fill="none"
+                  stroke={s.color}
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 25}`}
+                  strokeDashoffset={`${2 * Math.PI * 25 * (1 - s.pct / 100)}`}
+                />
+              </svg>
+              <span className="font-mono text-[11px] font-bold text-foreground">{s.pct}%</span>
+            </div>
+            <span className="font-mono text-[9px] text-muted-foreground tracking-wider uppercase">{s.label}</span>
+          </motion.button>
+        ))}
+      </div>
+
+      {/* Today's training card */}
+      <motion.button
+        initial={{ opacity: 0, x: -8 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.15 }}
+        onClick={() => navigate("/treino")}
+        className="w-full surface-card p-4 text-left active:scale-[0.98] transition-transform"
+        style={{ borderColor: todayTraining.exercises.length > 0 ? undefined : "hsl(var(--border))" }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">{todayTraining.emoji}</span>
+            <div>
+              <p className={`font-mono text-sm font-bold ${todayTraining.colorClass}`}>
+                {todayTraining.type} {todayTraining.focus}
+              </p>
+              <p className="font-mono text-[10px] text-muted-foreground">
+                {todayTraining.exercises.length > 0
+                  ? `${todayTraining.exercises.length} exercícios · ${todayTraining.jiuType || ""}`
+                  : todayTraining.jiuType || "Descanso"
+                }
+              </p>
+            </div>
+          </div>
+          <ChevronRight size={18} className="text-muted-foreground" />
+        </div>
+      </motion.button>
+
+      {/* Today's routine preview */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="surface-card p-4"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Zap size={14} className="text-accent" />
+            <p className="font-mono text-[10px] font-bold tracking-widest text-muted-foreground">ROTINA DE HOJE</p>
+          </div>
+          <button onClick={() => navigate("/rotina")} className="font-mono text-[10px] text-primary active:scale-95">
+            VER TUDO →
+          </button>
+        </div>
+        <div className="space-y-1">
+          {todayRoutine.items.slice(0, 5).map((item, i) => (
+            <div key={item.id} className="flex items-center gap-3 py-1.5">
+              <span className="font-mono text-[11px] text-muted-foreground w-10 shrink-0" style={item.alert ? { color: "#F5C542" } : undefined}>
+                {item.time}
+              </span>
+              <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: item.dotColor }} />
+              <span className="font-mono text-[12px] text-foreground truncate">{item.label}</span>
+            </div>
+          ))}
         </div>
       </motion.div>
 
       {/* Pilares */}
       <div>
-        <h2 className="font-mono text-xs text-muted-foreground tracking-widest mb-3 px-1">PILARES</h2>
-        <div className="grid grid-cols-5 gap-2">
+        <p className="font-mono text-[10px] text-muted-foreground tracking-widest mb-2 px-1">PILARES</p>
+        <div className="grid grid-cols-5 gap-1.5">
           {pillars.map((p, i) => {
             const Icon = p.icon;
-            const pct = Math.round((p.score / p.weight) * 100);
+            const pct = p.weight > 0 ? Math.round((p.score / p.weight) * 100) : 0;
             return (
               <motion.div
                 key={p.name}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="surface-card p-3 flex flex-col items-center gap-2"
+                transition={{ delay: 0.25 + i * 0.03 }}
+                className="surface-card p-2.5 flex flex-col items-center gap-1.5"
               >
-                <Icon size={18} className={p.color} />
-                <span className={`font-mono text-lg font-bold ${p.color}`}>{p.score}</span>
+                <Icon size={16} className={p.color} />
+                <span className={`font-mono text-sm font-bold ${p.color}`}>{p.score}</span>
                 <div className="w-full bg-secondary rounded-full h-1">
-                  <div
-                    className="bg-primary h-1 rounded-full transition-all"
-                    style={{ width: `${pct}%` }}
-                  />
+                  <div className="bg-primary h-1 rounded-full" style={{ width: `${pct}%` }} />
                 </div>
-                <span className="font-mono text-[9px] text-muted-foreground tracking-wider">
-                  {p.name.toUpperCase()}
-                </span>
+                <span className="font-mono text-[8px] text-muted-foreground tracking-wider">{p.name.toUpperCase()}</span>
               </motion.div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Fluxo do Dia */}
-      <div>
-        <div className="flex items-center gap-2 mb-3 px-1">
-          <Zap size={14} className="text-accent" />
-          <h2 className="font-mono text-xs text-muted-foreground tracking-widest">FLUXO DO DIA</h2>
-        </div>
-        <div className="space-y-1">
-          {dailyFlow.map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.03 }}
-              className={`surface-card px-4 py-3 flex items-center gap-3 ${
-                item.done ? "opacity-60" : ""
-              }`}
-            >
-              <span className="font-mono text-xs text-muted-foreground w-12 shrink-0">
-                {item.time}
-              </span>
-              <div className={`w-2 h-2 rounded-full shrink-0 ${
-                item.done ? "bg-primary" : "bg-secondary"
-              }`} />
-              <span className={`font-mono text-sm ${
-                item.done ? "line-through text-muted-foreground" : "text-foreground"
-              }`}>
-                {item.task}
-              </span>
-            </motion.div>
-          ))}
         </div>
       </div>
     </div>
