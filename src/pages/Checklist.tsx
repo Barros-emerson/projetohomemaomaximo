@@ -85,8 +85,7 @@ const Checklist = () => {
     });
   };
 
-  const openEdit = (item: RotinaItem, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const openEdit = (item: RotinaItem) => {
     setEditingItem(item.id);
     setEditTimeValue(realTimes[item.id] || item.time);
   };
