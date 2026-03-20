@@ -10,6 +10,7 @@ import {
   StickyNote,
   X,
   ClipboardList,
+  BookOpen,
 } from "lucide-react";
 
 const mainTabs = [
@@ -27,7 +28,6 @@ export const BottomNav = () => {
 
   return (
     <>
-      {/* FAB quick actions overlay */}
       <AnimatePresence>
         {showFab && (
           <motion.div
@@ -38,55 +38,49 @@ export const BottomNav = () => {
             onClick={() => setShowFab(false)}
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-3"
+              initial={{ scale: 0.85, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-2.5"
               onClick={(e) => e.stopPropagation()}
             >
-              <button
-                onClick={() => { navigate("/rotina"); setShowFab(false); }}
-                className="surface-card border-glow px-5 py-3 flex items-center gap-2 text-accent font-mono text-xs font-bold tracking-wider active:scale-95 transition-transform"
-              >
-                <Zap size={16} />
-                CHECK
-              </button>
-              <button
-                onClick={() => { navigate("/notas"); setShowFab(false); }}
-                className="surface-card border-glow px-5 py-3 flex items-center gap-2 text-primary font-mono text-xs font-bold tracking-wider active:scale-95 transition-transform"
-              >
-                <StickyNote size={16} />
-                NOTA
-              </button>
-              <button
-                onClick={() => { navigate("/tarefas"); setShowFab(false); }}
-                className="surface-card border-glow px-5 py-3 flex items-center gap-2 font-mono text-xs font-bold tracking-wider active:scale-95 transition-transform text-blue-400"
-              >
-                <ClipboardList size={16} />
-                TAREFA
-              </button>
+              {[
+                { path: "/rotina", icon: Zap, label: "CHECK", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
+                { path: "/biblia", icon: BookOpen, label: "BÍBLIA", color: "text-violet-400", bg: "bg-violet-400/10 border-violet-400/20" },
+                { path: "/notas", icon: StickyNote, label: "NOTA", color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/20" },
+                { path: "/tarefas", icon: ClipboardList, label: "TAREFA", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
+              ].map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => { navigate(item.path); setShowFab(false); }}
+                  className={`${item.bg} border rounded-2xl px-4 py-3 flex flex-col items-center gap-1.5 ${item.color} font-mono text-[9px] font-bold tracking-wider active:scale-95 transition-transform`}
+                >
+                  <item.icon size={18} />
+                  {item.label}
+                </button>
+              ))}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Bottom nav bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/90 backdrop-blur-xl">
-        <div className="max-w-lg mx-auto flex items-center justify-around py-1.5">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl safe-area-bottom">
+        <div className="max-w-lg mx-auto flex items-center justify-around py-2">
           {mainTabs.map((item) => {
             if (item.path === "__fab__") {
               return (
                 <button
                   key="fab"
                   onClick={() => setShowFab(!showFab)}
-                  className={`w-12 h-12 -mt-5 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 ${
+                  className={`w-12 h-12 -mt-6 rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-90 ${
                     showFab
-                      ? "bg-muted text-muted-foreground"
-                      : "bg-primary text-primary-foreground shadow-lg"
+                      ? "bg-muted text-muted-foreground rotate-45"
+                      : "bg-primary text-primary-foreground"
                   }`}
-                  style={!showFab ? { boxShadow: "0 4px 20px hsl(142 72% 50% / 0.4)" } : undefined}
+                  style={!showFab ? { boxShadow: "0 4px 20px hsl(152 60% 52% / 0.3)" } : undefined}
                 >
-                  {showFab ? <X size={22} /> : <Plus size={22} strokeWidth={3} />}
+                  {showFab ? <X size={20} /> : <Plus size={20} strokeWidth={2.5} />}
                 </button>
               );
             }
@@ -97,12 +91,12 @@ export const BottomNav = () => {
               <button
                 key={item.path}
                 onClick={() => { navigate(item.path); setShowFab(false); }}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-all duration-200 active:scale-95 ${
-                  isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                className={`flex flex-col items-center gap-1 px-4 py-1 rounded-xl transition-all duration-200 active:scale-95 ${
+                  isActive ? "text-primary" : "text-muted-foreground"
                 }`}
               >
-                <Icon size={20} strokeWidth={isActive ? 2.5 : 1.5} />
-                <span className="text-[10px] font-mono font-medium tracking-wider">
+                <Icon size={20} strokeWidth={isActive ? 2.2 : 1.5} />
+                <span className="text-[9px] font-medium tracking-wider">
                   {item.label.toUpperCase()}
                 </span>
               </button>

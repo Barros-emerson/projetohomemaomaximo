@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Square, Timer, ChevronRight, Check, Minus } from "lucide-react";
+import { Play, Square, Timer, ChevronRight, Check, Minus, Camera, X, Image as ImageIcon } from "lucide-react";
 import { weekPlan, type TrainingDay } from "@/data/treino-plano";
+import { toast } from "sonner";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
-  return d === 0 ? 6 : d - 1; // 0=seg
+  return d === 0 ? 6 : d - 1;
 };
 
 const RestTimer = ({
@@ -79,11 +80,19 @@ const Treino = () => {
   const [workoutTime, setWorkoutTime] = useState(0);
   const [showTimer, setShowTimer] = useState(false);
   const [restSeconds, setRestSeconds] = useState(90);
+  const [photos, setPhotos] = useState<string[]>(() => {
+    const saved = localStorage.getItem("ham-treino-photos-today");
+    if (saved) {
+      try { return JSON.parse(saved); } catch { return []; }
+    }
+    return [];
+  });
+  const [showPhotos, setShowPhotos] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const day = weekPlan[selectedDay];
   const isOff = day.exercises.length === 0;
 
-  // Workout clock
   useEffect(() => {
     if (!workoutActive) return;
     const t = setInterval(() => setWorkoutTime((s) => s + 1), 1000);
@@ -96,7 +105,6 @@ const Treino = () => {
       if (exSets.has(setIdx)) exSets.delete(setIdx);
       else {
         exSets.add(setIdx);
-        // Show rest timer
         const isForca = day.focus === "FORÇA";
         setRestSeconds(isForca ? 90 : 60);
         setShowTimer(true);
@@ -112,6 +120,31 @@ const Treino = () => {
     }));
   };
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotos(prev => {
+          const updated = [...prev, reader.result as string];
+          localStorage.setItem("ham-treino-photos-today", JSON.stringify(updated));
+          return updated;
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    toast.success("Foto adicionada! 💪");
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(prev => {
+      const updated = prev.filter((_, i) => i !== index);
+      localStorage.setItem("ham-treino-photos-today", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const totalSets = day.exercises.reduce((a, e) => a + parseInt(e.sets), 0);
   const doneSets = Object.values(completedSets).reduce((a, s) => a + s.size, 0);
 
@@ -121,9 +154,9 @@ const Treino = () => {
   };
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 pb-24">
       {/* Day selector */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
         {weekPlan.map((d, i) => {
           const isToday = i === getTodayIndex();
           const isSelected = i === selectedDay;
@@ -131,7 +164,7 @@ const Treino = () => {
             <button
               key={i}
               onClick={() => setSelectedDay(i)}
-              className={`shrink-0 px-3 py-2 rounded-lg border font-mono text-[10px] font-bold tracking-wider transition-all duration-200 active:scale-95 ${
+              className={`shrink-0 px-3 py-2 rounded-xl border font-mono text-[10px] font-bold tracking-wider transition-all duration-200 active:scale-95 ${
                 isSelected
                   ? `${d.bgClass} ${d.borderClass} ${d.colorClass}`
                   : "border-border text-muted-foreground hover:border-muted-foreground/30"
@@ -160,7 +193,7 @@ const Treino = () => {
               {day.label} — {day.type} {day.focus}
             </h2>
             {!isOff && (
-              <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
+              <p className="text-[10px] text-muted-foreground mt-0.5">
                 {day.exercises.length} exercícios · Descanso{" "}
                 {day.focus === "FORÇA" ? "90s" : "60s"}
               </p>
@@ -173,7 +206,7 @@ const Treino = () => {
             {!workoutActive ? (
               <button
                 onClick={() => setWorkoutActive(true)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs font-bold tracking-wider transition-all active:scale-95 ${day.bgClass} ${day.colorClass} border ${day.borderClass}`}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold tracking-wider transition-all active:scale-95 ${day.bgClass} ${day.colorClass} border ${day.borderClass}`}
               >
                 <Play size={14} />
                 INICIAR TREINO
@@ -188,7 +221,7 @@ const Treino = () => {
                 </div>
                 <button
                   onClick={() => setWorkoutActive(false)}
-                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive/10 border border-destructive/25 text-destructive font-mono text-[10px] font-bold tracking-wider active:scale-95"
+                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-destructive/10 border border-destructive/25 text-destructive font-mono text-[10px] font-bold tracking-wider active:scale-95"
                 >
                   <Square size={12} />
                   FINALIZAR
@@ -198,6 +231,68 @@ const Treino = () => {
           </div>
         )}
       </motion.div>
+
+      {/* Photo upload section */}
+      {!isOff && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08 }}
+          className="surface-card p-4"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Camera size={16} className="text-primary" />
+              <span className="text-[10px] font-mono font-bold tracking-widest text-muted-foreground">FOTOS DO TREINO</span>
+            </div>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="text-[10px] font-mono text-primary font-medium active:scale-95 flex items-center gap-1"
+            >
+              <Camera size={12} />
+              ADICIONAR
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handlePhotoUpload}
+            />
+          </div>
+
+          {photos.length === 0 ? (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full py-8 rounded-xl border-2 border-dashed border-border hover:border-primary/30 transition-colors flex flex-col items-center gap-2"
+            >
+              <ImageIcon size={24} className="text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Toque para adicionar fotos</span>
+            </button>
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {photos.map((photo, i) => (
+                <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
+                  <img src={photo} alt={`Treino ${i + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => removePhoto(i)}
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-background/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X size={12} className="text-foreground" />
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="aspect-square rounded-xl border-2 border-dashed border-border hover:border-primary/30 transition-colors flex items-center justify-center"
+              >
+                <Camera size={20} className="text-muted-foreground" />
+              </button>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* Exercises or OFF content */}
       {isOff ? (
@@ -227,11 +322,11 @@ const Treino = () => {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <span className="font-mono text-sm font-bold text-foreground">
+                    <span className="text-sm font-semibold text-foreground">
                       {ex.name}
                     </span>
                     {ex.equipment && (
-                      <span className="font-mono text-[10px] text-muted-foreground ml-2">
+                      <span className="text-[10px] text-muted-foreground ml-2">
                         {ex.equipment}
                       </span>
                     )}
@@ -249,7 +344,7 @@ const Treino = () => {
                         <div key={si} className="flex items-center gap-1.5">
                           <button
                             onClick={() => toggleSet(ex.id, si)}
-                            className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center font-mono text-sm font-bold transition-all active:scale-90 ${
+                            className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center font-mono text-sm font-bold transition-all active:scale-90 ${
                               done
                                 ? `bg-primary border-primary text-primary-foreground`
                                 : `border-muted-foreground/20 text-muted-foreground hover:border-muted-foreground/40`
@@ -263,7 +358,7 @@ const Treino = () => {
                               placeholder="kg"
                               value={loads[ex.id]?.[si] || ""}
                               onChange={(e) => setLoad(ex.id, si, e.target.value)}
-                              className="w-14 h-10 rounded-lg bg-secondary border border-border text-center font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary"
+                              className="w-14 h-10 rounded-xl bg-secondary border border-border text-center font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary"
                             />
                           )}
                         </div>
