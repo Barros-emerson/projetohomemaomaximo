@@ -344,20 +344,31 @@ const Biblia = () => {
           value={reflexao}
           onChange={e => setReflexao(e.target.value)}
           placeholder="O que Deus falou com você hoje? Escreva aqui sua reflexão..."
-          className="bg-secondary/50 border-border text-sm min-h-[100px] resize-none focus:border-violet-500/50"
+          className="bg-secondary/50 border-border text-sm min-h-[80px] resize-none focus:border-violet-500/50 rounded-xl"
         />
-        <div className="flex gap-2">
+        <div className="mt-3">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[10px] font-mono text-amber-400 tracking-widest">📝 ANOTAÇÕES PARA CAMILA</span>
+          </div>
+          <Textarea
+            value={anotacoes}
+            onChange={e => setAnotacoes(e.target.value)}
+            placeholder="Pontos-chave, versículos marcantes, insights... Tudo aqui vira parte do resumo enviado para Camila."
+            className="bg-secondary/50 border-border text-sm min-h-[60px] resize-none focus:border-amber-500/50 rounded-xl"
+          />
+        </div>
+        <div className="flex gap-2 mt-3">
           <Button
             size="sm"
-            className="bg-violet-600 hover:bg-violet-700 text-white text-xs"
+            className="bg-violet-600 hover:bg-violet-700 text-white text-xs rounded-xl"
             onClick={salvarReflexao}
           >
-            Salvar reflexão
+            Salvar tudo
           </Button>
           <Button
             size="sm"
             variant="outline"
-            className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10"
+            className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10 rounded-xl"
             onClick={enviarParaCamila}
           >
             <Send size={12} className="mr-1" />
