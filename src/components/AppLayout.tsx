@@ -14,7 +14,7 @@ export const AppLayout = () => {
               <span className="font-mono text-primary-foreground font-extrabold text-sm">M</span>
             </div>
             <span className="font-mono font-bold text-sm tracking-widest text-foreground">
-              MAQUINA<span className="text-primary">OS</span>
+              HOMEM AO <span className="text-primary">MÁXIMO</span>
             </span>
           </div>
           <div className="font-mono text-xs text-muted-foreground">
