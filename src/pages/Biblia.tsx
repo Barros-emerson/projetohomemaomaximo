@@ -23,6 +23,7 @@ const Biblia = () => {
     return init;
   });
   const [reflexao, setReflexao] = useState(() => localStorage.getItem("ham-biblia-reflexao-hoje") || "");
+  const [anotacoes, setAnotacoes] = useState(() => localStorage.getItem("ham-biblia-anotacoes-hoje") || "");
   const [oracaoTab, setOracaoTab] = useState("gratidao");
   const [oracoes, setOracoes] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem("ham-biblia-oracoes");
