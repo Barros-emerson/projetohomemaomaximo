@@ -42,7 +42,7 @@ export const BottomNav = () => {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.85, opacity: 0, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-2.5 justify-center w-max"
+              className="absolute bottom-24 left-0 right-0 flex gap-2 justify-center px-4"
               onClick={(e) => e.stopPropagation()}
             >
               {[
