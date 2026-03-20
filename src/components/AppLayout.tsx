@@ -5,21 +5,6 @@ import { motion } from "framer-motion";
 
 export const AppLayout = () => {
   const location = useLocation();
-  const [userPhoto, setUserPhoto] = useState<string | null>(() =>
-    localStorage.getItem("ham-user-photo")
-  );
-
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      setUserPhoto(result);
-      localStorage.setItem("ham-user-photo", result);
-    };
-    reader.readAsDataURL(file);
-  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
