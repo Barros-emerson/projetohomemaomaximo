@@ -13,7 +13,7 @@ export const AppLayout = () => {
       <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl px-4 py-3">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <span className="font-semibold text-sm tracking-tight text-foreground">
-            HOMEM AO <span className="text-gradient font-bold">MÁXIMO</span>
+            PROJETO <span className="text-gradient font-bold">ALFA 1000</span>
           </span>
           <div className="flex items-center gap-3">
             <button
