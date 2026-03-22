@@ -13,7 +13,6 @@ export const AppLayout = () => {
       <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl px-4 py-3">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex items-center gap-2">
-            <img src="/logo-alfa1000.png" alt="Alfa 1000" className="w-7 h-7" />
             <span className="font-semibold text-sm tracking-tight text-foreground">
               PROJETO <span className="text-gradient font-bold">ALFA 1000</span>
             </span>
