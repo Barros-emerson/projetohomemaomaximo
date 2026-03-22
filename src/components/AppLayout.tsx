@@ -1,9 +1,12 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
 import { motion } from "framer-motion";
+import { useTheme } from "./ThemeProvider";
+import { Sun, Moon } from "lucide-react";
 
 export const AppLayout = () => {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -12,8 +15,16 @@ export const AppLayout = () => {
           <span className="font-semibold text-sm tracking-tight text-foreground">
             HOMEM AO <span className="text-gradient font-bold">MÁXIMO</span>
           </span>
-          <div className="font-mono text-[10px] text-muted-foreground tracking-wider">
-            {new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase().replace('.', '')}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleTheme}
+              className="w-8 h-8 rounded-lg flex items-center justify-center bg-secondary text-foreground hover:bg-secondary/80 transition-colors active:scale-90"
+            >
+              {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
+            <div className="font-mono text-[10px] text-muted-foreground tracking-wider">
+              {new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase().replace('.', '')}
+            </div>
           </div>
         </div>
       </header>

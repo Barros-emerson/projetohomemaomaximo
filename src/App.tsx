@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import Checklist from "@/pages/Checklist";
@@ -20,27 +21,29 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/rotina" element={<Checklist />} />
-            <Route path="/treino" element={<Treino />} />
-            <Route path="/sono" element={<Sono />} />
-            <Route path="/perfil" element={<Perfil />} />
-            <Route path="/config" element={<Config />} />
-            <Route path="/tarefas" element={<Tarefas />} />
-            <Route path="/biblia" element={<Biblia />} />
-            <Route path="/notas" element={<Notas />} />
-            <Route path="/performance" element={<Performance />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/rotina" element={<Checklist />} />
+              <Route path="/treino" element={<Treino />} />
+              <Route path="/sono" element={<Sono />} />
+              <Route path="/perfil" element={<Perfil />} />
+              <Route path="/config" element={<Config />} />
+              <Route path="/tarefas" element={<Tarefas />} />
+              <Route path="/biblia" element={<Biblia />} />
+              <Route path="/notas" element={<Notas />} />
+              <Route path="/performance" element={<Performance />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

@@ -59,6 +59,57 @@
     --score-low: 20 75% 55%;
     --score-critical: 0 65% 55%;
   }
+
+  .light {
+    --background: 0 0% 97%;
+    --foreground: 240 10% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+
+    --primary: 152 55% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 92%;
+    --secondary-foreground: 240 5% 35%;
+
+    --muted: 240 5% 93%;
+    --muted-foreground: 240 4% 46%;
+
+    --accent: 38 92% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 88%;
+    --input: 240 6% 88%;
+    --ring: 152 55% 42%;
+
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 240 10% 10%;
+    --sidebar-primary: 152 55% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 94%;
+    --sidebar-accent-foreground: 240 5% 35%;
+    --sidebar-border: 240 6% 88%;
+    --sidebar-ring: 152 55% 42%;
+
+    --mod-rotina: 38 92% 50%;
+    --mod-treino: 0 75% 55%;
+    --mod-biblia: 270 50% 55%;
+    --mod-sono: 215 70% 50%;
+    --mod-saude: 152 55% 42%;
+
+    --score-excellent: 152 55% 42%;
+    --score-good: 80 50% 42%;
+    --score-medium: 38 85% 50%;
+    --score-low: 20 70% 48%;
+    --score-critical: 0 65% 50%;
+  }
 }
 
 @layer base {
@@ -96,10 +147,14 @@
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, hsl(152 60% 52%), hsl(152 60% 70%));
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(152 60% 70%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .light .surface-card {
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.06), 0 0 0 1px hsl(0 0% 0% / 0.03) inset;
   }
 
   .glow-primary {
