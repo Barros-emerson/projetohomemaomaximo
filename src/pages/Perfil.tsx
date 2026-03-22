@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 const STORAGE_KEY = "ham-perfil-data";
+const METRICS_KEY = "ham-perfil-metrics";
 
 interface ProfileData {
   name: string;
@@ -36,46 +37,70 @@ const loadProfile = (): ProfileData => {
   return saved ? { ...defaultProfile, ...JSON.parse(saved) } : defaultProfile;
 };
 
-const biometrics = [
-  { label: "Peso", value: "—", unit: "kg" },
-  { label: "Altura", value: "—", unit: "cm" },
-  { label: "% Gordura", value: "—", unit: "%" },
-  { label: "IMC", value: "Auto", unit: "" },
-  { label: "Cintura", value: "—", unit: "cm" },
-  { label: "Pescoço", value: "—", unit: "cm" },
-];
+interface MetricItem {
+  label: string;
+  value: string;
+  unit: string;
+  highlight?: boolean;
+}
 
-const hormones = [
-  { label: "Testo Total", value: "—", unit: "ng/dL", highlight: true },
-  { label: "Testo Livre", value: "—", unit: "pg/mL" },
-  { label: "SHBG", value: "—", unit: "nmol/L" },
-  { label: "Cortisol", value: "—", unit: "μg/dL" },
-  { label: "Vitamina D", value: "—", unit: "ng/mL" },
-  { label: "Zinco", value: "—", unit: "μg/dL" },
-];
+const defaultMetrics: Record<string, MetricItem[]> = {
+  biometrics: [
+    { label: "Peso", value: "—", unit: "kg" },
+    { label: "Altura", value: "—", unit: "cm" },
+    { label: "% Gordura", value: "—", unit: "%" },
+    { label: "IMC", value: "Auto", unit: "" },
+    { label: "Cintura", value: "—", unit: "cm" },
+    { label: "Pescoço", value: "—", unit: "cm" },
+  ],
+  hormones: [
+    { label: "Testo Total", value: "—", unit: "ng/dL", highlight: true },
+    { label: "Testo Livre", value: "—", unit: "pg/mL" },
+    { label: "SHBG", value: "—", unit: "nmol/L" },
+    { label: "Cortisol", value: "—", unit: "μg/dL" },
+    { label: "Vitamina D", value: "—", unit: "ng/mL" },
+    { label: "Zinco", value: "—", unit: "μg/dL" },
+  ],
+  strength: [
+    { label: "Supino Reto", value: "—", unit: "kg" },
+    { label: "Agachamento", value: "—", unit: "kg" },
+    { label: "Terra", value: "—", unit: "kg" },
+    { label: "Desenvolvimento", value: "—", unit: "kg" },
+  ],
+  goals: [
+    { label: "Meta Testo", value: "1.000", unit: "ng/dL", highlight: true },
+    { label: "Peso alvo", value: "—", unit: "kg" },
+    { label: "% Gordura alvo", value: "—", unit: "%" },
+    { label: "Meta de sono", value: "7:30", unit: "h/noite" },
+    { label: "Faixa Jiu", value: "Preta 2°", unit: "" },
+    { label: "Prazo", value: "6 meses", unit: "" },
+  ],
+  cardiac: [
+    { label: "FC Repouso", value: "—", unit: "bpm" },
+    { label: "FC Máxima", value: "—", unit: "bpm" },
+    { label: "HRV", value: "—", unit: "ms" },
+    { label: "VO2Max", value: "—", unit: "mL/kg/min" },
+  ],
+};
 
-const strength = [
-  { label: "Supino Reto", value: "—", unit: "kg" },
-  { label: "Agachamento", value: "—", unit: "kg" },
-  { label: "Terra", value: "—", unit: "kg" },
-  { label: "Desenvolvimento", value: "—", unit: "kg" },
-];
-
-const goals = [
-  { label: "Meta Testo", value: "1.000", unit: "ng/dL", highlight: true },
-  { label: "Peso alvo", value: "—", unit: "kg" },
-  { label: "% Gordura alvo", value: "—", unit: "%" },
-  { label: "Meta de sono", value: "7:30", unit: "h/noite" },
-  { label: "Faixa Jiu", value: "Preta 2°", unit: "" },
-  { label: "Prazo", value: "6 meses", unit: "" },
-];
-
-const cardiac = [
-  { label: "FC Repouso", value: "—", unit: "bpm" },
-  { label: "FC Máxima", value: "—", unit: "bpm" },
-  { label: "HRV", value: "—", unit: "ms" },
-  { label: "VO2Max", value: "—", unit: "mL/kg/min" },
-];
+const loadMetrics = (): Record<string, MetricItem[]> => {
+  const saved = localStorage.getItem(METRICS_KEY);
+  if (!saved) return defaultMetrics;
+  try {
+    const parsed = JSON.parse(saved);
+    // Merge with defaults to handle new fields
+    const result: Record<string, MetricItem[]> = {};
+    for (const key of Object.keys(defaultMetrics)) {
+      result[key] = defaultMetrics[key].map((def) => {
+        const saved = parsed[key]?.find((s: MetricItem) => s.label === def.label);
+        return saved ? { ...def, value: saved.value } : def;
+      });
+    }
+    return result;
+  } catch {
+    return defaultMetrics;
+  }
+};
 
 const sectionIcons: Record<string, React.ReactNode> = {
   "Biometria Atual": <User size={14} className="text-primary" />,
@@ -132,34 +157,89 @@ const CollapsibleSection = ({ title, icon, children, delay = 0, defaultOpen = fa
   );
 };
 
-interface FieldGroupProps {
+interface EditableMetricCardProps {
+  item: MetricItem;
+  onSave: (newValue: string) => void;
+}
+
+const EditableMetricCard = ({ item, onSave }: EditableMetricCardProps) => {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(item.value);
+
+  const save = () => {
+    onSave(draft);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <div
+        className="rounded-xl px-3 py-2.5 text-center border-2"
+        style={{ borderColor: "hsl(var(--primary))", background: "hsl(var(--secondary))" }}
+      >
+        <p
+          className="font-mono text-[8px] font-semibold tracking-[0.12em] uppercase leading-tight text-muted-foreground"
+        >
+          {item.label}
+        </p>
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") save();
+            if (e.key === "Escape") { setDraft(item.value); setEditing(false); }
+          }}
+          className="w-full bg-transparent font-mono text-sm font-bold text-foreground mt-1 leading-none text-center outline-none"
+        />
+        {item.unit && <p className="font-mono text-[8px] text-muted-foreground mt-0.5">{item.unit}</p>}
+        <div className="flex justify-center gap-1 mt-1.5">
+          <button onClick={save} className="p-1 rounded-md bg-primary/10 active:scale-90">
+            <Check size={10} className="text-primary" />
+          </button>
+          <button onClick={() => { setDraft(item.value); setEditing(false); }} className="p-1 rounded-md active:scale-90">
+            <X size={10} className="text-muted-foreground" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setEditing(true)}
+      className="rounded-xl px-3 py-2.5 text-center transition-colors active:scale-[0.97] group"
+      style={
+        item.highlight
+          ? { background: "hsla(var(--accent) / 0.08)", border: "1px solid hsla(var(--accent) / 0.2)" }
+          : { background: "hsl(var(--secondary))" }
+      }
+    >
+      <p
+        className="font-mono text-[8px] font-semibold tracking-[0.12em] uppercase leading-tight"
+        style={item.highlight ? { color: "hsl(var(--accent))" } : { color: "hsl(var(--muted-foreground))" }}
+      >
+        {item.label}
+      </p>
+      <p className="font-mono text-sm font-bold text-foreground mt-1 leading-none">{item.value}</p>
+      {item.unit && <p className="font-mono text-[8px] text-muted-foreground mt-0.5">{item.unit}</p>}
+      <Pencil size={8} className="mx-auto mt-1 text-muted-foreground/0 group-hover:text-muted-foreground/40 transition-colors" />
+    </button>
+  );
+};
+
+interface EditableFieldGroupProps {
   title: string;
-  items: { label: string; value: string; unit: string; highlight?: boolean }[];
+  items: MetricItem[];
+  onUpdateItem: (index: number, newValue: string) => void;
   delay?: number;
 }
 
-const FieldGroup = ({ title, items, delay = 0 }: FieldGroupProps) => (
+const EditableFieldGroup = ({ title, items, onUpdateItem, delay = 0 }: EditableFieldGroupProps) => (
   <CollapsibleSection title={title} icon={sectionIcons[title]} delay={delay}>
     <div className="px-3 pb-3 grid grid-cols-3 gap-1.5">
-      {items.map((item) => (
-        <div
-          key={item.label}
-          className="rounded-xl px-3 py-2.5 text-center transition-colors"
-          style={
-            item.highlight
-              ? { background: "hsla(var(--accent) / 0.08)", border: "1px solid hsla(var(--accent) / 0.2)" }
-              : { background: "hsl(var(--secondary))" }
-          }
-        >
-          <p
-            className="font-mono text-[8px] font-semibold tracking-[0.12em] uppercase leading-tight"
-            style={item.highlight ? { color: "hsl(var(--accent))" } : { color: "hsl(var(--muted-foreground))" }}
-          >
-            {item.label}
-          </p>
-          <p className="font-mono text-sm font-bold text-foreground mt-1 leading-none">{item.value}</p>
-          {item.unit && <p className="font-mono text-[8px] text-muted-foreground mt-0.5">{item.unit}</p>}
-        </div>
+      {items.map((item, i) => (
+        <EditableMetricCard key={item.label} item={item} onSave={(v) => onUpdateItem(i, v)} />
       ))}
     </div>
   </CollapsibleSection>
@@ -230,14 +310,28 @@ const EditableField = ({ label, value, onSave, multiline }: EditableFieldProps) 
 const Perfil = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData>(loadProfile);
+  const [metrics, setMetrics] = useState<Record<string, MetricItem[]>>(loadMetrics);
   const [userPhoto] = useState<string | null>(() => localStorage.getItem("ham-user-photo"));
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
   }, [profile]);
 
+  useEffect(() => {
+    localStorage.setItem(METRICS_KEY, JSON.stringify(metrics));
+  }, [metrics]);
+
   const update = (key: keyof ProfileData, val: string) =>
     setProfile((prev) => ({ ...prev, [key]: key === "age" ? Number(val) || 0 : val }));
+
+  const updateMetric = (section: string, index: number, newValue: string) => {
+    setMetrics((prev) => {
+      const updated = { ...prev };
+      updated[section] = [...prev[section]];
+      updated[section][index] = { ...updated[section][index], value: newValue };
+      return updated;
+    });
+  };
 
   const quickLinks = [
     { icon: BookOpen, label: "Bíblia & Devocional", path: "/biblia", color: "hsl(270 55% 65%)" },
@@ -317,12 +411,12 @@ const Perfil = () => {
         </div>
       </CollapsibleSection>
 
-      {/* Data Sections - collapsible */}
-      <FieldGroup title="Biometria Atual" items={biometrics} delay={0.12} />
-      <FieldGroup title="Painel Hormonal" items={hormones} delay={0.15} />
-      <FieldGroup title="Métricas Cardíacas" items={cardiac} delay={0.18} />
-      <FieldGroup title="Força Atual (1RM)" items={strength} delay={0.21} />
-      <FieldGroup title="Objetivos e Metas" items={goals} delay={0.24} />
+      {/* Editable Data Sections */}
+      <EditableFieldGroup title="Biometria Atual" items={metrics.biometrics} onUpdateItem={(i, v) => updateMetric("biometrics", i, v)} delay={0.12} />
+      <EditableFieldGroup title="Painel Hormonal" items={metrics.hormones} onUpdateItem={(i, v) => updateMetric("hormones", i, v)} delay={0.15} />
+      <EditableFieldGroup title="Métricas Cardíacas" items={metrics.cardiac} onUpdateItem={(i, v) => updateMetric("cardiac", i, v)} delay={0.18} />
+      <EditableFieldGroup title="Força Atual (1RM)" items={metrics.strength} onUpdateItem={(i, v) => updateMetric("strength", i, v)} delay={0.21} />
+      <EditableFieldGroup title="Objetivos e Metas" items={metrics.goals} onUpdateItem={(i, v) => updateMetric("goals", i, v)} delay={0.24} />
 
       {/* Quick links */}
       <motion.div
