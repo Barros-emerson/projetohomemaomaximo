@@ -8,6 +8,12 @@ import { Sun, Moon } from "lucide-react";
 export const AppLayout = () => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
