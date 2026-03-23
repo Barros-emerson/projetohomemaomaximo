@@ -34,10 +34,17 @@ const totalScore = pillars.reduce((acc, p) => acc + p.score, 0);
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const todayIdx = getTodayIndex();
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const todayIdx = (() => { const d = now.getDay(); return d === 0 ? 6 : d - 1; })();
   const todayRoutine = rotinaSemanal[todayIdx];
   const todayTraining = weekPlan[todayIdx];
-  const semana = getWeekOfYear();
+  const semana = Math.ceil(((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7);
   const versiculo = versiculosMemorizacao[(semana - 1) % versiculosMemorizacao.length];
 
   const streakData = (() => {
