@@ -32,7 +32,7 @@ export const AppLayout = () => {
               {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
             </button>
             <div className="font-mono text-[10px] text-muted-foreground tracking-wider">
-              {new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase().replace('.', '')}
+              {now.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase().replace('.', '')}
             </div>
           </div>
         </div>
