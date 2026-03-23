@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
 import { motion } from "framer-motion";
@@ -7,6 +8,12 @@ import { Sun, Moon } from "lucide-react";
 export const AppLayout = () => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -25,7 +32,7 @@ export const AppLayout = () => {
               {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
             </button>
             <div className="font-mono text-[10px] text-muted-foreground tracking-wider">
-              {new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase().replace('.', '')}
+              {now.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase().replace('.', '')}
             </div>
           </div>
         </div>
