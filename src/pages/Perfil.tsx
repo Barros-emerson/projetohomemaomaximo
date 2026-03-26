@@ -508,6 +508,9 @@ const Perfil = () => {
       {/* Evolution Report */}
       <EvolucaoRelatorio />
 
+      {/* Load Evolution */}
+      <EvolucaoCarga />
+
       {/* Quick links */}
       <motion.div
         initial={{ opacity: 0, y: 14, filter: "blur(4px)" }}
