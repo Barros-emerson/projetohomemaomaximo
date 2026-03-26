@@ -1,7 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { Check, Clock, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, Clock, X, ChevronLeft, ChevronRight, ChevronDown, Utensils, Droplets, AlertTriangle } from "lucide-react";
 import { rotinaSemanal, type RotinaItem } from "@/data/rotina-diaria";
+import { dietaSemanal } from "@/data/dieta-semanal";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
