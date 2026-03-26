@@ -91,6 +91,8 @@ const Dashboard = () => {
   });
   const [aguaAnim, setAguaAnim] = useState(false);
   const [aguaDetails, setAguaDetails] = useState(false);
+  const [fraseAtual, setFraseAtual] = useState(() => getFraseHoje());
+  const [fraseKey, setFraseKey] = useState(0);
   const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const META_AGUA = 3500;
 
