@@ -502,6 +502,44 @@ const Biblia = () => {
         <p className="text-xs text-violet-400 mt-2 font-medium">{versiculo.referencia}</p>
       </motion.div>
 
+      {/* Direção de Deus (AI) */}
+      <motion.div
+        initial={{ y: 12, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.15, duration: 0.5 }}
+        className="surface-card p-4 border-amber-500/20"
+      >
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Sparkles size={14} className="text-amber-400" />
+            <span className="font-mono text-[10px] tracking-widest text-amber-400 uppercase">Direção de Deus</span>
+          </div>
+          <button
+            onClick={() => devocionalHoje && buscarDirecao(devocionalHoje.passagem)}
+            disabled={direcaoLoading}
+            className="text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            <RefreshCw size={10} className={direcaoLoading ? "animate-spin" : ""} />
+            {direcaoLoading ? "" : "NOVA"}
+          </button>
+        </div>
+        {direcaoLoading ? (
+          <div className="flex items-center gap-2 py-2">
+            <div className="h-4 w-4 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+            <span className="text-xs text-muted-foreground">Buscando direção...</span>
+          </div>
+        ) : direcaoDeDeus ? (
+          <>
+            <p className="text-lg font-semibold text-foreground leading-snug italic">"{direcaoDeDeus}"</p>
+            <p className="text-[10px] text-amber-400/70 mt-2 font-mono">
+              — Emerson · Homem de verdade
+            </p>
+          </>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">Nenhuma direção gerada ainda.</p>
+        )}
+      </motion.div>
+
       {/* Leitura do dia */}
       <motion.div
         initial={{ y: 12, opacity: 0 }}
