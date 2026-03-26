@@ -161,9 +161,12 @@ export const AppLayout = () => {
                         />
                         <div className="flex-1 min-w-0">
                           <p className="font-mono text-xs text-foreground truncate">{t.text}</p>
-                          <p className="font-mono text-[9px] mt-0.5" style={{ color: getCatColor(t.category) }}>
-                            {t.category.toUpperCase()}
-                          </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <p className="font-mono text-[9px]" style={{ color: getCatColor(t.category) }}>
+                              {t.category.toUpperCase()}
+                            </p>
+                            <span className="font-mono text-[8px] text-muted-foreground">{t.createdAt}</span>
+                          </div>
                         </div>
                         <button onClick={() => removeTarefa(t.id)} className="active:scale-90 p-1">
                           <Trash2 size={12} className="text-muted-foreground/30" />
