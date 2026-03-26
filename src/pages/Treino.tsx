@@ -256,7 +256,11 @@ const Treino = () => {
                   {doneSets}/{totalSets} séries
                 </div>
                 <button
-                  onClick={() => setWorkoutActive(false)}
+                  onClick={() => {
+                    localStorage.removeItem("ham-treino-start");
+                    setWorkoutActive(false);
+                    setWorkoutTime(0);
+                  }}
                   className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-destructive/10 border border-destructive/25 text-destructive font-mono text-[10px] font-bold tracking-wider active:scale-95"
                 >
                   <Square size={12} />
