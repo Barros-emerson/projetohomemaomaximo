@@ -92,8 +92,14 @@ const Treino = () => {
     return {};
   });
   const [loads, setLoads] = useState<Record<string, Record<number, string>>>({});
-  const [workoutActive, setWorkoutActive] = useState(false);
-  const [workoutTime, setWorkoutTime] = useState(0);
+  const [workoutActive, setWorkoutActive] = useState(() => {
+    const start = localStorage.getItem("ham-treino-start");
+    return !!start;
+  });
+  const [workoutTime, setWorkoutTime] = useState(() => {
+    const start = localStorage.getItem("ham-treino-start");
+    return start ? Math.floor((Date.now() - parseInt(start)) / 1000) : 0;
+  });
   const [showTimer, setShowTimer] = useState(false);
   const [restSeconds, setRestSeconds] = useState(90);
   const [photos, setPhotos] = useState<string[]>(() => {
