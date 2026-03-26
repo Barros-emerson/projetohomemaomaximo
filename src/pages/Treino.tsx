@@ -1,8 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Square, Timer, ChevronRight, Check, Minus, Camera, X, Image as ImageIcon } from "lucide-react";
-import { weekPlan, type TrainingDay } from "@/data/treino-plano";
+import { Play, Square, Timer, Check, Camera, X, Image as ImageIcon } from "lucide-react";
+import { weekPlan } from "@/data/treino-plano";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import TreinoRelatorio, { type RelatorioData } from "@/components/treino/TreinoRelatorio";
+import TreinoComparativo from "@/components/treino/TreinoComparativo";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
@@ -21,10 +24,7 @@ const RestTimer = ({
   const [left, setLeft] = useState(seconds);
 
   useEffect(() => {
-    if (left <= 0) {
-      onDone();
-      return;
-    }
+    if (left <= 0) { onDone(); return; }
     const t = setTimeout(() => setLeft((l) => l - 1), 1000);
     return () => clearTimeout(t);
   }, [left, onDone]);
@@ -91,10 +91,15 @@ const Treino = () => {
     } catch {}
     return {};
   });
-  const [loads, setLoads] = useState<Record<string, Record<number, string>>>({});
+  const [loads, setLoads] = useState<Record<string, Record<number, string>>>(() => {
+    try {
+      const saved = localStorage.getItem(`ham-treino-loads-${getTodayIndex()}-${new Date().toISOString().slice(0, 10)}`);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {};
+  });
   const [workoutActive, setWorkoutActive] = useState(() => {
-    const start = localStorage.getItem("ham-treino-start");
-    return !!start;
+    return !!localStorage.getItem("ham-treino-start");
   });
   const [workoutTime, setWorkoutTime] = useState(() => {
     const start = localStorage.getItem("ham-treino-start");
@@ -103,13 +108,14 @@ const Treino = () => {
   const [showTimer, setShowTimer] = useState(false);
   const [restSeconds, setRestSeconds] = useState(90);
   const [photos, setPhotos] = useState<string[]>(() => {
-    const saved = localStorage.getItem("ham-treino-photos-today");
-    if (saved) {
-      try { return JSON.parse(saved); } catch { return []; }
-    }
+    try {
+      const saved = localStorage.getItem("ham-treino-photos-today");
+      if (saved) return JSON.parse(saved);
+    } catch {}
     return [];
   });
-  const [showPhotos, setShowPhotos] = useState(false);
+  const [relatorio, setRelatorio] = useState<RelatorioData | null>(null);
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const day = weekPlan[selectedDay];
@@ -121,6 +127,12 @@ const Treino = () => {
     Object.entries(completedSets).forEach(([k, v]) => { serializable[k] = [...v]; });
     localStorage.setItem(getTreinoStorageKey(selectedDay), JSON.stringify(serializable));
   }, [completedSets, selectedDay]);
+
+  // Persist loads
+  useEffect(() => {
+    const key = `ham-treino-loads-${selectedDay}-${new Date().toISOString().slice(0, 10)}`;
+    localStorage.setItem(key, JSON.stringify(loads));
+  }, [loads, selectedDay]);
 
   useEffect(() => {
     if (!workoutActive) return;
@@ -138,8 +150,7 @@ const Treino = () => {
       if (exSets.has(setIdx)) exSets.delete(setIdx);
       else {
         exSets.add(setIdx);
-        const isForca = day.focus === "FORÇA";
-        setRestSeconds(isForca ? 90 : 60);
+        setRestSeconds(day.focus === "FORÇA" ? 90 : 60);
         setShowTimer(true);
       }
       return { ...prev, [exId]: exSets };
@@ -178,6 +189,109 @@ const Treino = () => {
     });
   };
 
+  const finalizarTreino = async () => {
+    setSaving(true);
+    const startTs = localStorage.getItem("ham-treino-start");
+    const duracao = startTs ? Math.floor((Date.now() - parseInt(startTs)) / 1000) : workoutTime;
+
+    const totalSeries = day.exercises.reduce((a, e) => a + parseInt(e.sets), 0);
+    const seriesCompletas = Object.values(completedSets).reduce((a, s) => a + s.size, 0);
+
+    const exerciciosData = day.exercises.map(ex => {
+      const exSets = completedSets[ex.id] || new Set();
+      const exLoads = loads[ex.id] || {};
+      const cargas = [...exSets].map(si => ({
+        set: si + 1,
+        kg: exLoads[si] || "",
+      })).filter(c => c.kg);
+
+      return {
+        nome: ex.name,
+        exercicio_id: ex.id,
+        setsCompletos: exSets.size,
+        setsPlanejados: parseInt(ex.sets),
+        cargas,
+      };
+    });
+
+    // Save to DB
+    try {
+      const { data: sessao, error: sessaoErr } = await supabase
+        .from("treino_sessoes")
+        .insert({
+          dia_semana: selectedDay,
+          tipo: day.type,
+          foco: day.focus,
+          duracao_segundos: duracao,
+          total_series: totalSeries,
+          series_completas: seriesCompletas,
+        })
+        .select()
+        .single();
+
+      if (sessaoErr) throw sessaoErr;
+
+      // Save exercises
+      if (sessao) {
+        const exInserts = exerciciosData.map(ex => ({
+          sessao_id: sessao.id,
+          exercicio_id: ex.exercicio_id,
+          nome: ex.nome,
+          sets_planejados: ex.setsPlanejados,
+          sets_completos: ex.setsCompletos,
+          cargas: ex.cargas,
+        }));
+
+        await supabase.from("treino_exercicios").insert(exInserts);
+
+        // Save photos
+        if (photos.length > 0) {
+          const photoInserts = photos.map(foto => ({
+            sessao_id: sessao.id,
+            foto_base64: foto,
+          }));
+          await supabase.from("treino_fotos").insert(photoInserts);
+        }
+      }
+
+      toast.success("Treino salvo com sucesso! 🏆");
+    } catch (err) {
+      console.error("Erro ao salvar treino:", err);
+      toast.error("Erro ao salvar, mas o relatório foi gerado.");
+    }
+
+    // Build report
+    const relatorioData: RelatorioData = {
+      duracao,
+      totalSeries,
+      seriesCompletas,
+      exercicios: exerciciosData,
+      fotos: photos,
+      tipo: day.type,
+      foco: day.focus,
+      emoji: day.emoji,
+      colorClass: day.colorClass,
+      bgClass: day.bgClass,
+      borderClass: day.borderClass,
+    };
+
+    setRelatorio(relatorioData);
+    localStorage.removeItem("ham-treino-start");
+    setWorkoutActive(false);
+    setWorkoutTime(0);
+    setSaving(false);
+  };
+
+  const fecharRelatorio = () => {
+    setRelatorio(null);
+    setCompletedSets({});
+    setLoads({});
+    setPhotos([]);
+    localStorage.removeItem("ham-treino-photos-today");
+    localStorage.removeItem(getTreinoStorageKey(selectedDay));
+    localStorage.removeItem(`ham-treino-loads-${selectedDay}-${new Date().toISOString().slice(0, 10)}`);
+  };
+
   const totalSets = day.exercises.reduce((a, e) => a + parseInt(e.sets), 0);
   const doneSets = Object.values(completedSets).reduce((a, s) => a + s.size, 0);
 
@@ -185,6 +299,22 @@ const Treino = () => {
     const m = Math.floor(s / 60);
     return `${m}:${(s % 60).toString().padStart(2, "0")}`;
   };
+
+  // Show report view
+  if (relatorio) {
+    return (
+      <div className="p-4 space-y-4 pb-24">
+        <TreinoRelatorio data={relatorio} />
+        <TreinoComparativo />
+        <button
+          onClick={fecharRelatorio}
+          className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-mono text-xs font-bold tracking-wider active:scale-95 transition-all"
+        >
+          NOVO TREINO
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4 pb-24">
@@ -204,9 +334,7 @@ const Treino = () => {
               }`}
             >
               <div>{d.label.slice(0, 3)}</div>
-              {isToday && (
-                <div className="w-1 h-1 rounded-full bg-primary mx-auto mt-1" />
-              )}
+              {isToday && <div className="w-1 h-1 rounded-full bg-primary mx-auto mt-1" />}
             </button>
           );
         })}
@@ -227,8 +355,7 @@ const Treino = () => {
             </h2>
             {!isOff && (
               <p className="text-[10px] text-muted-foreground mt-0.5">
-                {day.exercises.length} exercícios · Descanso{" "}
-                {day.focus === "FORÇA" ? "90s" : "60s"}
+                {day.exercises.length} exercícios · Descanso {day.focus === "FORÇA" ? "90s" : "60s"}
               </p>
             )}
           </div>
@@ -256,15 +383,12 @@ const Treino = () => {
                   {doneSets}/{totalSets} séries
                 </div>
                 <button
-                  onClick={() => {
-                    localStorage.removeItem("ham-treino-start");
-                    setWorkoutActive(false);
-                    setWorkoutTime(0);
-                  }}
-                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-destructive/10 border border-destructive/25 text-destructive font-mono text-[10px] font-bold tracking-wider active:scale-95"
+                  onClick={finalizarTreino}
+                  disabled={saving}
+                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-destructive/10 border border-destructive/25 text-destructive font-mono text-[10px] font-bold tracking-wider active:scale-95 disabled:opacity-50"
                 >
                   <Square size={12} />
-                  FINALIZAR
+                  {saving ? "SALVANDO..." : "FINALIZAR"}
                 </button>
               </div>
             )}
@@ -362,13 +486,9 @@ const Treino = () => {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <span className="text-sm font-semibold text-foreground">
-                      {ex.name}
-                    </span>
+                    <span className="text-sm font-semibold text-foreground">{ex.name}</span>
                     {ex.equipment && (
-                      <span className="text-[10px] text-muted-foreground ml-2">
-                        {ex.equipment}
-                      </span>
+                      <span className="text-[10px] text-muted-foreground ml-2">{ex.equipment}</span>
                     )}
                   </div>
                   <span className={`font-mono text-lg font-extrabold ${day.colorClass}`}>
@@ -386,8 +506,8 @@ const Treino = () => {
                             onClick={() => toggleSet(ex.id, si)}
                             className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center font-mono text-sm font-bold transition-all active:scale-90 ${
                               done
-                                ? `bg-primary border-primary text-primary-foreground`
-                                : `border-muted-foreground/20 text-muted-foreground hover:border-muted-foreground/40`
+                                ? "bg-primary border-primary text-primary-foreground"
+                                : "border-muted-foreground/20 text-muted-foreground hover:border-muted-foreground/40"
                             }`}
                           >
                             {done ? <Check size={16} /> : si + 1}
@@ -410,6 +530,11 @@ const Treino = () => {
             );
           })}
         </div>
+      )}
+
+      {/* Comparativo mensal */}
+      {!isOff && !workoutActive && (
+        <TreinoComparativo />
       )}
 
       {/* Rest timer */}
