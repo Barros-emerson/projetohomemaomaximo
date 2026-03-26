@@ -89,6 +89,8 @@ const Dashboard = () => {
     return saved ? parseInt(saved) : 0;
   });
   const [aguaAnim, setAguaAnim] = useState(false);
+  const [aguaDetails, setAguaDetails] = useState(false);
+  const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const META_AGUA = 3500;
 
   const adicionarAgua = useCallback(() => {
