@@ -238,7 +238,10 @@ const Treino = () => {
           <div className="mt-3 flex items-center gap-3">
             {!workoutActive ? (
               <button
-                onClick={() => setWorkoutActive(true)}
+                onClick={() => {
+                  localStorage.setItem("ham-treino-start", Date.now().toString());
+                  setWorkoutActive(true);
+                }}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold tracking-wider transition-all active:scale-95 ${day.bgClass} ${day.colorClass} border ${day.borderClass}`}
               >
                 <Play size={14} />
