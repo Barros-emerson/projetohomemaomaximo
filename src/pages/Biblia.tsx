@@ -816,6 +816,33 @@ const Biblia = () => {
             onChange={e => setPreviewMsg(e.target.value)}
             className="bg-secondary/50 border-border text-xs min-h-[200px] resize-none font-mono leading-relaxed rounded-xl"
           />
+          {/* MP3 Audio Preview Player */}
+          {audioBlob && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary/50 border border-border">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={playMp3Preview}
+                disabled={isConvertingMp3 || !mp3PreviewUrl}
+              >
+                {isPlayingMp3 ? <Square size={14} /> : <Play size={14} />}
+              </Button>
+              <div className="flex-1">
+                <p className="text-[10px] font-mono text-muted-foreground">
+                  {isConvertingMp3 ? "Convertendo para MP3..." : mp3PreviewUrl ? "🎙️ Áudio MP3 pronto" : "Preparando áudio..."}
+                </p>
+                {mp3PreviewBlob && (
+                  <p className="text-[10px] text-muted-foreground/70">
+                    {(mp3PreviewBlob.size / 1024).toFixed(0)} KB
+                  </p>
+                )}
+              </div>
+              {isConvertingMp3 && (
+                <div className="h-4 w-4 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin" />
+              )}
+            </div>
+          )}
           <div className="flex gap-2">
             <Button
               variant="outline"
