@@ -633,6 +633,7 @@ const Biblia = () => {
             onClick={() => {
               setLeituraSelecionada(devocionalHoje);
               setModoLeitura(true);
+              buscarTextoBiblia(devocionalHoje.passagem);
             }}
           >
             <div>
