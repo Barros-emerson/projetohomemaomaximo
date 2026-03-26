@@ -228,8 +228,8 @@ const Checklist = () => {
               key={i}
               onClick={() => {
                 setSelectedDay(i);
-                setChecked(new Set());
-                setRealTimes({});
+                setChecked(loadChecked(i));
+                setRealTimes(loadRealTimes(i));
               }}
               className="shrink-0 px-3 py-2 rounded-lg border font-mono text-[10px] font-bold tracking-wider transition-all duration-200 active:scale-95"
               style={
