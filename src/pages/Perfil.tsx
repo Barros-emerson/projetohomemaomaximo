@@ -365,18 +365,21 @@ const Perfil = () => {
         <div className="relative px-5 pt-6 pb-5">
           <div className="flex items-start gap-4">
             <div className="relative">
-              {userPhoto ? (
-                <img src={userPhoto} alt="Perfil" className="w-[72px] h-[72px] rounded-2xl object-cover ring-2 ring-primary/20" />
-              ) : (
-                <div className="w-[72px] h-[72px] rounded-2xl bg-secondary border border-border flex items-center justify-center">
-                  <span className="font-mono text-2xl font-black text-primary">
-                    {profile.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                  </span>
+              <label className="cursor-pointer block">
+                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                {userPhoto ? (
+                  <img src={userPhoto} alt="Perfil" className="w-[72px] h-[72px] rounded-2xl object-cover ring-2 ring-primary/20" />
+                ) : (
+                  <div className="w-[72px] h-[72px] rounded-2xl bg-secondary border border-border flex items-center justify-center">
+                    <span className="font-mono text-2xl font-black text-primary">
+                      {profile.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                    </span>
+                  </div>
+                )}
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg flex items-center justify-center bg-primary">
+                  <Pencil size={10} className="text-primary-foreground" />
                 </div>
-              )}
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--accent))" }}>
-                <Crown size={10} className="text-accent-foreground" />
-              </div>
+              </label>
             </div>
             <div className="flex-1 min-w-0 pt-1">
               <h2 className="font-mono text-base font-black text-foreground tracking-wide leading-tight">{profile.name}</h2>
