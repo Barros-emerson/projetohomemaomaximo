@@ -404,6 +404,125 @@ const Checklist = () => {
         })}
       </div>
 
+      {/* Diet Suggestions */}
+      {(() => {
+        const dieta = dietaSemanal[selectedDay];
+        if (!dieta) return null;
+
+        // Find current/next meal based on time
+        const now = new Date();
+        const nowMins = now.getHours() * 60 + now.getMinutes();
+        const currentMealIdx = dieta.refeicoes.reduce((best, ref, idx) => {
+          const m = ref.time.match(/^(\d{1,2}):(\d{2})$/);
+          if (!m) return best;
+          const refMins = parseInt(m[1]) * 60 + parseInt(m[2]);
+          if (refMins <= nowMins) return idx;
+          return best;
+        }, 0);
+
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6 space-y-3"
+          >
+            <div className="flex items-center gap-2 px-1">
+              <Utensils size={14} className="text-primary" />
+              <span className="font-mono text-xs font-bold tracking-widest text-foreground">
+                ALIMENTAÇÃO — {dieta.titulo}
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {dieta.refeicoes.map((ref, idx) => {
+                const isCurrent = selectedDay === getTodayIndex() && idx === currentMealIdx;
+                return (
+                  <motion.details
+                    key={ref.time + ref.label}
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.03 }}
+                    className={`surface-card rounded-lg group ${isCurrent ? "ring-1 ring-primary/30" : ""}`}
+                    {...(isCurrent ? { open: true } : {})}
+                  >
+                    <summary className="flex items-center gap-3 px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ background: ref.dotColor }}
+                      />
+                      <span className="font-mono text-xs text-muted-foreground w-11 shrink-0">
+                        {ref.time}
+                      </span>
+                      <span className="font-mono text-sm text-foreground flex-1">
+                        {ref.label}
+                      </span>
+                      {isCurrent && (
+                        <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                          AGORA
+                        </span>
+                      )}
+                      <ChevronDown size={14} className="text-muted-foreground transition-transform group-open:rotate-180" />
+                    </summary>
+
+                    <div className="px-4 pb-3 pt-1 space-y-2">
+                      {ref.subtitle && (
+                        <p className="font-mono text-[10px] font-bold text-primary tracking-wide">
+                          {ref.subtitle}
+                        </p>
+                      )}
+                      <div className="space-y-1">
+                        {ref.items.map((item, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="text-sm">{item.emoji}</span>
+                            <span className="font-mono text-[11px] text-muted-foreground">
+                              {item.text}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      {ref.tip && (
+                        <p className="font-mono text-[10px] text-primary/80 mt-1.5 border-l-2 border-primary/20 pl-2">
+                          → {ref.tip}
+                        </p>
+                      )}
+                    </div>
+                  </motion.details>
+                );
+              })}
+            </div>
+
+            {/* Rules & hydration */}
+            {(dieta.regras.length > 0 || dieta.hidratacao) && (
+              <div className="surface-card rounded-lg p-4 space-y-3">
+                {dieta.regras.map((regra, i) => (
+                  <div key={i}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <AlertTriangle size={12} style={{ color: "#F87171" }} />
+                      <span className="font-mono text-[10px] font-bold tracking-widest" style={{ color: "#F87171" }}>
+                        {regra.title}
+                      </span>
+                    </div>
+                    {regra.items.map((item, j) => (
+                      <p key={j} className="font-mono text-[10px] text-muted-foreground ml-5">
+                        ✕ {item}
+                      </p>
+                    ))}
+                  </div>
+                ))}
+                {dieta.hidratacao && (
+                  <div className="flex items-center gap-2">
+                    <Droplets size={12} style={{ color: "#60A5FA" }} />
+                    <span className="font-mono text-[10px] text-muted-foreground">
+                      <span className="font-bold text-foreground">HIDRATAÇÃO:</span> {dieta.hidratacao}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        );
+      })()}
+
       {/* Edit time modal */}
       <AnimatePresence>
         {editingItem && (
