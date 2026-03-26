@@ -483,15 +483,29 @@ const Biblia = () => {
                 <p className="text-sm text-muted-foreground">Carregando texto bíblico...</p>
               </div>
             ) : bibliaTexto.length > 0 ? (
-              <div className="space-y-8">
+              <div className="space-y-10">
                 {bibliaTexto.map((ch, idx) => (
                   <div key={idx}>
-                    <h3 className="font-mono text-xs tracking-widest text-violet-400 uppercase mb-3">
+                    <h3 className="font-mono text-[11px] tracking-[0.2em] text-violet-400 uppercase mb-5 pb-2 border-b border-border">
                       {ch.book} {ch.chapter}
                     </h3>
-                    <p className="text-sm text-foreground leading-[1.9] whitespace-pre-line">
-                      {ch.text}
-                    </p>
+                    <div className="space-y-3">
+                      {ch.text.split("\n").filter(Boolean).map((line, i) => {
+                        const match = line.match(/^(\d+)\s+(.*)/);
+                        const verseNum = match ? match[1] : null;
+                        const verseText = match ? match[2] : line;
+                        return (
+                          <p key={i} className="text-[15px] text-foreground/90 leading-[2] font-light tracking-[0.01em]">
+                            {verseNum && (
+                              <span className="inline-block font-mono text-[11px] font-semibold text-violet-400/80 mr-2 align-super select-none">
+                                {verseNum}
+                              </span>
+                            )}
+                            {verseText}
+                          </p>
+                        );
+                      })}
+                    </div>
                   </div>
                 ))}
               </div>
