@@ -72,9 +72,25 @@ const RestTimer = ({
   );
 };
 
+const getTreinoStorageKey = (dayIdx: number) => {
+  const dateStr = new Date().toISOString().slice(0, 10);
+  return `ham-treino-sets-${dayIdx}-${dateStr}`;
+};
+
 const Treino = () => {
   const [selectedDay, setSelectedDay] = useState(getTodayIndex());
-  const [completedSets, setCompletedSets] = useState<Record<string, Set<number>>>({});
+  const [completedSets, setCompletedSets] = useState<Record<string, Set<number>>>(() => {
+    try {
+      const saved = localStorage.getItem(getTreinoStorageKey(getTodayIndex()));
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const result: Record<string, Set<number>> = {};
+        Object.entries(parsed).forEach(([k, v]) => { result[k] = new Set(v as number[]); });
+        return result;
+      }
+    } catch {}
+    return {};
+  });
   const [loads, setLoads] = useState<Record<string, Record<number, string>>>({});
   const [workoutActive, setWorkoutActive] = useState(false);
   const [workoutTime, setWorkoutTime] = useState(0);
@@ -92,6 +108,13 @@ const Treino = () => {
 
   const day = weekPlan[selectedDay];
   const isOff = day.exercises.length === 0;
+
+  // Persist completed sets
+  useEffect(() => {
+    const serializable: Record<string, number[]> = {};
+    Object.entries(completedSets).forEach(([k, v]) => { serializable[k] = [...v]; });
+    localStorage.setItem(getTreinoStorageKey(selectedDay), JSON.stringify(serializable));
+  }, [completedSets, selectedDay]);
 
   useEffect(() => {
     if (!workoutActive) return;
