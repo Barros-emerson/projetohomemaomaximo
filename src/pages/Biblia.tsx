@@ -222,8 +222,47 @@ const Biblia = () => {
     setShowPreviewModal(true);
   };
 
-  const enviarMensagem = () => {
+  const enviarMensagem = async () => {
     if (!contatoParaEnviar) return;
+
+    // If there's a recorded audio, use Web Share API with audio + text
+    if (audioBlob) {
+      toast.loading("Convertendo áudio para MP3...", { id: "mp3-send" });
+      let mp3Blob: Blob;
+      try {
+        mp3Blob = await convertToMp3(audioBlob);
+      } catch {
+        toast.dismiss("mp3-send");
+        toast.error("Erro ao converter. Enviando como webm.");
+        mp3Blob = audioBlob;
+      }
+      toast.dismiss("mp3-send");
+
+      const isMp3 = mp3Blob.type === "audio/mpeg";
+      const ext = isMp3 ? "mp3" : "webm";
+      const file = new File([mp3Blob], `devocional-${hoje}.${ext}`, { type: mp3Blob.type });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: "Devocional de hoje",
+            text: previewMsg,
+            files: [file],
+          });
+          setShowPreviewModal(false);
+          toast.success("Compartilhado com sucesso! 💛");
+          return;
+        } catch (err: any) {
+          if (err.name !== "AbortError") {
+            toast.error("Erro ao compartilhar. Abrindo WhatsApp...");
+          } else {
+            return;
+          }
+        }
+      }
+    }
+
+    // Fallback: open WhatsApp link (no audio or Web Share not supported)
     const numero = contatoParaEnviar.numero.replace(/\D/g, "");
     const url = `https://wa.me/${numero}?text=${encodeURIComponent(previewMsg)}`;
     window.open(url, "_blank");
