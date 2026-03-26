@@ -163,8 +163,8 @@ const Dashboard = () => {
       <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
         {[
           { label: "Rotina", pct: checklistPct, color: "hsl(38 92% 60%)", path: "/rotina" },
-          { label: "Treino", pct: 0, color: "hsl(0 80% 65%)", path: "/treino" },
-          { label: "Bíblia", pct: 0, color: "hsl(270 55% 65%)", path: "/biblia" },
+          { label: "Treino", pct: treinoPct, color: "hsl(0 80% 65%)", path: "/treino" },
+          { label: "Bíblia", pct: bibliaPct, color: "hsl(270 55% 65%)", path: "/biblia" },
           { label: "Sono", pct: 0, color: "hsl(215 75% 60%)", path: "/sono" },
         ].map((s, i) => (
           <motion.button
