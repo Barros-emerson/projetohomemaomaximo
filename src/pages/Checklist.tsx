@@ -412,8 +412,10 @@ const Checklist = () => {
                 )}
               </div>
             </SwipeableItem>
+            </motion.div>
           );
         })}
+        </AnimatePresence>
       </div>
 
       {/* Diet Suggestions */}
