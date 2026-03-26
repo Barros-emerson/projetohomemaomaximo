@@ -228,10 +228,27 @@ const Biblia = () => {
     return msg;
   };
 
-  const abrirPreview = (contato: Contato) => {
+  const abrirPreview = async (contato: Contato) => {
     setContatoParaEnviar(contato);
     setPreviewMsg(gerarMensagem());
+    setMp3PreviewUrl(null);
+    setMp3PreviewBlob(null);
     setShowPreviewModal(true);
+
+    // Auto-convert audio to MP3 when opening preview
+    if (audioBlob) {
+      setIsConvertingMp3(true);
+      try {
+        const mp3 = await convertToMp3(audioBlob);
+        const url = URL.createObjectURL(mp3);
+        setMp3PreviewBlob(mp3);
+        setMp3PreviewUrl(url);
+      } catch {
+        toast.error("Erro ao converter áudio para MP3");
+      } finally {
+        setIsConvertingMp3(false);
+      }
+    }
   };
 
   const enviarMensagem = async () => {
