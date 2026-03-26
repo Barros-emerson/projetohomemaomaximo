@@ -182,8 +182,21 @@ const Checklist = () => {
   const toggle = (id: string) => {
     setChecked((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+        // Remove auto-recorded time
+        setRealTimes((rt) => {
+          const copy = { ...rt };
+          delete copy[id];
+          return copy;
+        });
+      } else {
+        next.add(id);
+        // Auto-record current time
+        const now = new Date();
+        const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`;
+        setRealTimes((rt) => ({ ...rt, [id]: timeStr }));
+      }
       return next;
     });
   };
