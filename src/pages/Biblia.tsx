@@ -59,6 +59,11 @@ const Biblia = () => {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewMsg, setPreviewMsg] = useState("");
   const [contatoParaEnviar, setContatoParaEnviar] = useState<Contato | null>(null);
+  const [mp3PreviewUrl, setMp3PreviewUrl] = useState<string | null>(null);
+  const [mp3PreviewBlob, setMp3PreviewBlob] = useState<Blob | null>(null);
+  const [isConvertingMp3, setIsConvertingMp3] = useState(false);
+  const [isPlayingMp3, setIsPlayingMp3] = useState(false);
+  const mp3PlayerRef = useRef<HTMLAudioElement | null>(null);
 
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
