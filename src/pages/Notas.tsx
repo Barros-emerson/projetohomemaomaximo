@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { StickyNote, Plus, Trash2, X } from "lucide-react";
 
 interface Nota {
@@ -23,12 +23,77 @@ const loadNotas = (): Nota[] => {
   return saved ? JSON.parse(saved) : [];
 };
 
+const SwipeableNota = ({
+  nota,
+  index,
+  onTap,
+  onRequestDelete,
+}: {
+  nota: Nota;
+  index: number;
+  onTap: () => void;
+  onRequestDelete: () => void;
+}) => {
+  const x = useMotionValue(0);
+  const bg = useTransform(x, [-120, -60, 0], [
+    "hsl(0 70% 50%)",
+    "hsl(0 60% 55%)",
+    "hsl(0 0% 50%)",
+  ]);
+  const opacity = useTransform(x, [-100, -40, 0], [1, 0.6, 0]);
+
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    if (info.offset.x < -80) {
+      onRequestDelete();
+    }
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl">
+      {/* Delete background */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-end pr-5 rounded-2xl"
+        style={{ backgroundColor: bg }}
+      >
+        <motion.div style={{ opacity }}>
+          <Trash2 size={18} className="text-white" />
+        </motion.div>
+      </motion.div>
+
+      {/* Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.03 }}
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.3}
+        onDragEnd={handleDragEnd}
+        style={{ x }}
+        onClick={onTap}
+        className="relative surface-card p-4 cursor-pointer active:scale-[0.98] transition-transform"
+      >
+        <div
+          className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl"
+          style={{ background: nota.color.replace("0.08", "0.5").replace("0.1", "0.5") }}
+        />
+        <p className="font-mono text-xs font-bold text-foreground">{nota.title}</p>
+        {nota.content && (
+          <p className="font-mono text-[11px] text-muted-foreground mt-1 line-clamp-2">{nota.content}</p>
+        )}
+        <p className="font-mono text-[9px] text-muted-foreground/50 mt-2">{nota.createdAt}</p>
+      </motion.div>
+    </div>
+  );
+};
+
 const Notas = () => {
   const [notas, setNotas] = useState<Nota[]>(loadNotas);
   const [editing, setEditing] = useState<Nota | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem("ham-notas", JSON.stringify(notas));
@@ -52,6 +117,7 @@ const Notas = () => {
   const deleteNota = (id: string) => {
     setNotas((prev) => prev.filter((n) => n.id !== id));
     setEditing(null);
+    setConfirmDelete(null);
   };
 
   const updateNota = (nota: Nota) => {
@@ -124,13 +190,9 @@ const Notas = () => {
         )}
       </AnimatePresence>
 
-      {/* Notes list */}
+      {/* Empty */}
       {notas.length === 0 && !showNew && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="surface-card p-8 text-center"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="surface-card p-8 text-center">
           <StickyNote size={28} className="text-muted-foreground/30 mx-auto mb-3" />
           <p className="font-mono text-[11px] text-muted-foreground">
             Nenhuma nota ainda. Toque + para criar.
@@ -138,25 +200,61 @@ const Notas = () => {
         </motion.div>
       )}
 
+      {/* Notes list */}
       <div className="space-y-2">
         {notas.map((nota, i) => (
-          <motion.button
+          <SwipeableNota
             key={nota.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.03 }}
-            onClick={() => setEditing(nota)}
-            className="w-full text-left surface-card p-4 active:scale-[0.98] transition-transform"
-            style={{ borderLeftWidth: 3, borderLeftColor: nota.color.replace("0.08", "0.5").replace("0.1", "0.5") }}
-          >
-            <p className="font-mono text-xs font-bold text-foreground">{nota.title}</p>
-            {nota.content && (
-              <p className="font-mono text-[11px] text-muted-foreground mt-1 line-clamp-2">{nota.content}</p>
-            )}
-            <p className="font-mono text-[9px] text-muted-foreground/50 mt-2">{nota.createdAt}</p>
-          </motion.button>
+            nota={nota}
+            index={i}
+            onTap={() => setEditing(nota)}
+            onRequestDelete={() => setConfirmDelete(nota.id)}
+          />
         ))}
       </div>
+
+      {/* Confirm delete dialog */}
+      <AnimatePresence>
+        {confirmDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6"
+            onClick={() => setConfirmDelete(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-card border border-border rounded-2xl p-5 w-full max-w-xs space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center">
+                <Trash2 size={24} className="text-destructive mx-auto mb-2" />
+                <p className="font-mono text-sm font-bold text-foreground">Apagar nota?</p>
+                <p className="font-mono text-[11px] text-muted-foreground mt-1">
+                  Essa ação não pode ser desfeita.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="flex-1 py-2.5 rounded-xl border border-border font-mono text-[10px] font-bold tracking-wider text-muted-foreground active:scale-95"
+                >
+                  CANCELAR
+                </button>
+                <button
+                  onClick={() => deleteNota(confirmDelete)}
+                  className="flex-1 py-2.5 rounded-xl bg-destructive text-destructive-foreground font-mono text-[10px] font-bold tracking-wider active:scale-95"
+                >
+                  APAGAR
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Edit modal */}
       <AnimatePresence>
@@ -173,7 +271,7 @@ const Notas = () => {
               </button>
               <div className="flex gap-2">
                 <button
-                  onClick={() => deleteNota(editing.id)}
+                  onClick={() => setConfirmDelete(editing.id)}
                   className="p-2 rounded-lg bg-destructive/10 active:scale-95"
                 >
                   <Trash2 size={16} className="text-destructive" />
