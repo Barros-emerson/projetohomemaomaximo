@@ -124,7 +124,11 @@ const Treino = () => {
 
   useEffect(() => {
     if (!workoutActive) return;
-    const t = setInterval(() => setWorkoutTime((s) => s + 1), 1000);
+    const startTs = localStorage.getItem("ham-treino-start");
+    if (!startTs) return;
+    const tick = () => setWorkoutTime(Math.floor((Date.now() - parseInt(startTs)) / 1000));
+    tick();
+    const t = setInterval(tick, 1000);
     return () => clearInterval(t);
   }, [workoutActive]);
 
