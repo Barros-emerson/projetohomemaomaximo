@@ -118,6 +118,8 @@ const Dashboard = () => {
   };
 
   const userPhoto = localStorage.getItem("ham-user-photo");
+  const pillars = getPillarScores(checklistPct, treinoPct);
+  const totalScore = pillars.reduce((acc, p) => acc + p.score, 0);
 
   return (
     <div className="p-4 space-y-4 pb-24">
