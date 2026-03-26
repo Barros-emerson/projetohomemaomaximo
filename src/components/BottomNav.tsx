@@ -10,7 +10,6 @@ import {
   StickyNote,
   X,
   ClipboardList,
-  BookOpen,
 } from "lucide-react";
 
 const mainTabs = [
