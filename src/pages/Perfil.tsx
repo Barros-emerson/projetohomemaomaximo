@@ -65,9 +65,24 @@ const defaultMetrics: Record<string, MetricItem[]> = {
   ],
   strength: [
     { label: "Supino Reto", value: "—", unit: "kg" },
-    { label: "Agachamento", value: "—", unit: "kg" },
-    { label: "Terra", value: "—", unit: "kg" },
-    { label: "Desenvolvimento", value: "—", unit: "kg" },
+    { label: "Supino Inclinado", value: "—", unit: "kg" },
+    { label: "Agachamento Livre", value: "—", unit: "kg" },
+    { label: "Levantamento Terra", value: "—", unit: "kg" },
+    { label: "Desenvolvimento Militar", value: "—", unit: "kg" },
+    { label: "Remada Curvada", value: "—", unit: "kg" },
+    { label: "Leg Press", value: "—", unit: "kg" },
+    { label: "Stiff", value: "—", unit: "kg" },
+    { label: "Barra Fixa", value: "—", unit: "kg" },
+    { label: "Paralelas", value: "—", unit: "kg" },
+    { label: "Puxador Frente", value: "—", unit: "kg" },
+    { label: "Remada Baixa", value: "—", unit: "kg" },
+    { label: "Elevação Lateral", value: "—", unit: "kg" },
+    { label: "Rosca Direta", value: "—", unit: "kg" },
+    { label: "Tríceps Polia", value: "—", unit: "kg" },
+    { label: "Extensora", value: "—", unit: "kg" },
+    { label: "Flexora", value: "—", unit: "kg" },
+    { label: "Elevação Pélvica", value: "—", unit: "kg" },
+    { label: "Panturrilha", value: "—", unit: "kg" },
   ],
   goals: [
     { label: "Meta Testo", value: "1.000", unit: "ng/dL", highlight: true },
@@ -334,6 +349,47 @@ const Perfil = () => {
   useEffect(() => {
     localStorage.setItem(METRICS_KEY, JSON.stringify(metrics));
   }, [metrics]);
+
+  // Auto-update strength from workout history (max loads)
+  useEffect(() => {
+    const syncStrengthFromWorkouts = async () => {
+      try {
+        const { data: exercicios } = await supabase
+          .from("treino_exercicios")
+          .select("nome, cargas");
+        if (!exercicios || exercicios.length === 0) return;
+
+        // Build map of max load per exercise name
+        const maxLoads: Record<string, number> = {};
+        exercicios.forEach((ex) => {
+          const cargas = (ex.cargas as any[]) || [];
+          cargas.forEach((c: any) => {
+            const v = parseFloat(c.kg);
+            if (!isNaN(v) && v > 0) {
+              maxLoads[ex.nome] = Math.max(maxLoads[ex.nome] || 0, v);
+            }
+          });
+        });
+
+        setMetrics((prev) => {
+          const strength = prev.strength.map((item) => {
+            const maxFromDB = maxLoads[item.label];
+            if (!maxFromDB) return item;
+            const current = parseFloat(item.value);
+            if (isNaN(current) || maxFromDB > current) {
+              return { ...item, value: String(maxFromDB) };
+            }
+            return item;
+          });
+          const changed = strength.some((s, i) => s.value !== prev.strength[i].value);
+          return changed ? { ...prev, strength } : prev;
+        });
+      } catch (err) {
+        console.error("Erro ao sincronizar força:", err);
+      }
+    };
+    syncStrengthFromWorkouts();
+  }, []);
 
   const update = (key: keyof ProfileData, val: string) =>
     setProfile((prev) => ({ ...prev, [key]: key === "age" ? Number(val) || 0 : val }));
