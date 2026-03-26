@@ -342,7 +342,30 @@ const Perfil = () => {
     setMetrics((prev) => {
       const updated = { ...prev };
       updated[section] = [...prev[section]];
-      updated[section][index] = { ...updated[section][index], value: newValue };
+      const item = { ...updated[section][index], value: newValue };
+      updated[section][index] = item;
+
+      // Save snapshot to DB for evolution tracking
+      const numVal = parseFloat(newValue);
+      if (!isNaN(numVal) && numVal > 0) {
+        const today = new Date().toISOString().slice(0, 10);
+        supabase
+          .from("perfil_metricas_historico")
+          .upsert(
+            { data: today, categoria: section, label: item.label, valor: newValue, unidade: item.unit },
+            { onConflict: "data,categoria,label", ignoreDuplicates: false }
+          )
+          .then(({ error }) => {
+            if (error) {
+              // Fallback: try insert, ignore duplicate
+              supabase
+                .from("perfil_metricas_historico")
+                .insert({ data: today, categoria: section, label: item.label, valor: newValue, unidade: item.unit })
+                .then(() => {});
+            }
+          });
+      }
+
       return updated;
     });
   };
