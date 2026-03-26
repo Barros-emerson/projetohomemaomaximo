@@ -38,6 +38,112 @@ export type Database = {
         }
         Relationships: []
       }
+      treino_exercicios: {
+        Row: {
+          cargas: Json | null
+          created_at: string
+          exercicio_id: string
+          id: string
+          nome: string
+          sessao_id: string
+          sets_completos: number
+          sets_planejados: number
+        }
+        Insert: {
+          cargas?: Json | null
+          created_at?: string
+          exercicio_id: string
+          id?: string
+          nome: string
+          sessao_id: string
+          sets_completos?: number
+          sets_planejados: number
+        }
+        Update: {
+          cargas?: Json | null
+          created_at?: string
+          exercicio_id?: string
+          id?: string
+          nome?: string
+          sessao_id?: string
+          sets_completos?: number
+          sets_planejados?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treino_exercicios_sessao_id_fkey"
+            columns: ["sessao_id"]
+            isOneToOne: false
+            referencedRelation: "treino_sessoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      treino_fotos: {
+        Row: {
+          created_at: string
+          foto_base64: string
+          id: string
+          sessao_id: string
+        }
+        Insert: {
+          created_at?: string
+          foto_base64: string
+          id?: string
+          sessao_id: string
+        }
+        Update: {
+          created_at?: string
+          foto_base64?: string
+          id?: string
+          sessao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treino_fotos_sessao_id_fkey"
+            columns: ["sessao_id"]
+            isOneToOne: false
+            referencedRelation: "treino_sessoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      treino_sessoes: {
+        Row: {
+          created_at: string
+          data: string
+          dia_semana: number
+          duracao_segundos: number
+          foco: string
+          id: string
+          series_completas: number
+          tipo: string
+          total_series: number
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          dia_semana: number
+          duracao_segundos?: number
+          foco: string
+          id?: string
+          series_completas?: number
+          tipo: string
+          total_series?: number
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          dia_semana?: number
+          duracao_segundos?: number
+          foco?: string
+          id?: string
+          series_completas?: number
+          tipo?: string
+          total_series?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
