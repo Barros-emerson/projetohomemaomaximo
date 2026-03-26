@@ -72,7 +72,6 @@ const SwipeableNota = ({
         style={{ x }}
         onClick={onTap}
         className="relative surface-card p-4 cursor-pointer active:scale-[0.98] transition-transform"
-        style2={{ borderLeftWidth: 3, borderLeftColor: nota.color.replace("0.08", "0.5").replace("0.1", "0.5") }}
       >
         <div
           className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl"
