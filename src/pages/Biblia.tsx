@@ -254,22 +254,12 @@ const Biblia = () => {
   const enviarMensagem = async () => {
     if (!contatoParaEnviar) return;
 
-    // If there's a recorded audio, use Web Share API with audio + text
-    if (audioBlob) {
-      toast.loading("Convertendo áudio para MP3...", { id: "mp3-send" });
-      let mp3Blob: Blob;
-      try {
-        mp3Blob = await convertToMp3(audioBlob);
-      } catch {
-        toast.dismiss("mp3-send");
-        toast.error("Erro ao converter. Enviando como webm.");
-        mp3Blob = audioBlob;
-      }
-      toast.dismiss("mp3-send");
-
-      const isMp3 = mp3Blob.type === "audio/mpeg";
+    // Use pre-converted MP3 if available
+    const shareBlob = mp3PreviewBlob || audioBlob;
+    if (shareBlob) {
+      const isMp3 = shareBlob.type === "audio/mpeg";
       const ext = isMp3 ? "mp3" : "webm";
-      const file = new File([mp3Blob], `devocional-${hoje}.${ext}`, { type: mp3Blob.type });
+      const file = new File([shareBlob], `devocional-${hoje}.${ext}`, { type: shareBlob.type });
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         try {
@@ -278,6 +268,7 @@ const Biblia = () => {
             text: previewMsg,
             files: [file],
           });
+          cleanupMp3Preview();
           setShowPreviewModal(false);
           toast.success("Compartilhado com sucesso! 💛");
           return;
@@ -291,12 +282,38 @@ const Biblia = () => {
       }
     }
 
-    // Fallback: open WhatsApp link (no audio or Web Share not supported)
+    // Fallback: open WhatsApp link
     const numero = contatoParaEnviar.numero.replace(/\D/g, "");
     const url = `https://wa.me/${numero}?text=${encodeURIComponent(previewMsg)}`;
     window.open(url, "_blank");
+    cleanupMp3Preview();
     setShowPreviewModal(false);
     toast.success("WhatsApp aberto! Confirme o envio 💛");
+  };
+
+  const cleanupMp3Preview = () => {
+    if (mp3PreviewUrl) URL.revokeObjectURL(mp3PreviewUrl);
+    setMp3PreviewUrl(null);
+    setMp3PreviewBlob(null);
+    setIsPlayingMp3(false);
+    if (mp3PlayerRef.current) {
+      mp3PlayerRef.current.pause();
+      mp3PlayerRef.current = null;
+    }
+  };
+
+  const playMp3Preview = () => {
+    if (!mp3PreviewUrl) return;
+    if (isPlayingMp3 && mp3PlayerRef.current) {
+      mp3PlayerRef.current.pause();
+      setIsPlayingMp3(false);
+      return;
+    }
+    const audio = new Audio(mp3PreviewUrl);
+    mp3PlayerRef.current = audio;
+    audio.onended = () => setIsPlayingMp3(false);
+    audio.play();
+    setIsPlayingMp3(true);
   };
 
   const convertToMp3 = useCallback(async (blob: Blob): Promise<Blob> => {
