@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { User, Target, Dumbbell, Heart, BookOpen, Settings, ChevronRight, ChevronDown, Crown, TrendingUp, Shield, Pencil, X, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import EvolucaoRelatorio from "@/components/perfil/EvolucaoRelatorio";
 
 const STORAGE_KEY = "ham-perfil-data";
 const METRICS_KEY = "ham-perfil-metrics";
@@ -340,7 +342,30 @@ const Perfil = () => {
     setMetrics((prev) => {
       const updated = { ...prev };
       updated[section] = [...prev[section]];
-      updated[section][index] = { ...updated[section][index], value: newValue };
+      const item = { ...updated[section][index], value: newValue };
+      updated[section][index] = item;
+
+      // Save snapshot to DB for evolution tracking
+      const numVal = parseFloat(newValue);
+      if (!isNaN(numVal) && numVal > 0) {
+        const today = new Date().toISOString().slice(0, 10);
+        supabase
+          .from("perfil_metricas_historico")
+          .upsert(
+            { data: today, categoria: section, label: item.label, valor: newValue, unidade: item.unit },
+            { onConflict: "data,categoria,label", ignoreDuplicates: false }
+          )
+          .then(({ error }) => {
+            if (error) {
+              // Fallback: try insert, ignore duplicate
+              supabase
+                .from("perfil_metricas_historico")
+                .insert({ data: today, categoria: section, label: item.label, valor: newValue, unidade: item.unit })
+                .then(() => {});
+            }
+          });
+      }
+
       return updated;
     });
   };
@@ -432,6 +457,9 @@ const Perfil = () => {
       <EditableFieldGroup title="Métricas Cardíacas" items={metrics.cardiac} onUpdateItem={(i, v) => updateMetric("cardiac", i, v)} delay={0.18} />
       <EditableFieldGroup title="Força Atual (1RM)" items={metrics.strength} onUpdateItem={(i, v) => updateMetric("strength", i, v)} delay={0.21} />
       <EditableFieldGroup title="Objetivos e Metas" items={metrics.goals} onUpdateItem={(i, v) => updateMetric("goals", i, v)} delay={0.24} />
+
+      {/* Evolution Report */}
+      <EvolucaoRelatorio />
 
       {/* Quick links */}
       <motion.div

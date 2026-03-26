@@ -38,6 +38,36 @@ export type Database = {
         }
         Relationships: []
       }
+      perfil_metricas_historico: {
+        Row: {
+          categoria: string
+          created_at: string
+          data: string
+          id: string
+          label: string
+          unidade: string
+          valor: string
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          data?: string
+          id?: string
+          label: string
+          unidade?: string
+          valor: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          data?: string
+          id?: string
+          label?: string
+          unidade?: string
+          valor?: string
+        }
+        Relationships: []
+      }
       treino_exercicios: {
         Row: {
           cargas: Json | null
