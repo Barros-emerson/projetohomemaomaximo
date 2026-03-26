@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Check, Clock, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { rotinaSemanal, type RotinaItem } from "@/data/rotina-diaria";
@@ -99,12 +99,43 @@ const SwipeableItem = ({ children, index, isDone, onSwipeRight, onSwipeLeft }: S
     </motion.div>
   );
 };
+const getStorageKey = (dayIdx: number) => {
+  const today = new Date();
+  const dateStr = today.toISOString().slice(0, 10);
+  return `ham-checklist-${dayIdx}-${dateStr}`;
+};
+
+const loadChecked = (dayIdx: number): Set<string> => {
+  try {
+    const saved = localStorage.getItem(getStorageKey(dayIdx));
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  } catch { return new Set(); }
+};
+
+const loadRealTimes = (dayIdx: number): Record<string, string> => {
+  try {
+    const saved = localStorage.getItem(`ham-checklist-times-${dayIdx}-${new Date().toISOString().slice(0, 10)}`);
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+};
+
 const Checklist = () => {
   const [selectedDay, setSelectedDay] = useState(getTodayIndex());
-  const [checked, setChecked] = useState<Set<string>>(new Set());
-  const [realTimes, setRealTimes] = useState<Record<string, string>>({}); // id → "HH:MM"
+  const [checked, setChecked] = useState<Set<string>>(() => loadChecked(getTodayIndex()));
+  const [realTimes, setRealTimes] = useState<Record<string, string>>(() => loadRealTimes(getTodayIndex()));
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editTimeValue, setEditTimeValue] = useState("");
+
+  // Persist checked items
+  useEffect(() => {
+    localStorage.setItem(getStorageKey(selectedDay), JSON.stringify([...checked]));
+  }, [checked, selectedDay]);
+
+  // Persist real times
+  useEffect(() => {
+    const key = `ham-checklist-times-${selectedDay}-${new Date().toISOString().slice(0, 10)}`;
+    localStorage.setItem(key, JSON.stringify(realTimes));
+  }, [realTimes, selectedDay]);
 
   const day = rotinaSemanal[selectedDay];
 
@@ -197,8 +228,8 @@ const Checklist = () => {
               key={i}
               onClick={() => {
                 setSelectedDay(i);
-                setChecked(new Set());
-                setRealTimes({});
+                setChecked(loadChecked(i));
+                setRealTimes(loadRealTimes(i));
               }}
               className="shrink-0 px-3 py-2 rounded-lg border font-mono text-[10px] font-bold tracking-wider transition-all duration-200 active:scale-95"
               style={
