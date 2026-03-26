@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { User, Target, Dumbbell, Heart, BookOpen, Settings, ChevronRight, ChevronDown, Crown, TrendingUp, Shield, Pencil, X, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import EvolucaoRelatorio from "@/components/perfil/EvolucaoRelatorio";
 
 const STORAGE_KEY = "ham-perfil-data";
 const METRICS_KEY = "ham-perfil-metrics";
