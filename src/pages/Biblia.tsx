@@ -524,37 +524,19 @@ const Biblia = () => {
               <span className="text-[10px] text-primary">✓ Áudio gravado</span>
             </div>
 
-            {/* Send audio as devotional via WhatsApp */}
-            <div className="border-t border-border pt-2">
-              <p className="text-[10px] font-mono text-muted-foreground mb-2">ENVIAR DEVOCIONAL COM ÁUDIO:</p>
-              {contatos.length === 0 ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10 rounded-xl"
-                  onClick={() => setShowContatosModal(true)}
-                >
-                  <Plus size={12} className="mr-1" />
-                  Cadastrar contato
-                </Button>
-              ) : (
-                <div className="flex gap-1.5 flex-wrap">
-                  {contatos.map((c, i) => (
-                    <Button
-                      key={i}
-                      size="sm"
-                      variant="outline"
-                      className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10 rounded-xl"
-                      onClick={() => abrirPreview(c)}
-                    >
-                      <Send size={10} className="mr-1" />
-                      {c.nome}
-                    </Button>
-                  ))}
-                </div>
-              )}
-              <p className="text-[9px] text-muted-foreground mt-1.5 italic">
-                💡 O WhatsApp abrirá com a mensagem. Envie o áudio em seguida na conversa.
+            {/* Share audio directly via Web Share API */}
+            <div className="border-t border-border pt-2 space-y-2">
+              <p className="text-[10px] font-mono text-muted-foreground mb-1">ENVIAR DEVOCIONAL COM ÁUDIO:</p>
+              <Button
+                size="sm"
+                className="w-full text-xs bg-green-600 hover:bg-green-700 text-white rounded-xl"
+                onClick={compartilharAudio}
+              >
+                <Share2 size={14} className="mr-1.5" />
+                Compartilhar áudio + mensagem
+              </Button>
+              <p className="text-[9px] text-muted-foreground italic">
+                📎 Envia o áudio + texto do devocional direto para o WhatsApp ou qualquer app.
               </p>
             </div>
           </div>
