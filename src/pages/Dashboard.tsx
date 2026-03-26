@@ -33,6 +33,17 @@ const pillars = [
 
 const totalScore = pillars.reduce((acc, p) => acc + p.score, 0);
 
+const getChecklistPct = (dayIdx: number): number => {
+  try {
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const saved = localStorage.getItem(`ham-checklist-${dayIdx}-${dateStr}`);
+    if (!saved) return 0;
+    const checkedItems: string[] = JSON.parse(saved);
+    const totalItems = rotinaSemanal[dayIdx].items.length;
+    return totalItems > 0 ? Math.round((checkedItems.length / totalItems) * 100) : 0;
+  } catch { return 0; }
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [now, setNow] = useState(new Date());
@@ -40,6 +51,24 @@ const Dashboard = () => {
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Re-read localStorage periodically for live updates
+  const [checklistPct, setChecklistPct] = useState(() => getChecklistPct((() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; })()));
+  
+  useEffect(() => {
+    const update = () => {
+      const todayI = (() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; })();
+      setChecklistPct(getChecklistPct(todayI));
+    };
+    window.addEventListener("focus", update);
+    window.addEventListener("storage", update);
+    const interval = setInterval(update, 5000);
+    return () => {
+      window.removeEventListener("focus", update);
+      window.removeEventListener("storage", update);
+      clearInterval(interval);
+    };
   }, []);
 
   const todayIdx = (() => { const d = now.getDay(); return d === 0 ? 6 : d - 1; })();
