@@ -231,9 +231,53 @@ const Biblia = () => {
     toast.success("WhatsApp aberto! Confirme o envio 💛");
   };
 
+  const convertToMp3 = useCallback(async (blob: Blob): Promise<Blob> => {
+    const lamejs = await import("lamejs");
+    const arrayBuffer = await blob.arrayBuffer();
+    const audioCtx = new AudioContext();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    audioCtx.close();
+
+    const samples = audioBuffer.getChannelData(0);
+    const sampleRate = audioBuffer.sampleRate;
+    const mp3encoder = new lamejs.Mp3Encoder(1, sampleRate, 128);
+    const blockSize = 1152;
+    const mp3Data: Int8Array[] = [];
+
+    const int16 = new Int16Array(samples.length);
+    for (let i = 0; i < samples.length; i++) {
+      int16[i] = Math.max(-32768, Math.min(32767, Math.round(samples[i] * 32767)));
+    }
+
+    for (let i = 0; i < int16.length; i += blockSize) {
+      const chunk = int16.subarray(i, i + blockSize);
+      const mp3buf = mp3encoder.encodeBuffer(chunk);
+      if (mp3buf.length > 0) mp3Data.push(mp3buf);
+    }
+
+    const end = mp3encoder.flush();
+    if (end.length > 0) mp3Data.push(end);
+
+    return new Blob(mp3Data, { type: "audio/mpeg" });
+  }, []);
+
   const compartilharAudio = useCallback(async () => {
     if (!audioBlob) return;
-    const file = new File([audioBlob], `devocional-${hoje}.webm`, { type: "audio/webm" });
+
+    toast.loading("Convertendo áudio para MP3...", { id: "mp3-conv" });
+    let mp3Blob: Blob;
+    try {
+      mp3Blob = await convertToMp3(audioBlob);
+    } catch {
+      toast.dismiss("mp3-conv");
+      toast.error("Erro ao converter áudio. Enviando como webm.");
+      mp3Blob = audioBlob;
+    }
+    toast.dismiss("mp3-conv");
+
+    const isMp3 = mp3Blob.type === "audio/mpeg";
+    const ext = isMp3 ? "mp3" : "webm";
+    const file = new File([mp3Blob], `devocional-${hoje}.${ext}`, { type: mp3Blob.type });
     const msg = gerarMensagem();
 
     if (navigator.share && navigator.canShare?.({ files: [file] })) {
@@ -250,16 +294,15 @@ const Biblia = () => {
         }
       }
     } else {
-      // Fallback: download the file
-      const url = URL.createObjectURL(audioBlob);
+      const url = URL.createObjectURL(mp3Blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `devocional-${hoje}.webm`;
+      a.download = `devocional-${hoje}.${ext}`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.info("Áudio baixado! Envie manualmente pelo WhatsApp.");
+      toast.info("Áudio MP3 baixado! Envie manualmente pelo WhatsApp.");
     }
-  }, [audioBlob, hoje]);
+  }, [audioBlob, hoje, convertToMp3]);
 
   // Modo leitura limpo
   if (modoLeitura && leituraSelecionada) {
