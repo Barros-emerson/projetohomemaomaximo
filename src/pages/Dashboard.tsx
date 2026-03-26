@@ -11,7 +11,7 @@ import {
   BookOpen,
   ChevronRight,
   Flame,
-  Plus,
+  GlassWater,
 } from "lucide-react";
 import { rotinaSemanal } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
