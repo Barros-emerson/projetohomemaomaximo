@@ -258,7 +258,7 @@ const Biblia = () => {
     const end = mp3encoder.flush();
     if (end.length > 0) mp3Data.push(end);
 
-    return new Blob(mp3Data, { type: "audio/mpeg" });
+    return new Blob(mp3Data as unknown as BlobPart[], { type: "audio/mpeg" });
   }, []);
 
   const compartilharAudio = useCallback(async () => {
