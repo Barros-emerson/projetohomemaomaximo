@@ -443,20 +443,10 @@ const Perfil = () => {
         </div>
       </CollapsibleSection>
 
-      {/* Editable focus & anamnese */}
-      <CollapsibleSection title="Foco & Anamnese do Dia" icon={<Target size={14} className="text-accent" />} delay={0.08}>
-        <div className="px-4 pb-4 space-y-1">
-          <EditableField label="Foco atual" value={profile.focus} onSave={(v) => update("focus", v)} />
-          <EditableField label="Anamnese do dia" value={profile.anamnese} onSave={(v) => update("anamnese", v)} multiline />
-        </div>
-      </CollapsibleSection>
-
       {/* Editable Data Sections */}
       <EditableFieldGroup title="Biometria Atual" items={metrics.biometrics} onUpdateItem={(i, v) => updateMetric("biometrics", i, v)} delay={0.12} />
-      <EditableFieldGroup title="Painel Hormonal" items={metrics.hormones} onUpdateItem={(i, v) => updateMetric("hormones", i, v)} delay={0.15} />
-      <EditableFieldGroup title="Métricas Cardíacas" items={metrics.cardiac} onUpdateItem={(i, v) => updateMetric("cardiac", i, v)} delay={0.18} />
-      <EditableFieldGroup title="Força Atual (1RM)" items={metrics.strength} onUpdateItem={(i, v) => updateMetric("strength", i, v)} delay={0.21} />
-      <EditableFieldGroup title="Objetivos e Metas" items={metrics.goals} onUpdateItem={(i, v) => updateMetric("goals", i, v)} delay={0.24} />
+      <EditableFieldGroup title="Força Atual (1RM)" items={metrics.strength} onUpdateItem={(i, v) => updateMetric("strength", i, v)} delay={0.15} />
+      <EditableFieldGroup title="Objetivos e Metas" items={metrics.goals} onUpdateItem={(i, v) => updateMetric("goals", i, v)} delay={0.18} />
 
       {/* Evolution Report */}
       <EvolucaoRelatorio />
