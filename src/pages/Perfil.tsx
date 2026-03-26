@@ -350,6 +350,47 @@ const Perfil = () => {
     localStorage.setItem(METRICS_KEY, JSON.stringify(metrics));
   }, [metrics]);
 
+  // Auto-update strength from workout history (max loads)
+  useEffect(() => {
+    const syncStrengthFromWorkouts = async () => {
+      try {
+        const { data: exercicios } = await supabase
+          .from("treino_exercicios")
+          .select("nome, cargas");
+        if (!exercicios || exercicios.length === 0) return;
+
+        // Build map of max load per exercise name
+        const maxLoads: Record<string, number> = {};
+        exercicios.forEach((ex) => {
+          const cargas = (ex.cargas as any[]) || [];
+          cargas.forEach((c: any) => {
+            const v = parseFloat(c.kg);
+            if (!isNaN(v) && v > 0) {
+              maxLoads[ex.nome] = Math.max(maxLoads[ex.nome] || 0, v);
+            }
+          });
+        });
+
+        setMetrics((prev) => {
+          const strength = prev.strength.map((item) => {
+            const maxFromDB = maxLoads[item.label];
+            if (!maxFromDB) return item;
+            const current = parseFloat(item.value);
+            if (isNaN(current) || maxFromDB > current) {
+              return { ...item, value: String(maxFromDB) };
+            }
+            return item;
+          });
+          const changed = strength.some((s, i) => s.value !== prev.strength[i].value);
+          return changed ? { ...prev, strength } : prev;
+        });
+      } catch (err) {
+        console.error("Erro ao sincronizar força:", err);
+      }
+    };
+    syncStrengthFromWorkouts();
+  }, []);
+
   const update = (key: keyof ProfileData, val: string) =>
     setProfile((prev) => ({ ...prev, [key]: key === "age" ? Number(val) || 0 : val }));
 
