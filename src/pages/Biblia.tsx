@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2 } from "lucide-react";
+import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2, Plus, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 const getWeekOfYear = () => Math.ceil(((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7);
+
+interface Contato {
+  nome: string;
+  numero: string;
+}
 
 const Biblia = () => {
   const [planoId, setPlanoId] = useState("salmos-proverbios");
@@ -36,8 +41,25 @@ const Biblia = () => {
   const [showPlanoModal, setShowPlanoModal] = useState(false);
   const [modoLeitura, setModoLeitura] = useState(false);
   const [leituraSelecionada, setLeituraSelecionada] = useState<LeituraDia | null>(null);
-  const [numeroCamila, setNumeroCamila] = useState(() => localStorage.getItem("ham-numero-camila") || "");
-  const [showNumeroModal, setShowNumeroModal] = useState(false);
+  
+  // Multiple contacts
+  const [contatos, setContatos] = useState<Contato[]>(() => {
+    const saved = localStorage.getItem("ham-contatos-devocional");
+    if (saved) return JSON.parse(saved);
+    // Migrate old single number
+    const old = localStorage.getItem("ham-numero-camila");
+    if (old) return [{ nome: "Amor ♥️", numero: old }];
+    return [];
+  });
+  const [showContatosModal, setShowContatosModal] = useState(false);
+  const [novoContatoNome, setNovoContatoNome] = useState("");
+  const [novoContatoNumero, setNovoContatoNumero] = useState("");
+  
+  // Preview before send
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewMsg, setPreviewMsg] = useState("");
+  const [contatoParaEnviar, setContatoParaEnviar] = useState<Contato | null>(null);
+
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -148,50 +170,65 @@ const Biblia = () => {
     setIsPlaying(false);
   }, [audioUrl]);
 
-  const enviarParaCamila = useCallback(() => {
-    if (!numeroCamila) {
-      setShowNumeroModal(true);
-      return;
-    }
+  const salvarContatos = (novos: Contato[]) => {
+    setContatos(novos);
+    localStorage.setItem("ham-contatos-devocional", JSON.stringify(novos));
+  };
 
-    const leituraAtual = leiturasPlano.find(l => l.concluido) 
+  const adicionarContato = () => {
+    if (!novoContatoNumero.trim()) return;
+    const nome = novoContatoNome.trim() || "Contato";
+    const novos = [...contatos, { nome, numero: novoContatoNumero.trim() }];
+    salvarContatos(novos);
+    setNovoContatoNome("");
+    setNovoContatoNumero("");
+    toast.success(`${nome} adicionado!`);
+  };
+
+  const removerContato = (index: number) => {
+    const novos = contatos.filter((_, i) => i !== index);
+    salvarContatos(novos);
+  };
+
+  const gerarMensagem = (): string => {
+    const leituraAtual = leiturasPlano.find(l => l.concluido)
       ? leiturasPlano.filter(l => l.concluido).slice(-1)[0]
       : devocionalHoje;
 
-    const dataFormatada = new Date().toLocaleDateString("pt-BR", { 
-      weekday: "long", day: "numeric", month: "long" 
+    const dataFormatada = new Date().toLocaleDateString("pt-BR", {
+      weekday: "long", day: "numeric", month: "long"
     });
 
-    let mensagem = `✝️ *Devocional — ${dataFormatada}*\n\n`;
-    mensagem += `📖 *Leitura:* ${leituraAtual?.passagem || "—"}\n\n`;
-    
-    if (reflexao.trim()) {
-      mensagem += `💭 *Reflexão:*\n${reflexao.trim()}\n\n`;
-    }
+    let msg = `✝️ *Devocional de hoje — ${dataFormatada}*\n\n`;
+    msg += `📖 *Vamos ler:* ${leituraAtual?.passagem || "—"}\n\n`;
 
-    if (anotacoes.trim()) {
-      mensagem += `📝 *Anotações:*\n${anotacoes.trim()}\n\n`;
+    if (reflexao.trim()) {
+      msg += `REFLEXÃO DO DIA ♥️:\n${reflexao.trim()}\n\n`;
     }
 
     if (audioBlob) {
-      mensagem += `🎙️ _Gravei uma mensagem de voz pra você — te envio em seguida!_\n\n`;
+      msg += `🎙️ _Gravei uma mensagem de voz pra você — te envio em seguida!_\n\n`;
     }
 
-    mensagem += `🔥 Streak: ${streak.count} dia(s)\n`;
-    mensagem += `\n— Emerson, via HOMEM AO MÁXIMO`;
+    msg += `🔥: ${streak.count} dia(s)\n\n`;
+    msg += `— Emerson, via Homem de verdade.`;
 
-    const numero = numeroCamila.replace(/\D/g, "");
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+    return msg;
+  };
+
+  const abrirPreview = (contato: Contato) => {
+    setContatoParaEnviar(contato);
+    setPreviewMsg(gerarMensagem());
+    setShowPreviewModal(true);
+  };
+
+  const enviarMensagem = () => {
+    if (!contatoParaEnviar) return;
+    const numero = contatoParaEnviar.numero.replace(/\D/g, "");
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(previewMsg)}`;
     window.open(url, "_blank");
-
+    setShowPreviewModal(false);
     toast.success("WhatsApp aberto! Confirme o envio 💛");
-  }, [numeroCamila, reflexao, anotacoes, audioBlob, streak, leiturasPlano, devocionalHoje]);
-
-  const salvarNumeroCamila = (num: string) => {
-    setNumeroCamila(num);
-    localStorage.setItem("ham-numero-camila", num);
-    setShowNumeroModal(false);
-    toast.success("Número salvo!");
   };
 
   // Modo leitura limpo
@@ -346,17 +383,9 @@ const Biblia = () => {
           placeholder="O que Deus falou com você hoje? Escreva aqui sua reflexão..."
           className="bg-secondary/50 border-border text-sm min-h-[80px] resize-none focus:border-violet-500/50 rounded-xl"
         />
-        <div className="mt-3">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-mono text-amber-400 tracking-widest">📝 ANOTAÇÕES PARA CAMILA</span>
-          </div>
-          <Textarea
-            value={anotacoes}
-            onChange={e => setAnotacoes(e.target.value)}
-            placeholder="Pontos-chave, versículos marcantes, insights... Tudo aqui vira parte do resumo enviado para Camila."
-            className="bg-secondary/50 border-border text-sm min-h-[60px] resize-none focus:border-amber-500/50 rounded-xl"
-          />
-        </div>
+        <p className="text-[10px] text-muted-foreground mt-1.5 italic">
+          💡 O que você escrever aqui será o conteúdo de "REFLEXÃO DO DIA ♥️" no devocional enviado.
+        </p>
         <div className="flex gap-2 mt-3">
           <Button
             size="sm"
@@ -365,19 +394,53 @@ const Biblia = () => {
           >
             Salvar tudo
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10 rounded-xl"
-            onClick={enviarParaCamila}
-          >
-            <Send size={12} className="mr-1" />
-            Enviar para Camila
-          </Button>
+          {contatos.length === 0 ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10 rounded-xl"
+              onClick={() => setShowContatosModal(true)}
+            >
+              <Plus size={12} className="mr-1" />
+              Cadastrar contato
+            </Button>
+          ) : contatos.length === 1 ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10 rounded-xl"
+              onClick={() => abrirPreview(contatos[0])}
+            >
+              <Send size={12} className="mr-1" />
+              Enviar para {contatos[0].nome}
+            </Button>
+          ) : (
+            <div className="flex gap-1.5 flex-wrap">
+              {contatos.map((c, i) => (
+                <Button
+                  key={i}
+                  size="sm"
+                  variant="outline"
+                  className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10 rounded-xl"
+                  onClick={() => abrirPreview(c)}
+                >
+                  <Send size={10} className="mr-1" />
+                  {c.nome}
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
+        <button
+          onClick={() => setShowContatosModal(true)}
+          className="text-[10px] font-mono text-muted-foreground mt-2 flex items-center gap-1 hover:text-foreground transition-colors"
+        >
+          <Phone size={10} />
+          Gerenciar contatos ({contatos.length})
+        </button>
       </motion.div>
 
-      {/* Gravar voz para Camila */}
+      {/* Gravar voz */}
       <motion.div
         initial={{ y: 12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -407,7 +470,7 @@ const Biblia = () => {
                 <motion.span
                   animate={{ opacity: [1, 0] }}
                   transition={{ repeat: Infinity, duration: 1 }}
-                  className="ml-2 w-2 h-2 rounded-full bg-red-500 inline-block"
+                  className="ml-2 w-2 h-2 rounded-full bg-destructive inline-block"
                 />
               </>
             ) : (
@@ -503,29 +566,96 @@ const Biblia = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal número da Camila */}
-      <Dialog open={showNumeroModal} onOpenChange={setShowNumeroModal}>
+      {/* Modal gerenciar contatos */}
+      <Dialog open={showContatosModal} onOpenChange={setShowContatosModal}>
         <DialogContent className="bg-card border-border max-w-sm">
           <DialogHeader>
-            <DialogTitle className="font-mono text-sm tracking-widest">NÚMERO DA CAMILA</DialogTitle>
+            <DialogTitle className="font-mono text-sm tracking-widest">CONTATOS DO DEVOCIONAL</DialogTitle>
           </DialogHeader>
           <p className="text-xs text-muted-foreground">
-            Digite o número com código do país (ex: 5561999999999)
+            Cadastre os contatos que receberão o devocional via WhatsApp.
           </p>
-          <Input
-            placeholder="5561999999999"
-            value={numeroCamila}
-            onChange={e => setNumeroCamila(e.target.value)}
-            className="bg-secondary/50 border-border"
+
+          {/* Lista de contatos */}
+          {contatos.length > 0 && (
+            <div className="space-y-2 mt-2">
+              {contatos.map((c, i) => (
+                <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-secondary/50 border border-border">
+                  <div>
+                    <p className="text-xs font-medium text-foreground">{c.nome}</p>
+                    <p className="text-[10px] text-muted-foreground">{c.numero}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
+                    onClick={() => removerContato(i)}
+                  >
+                    <Trash2 size={12} />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Adicionar novo */}
+          <div className="space-y-2 mt-3 pt-3 border-t border-border">
+            <p className="text-[10px] font-mono text-muted-foreground tracking-widest">NOVO CONTATO</p>
+            <Input
+              placeholder='Nome (ex: Amor ♥️)'
+              value={novoContatoNome}
+              onChange={e => setNovoContatoNome(e.target.value)}
+              className="bg-secondary/50 border-border text-sm"
+            />
+            <Input
+              placeholder="Número com DDD (ex: 5561999999999)"
+              value={novoContatoNumero}
+              onChange={e => setNovoContatoNumero(e.target.value)}
+              className="bg-secondary/50 border-border text-sm"
+            />
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700 text-white text-xs"
+              onClick={adicionarContato}
+              disabled={!novoContatoNumero.trim()}
+            >
+              <Plus size={14} className="mr-2" />
+              Adicionar contato
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal preview antes de enviar */}
+      <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-mono text-sm tracking-widest flex items-center gap-2">
+              <Send size={14} className="text-green-500" />
+              PREVIEW — {contatoParaEnviar?.nome}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-[10px] text-muted-foreground">Edite a mensagem antes de enviar:</p>
+          <Textarea
+            value={previewMsg}
+            onChange={e => setPreviewMsg(e.target.value)}
+            className="bg-secondary/50 border-border text-xs min-h-[200px] resize-none font-mono leading-relaxed rounded-xl"
           />
-          <Button
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => salvarNumeroCamila(numeroCamila)}
-            disabled={!numeroCamila.trim()}
-          >
-            <Send size={14} className="mr-2" />
-            Salvar e enviar
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 text-xs"
+              onClick={() => setShowPreviewModal(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs"
+              onClick={enviarMensagem}
+            >
+              <Send size={12} className="mr-1" />
+              Enviar via WhatsApp
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
