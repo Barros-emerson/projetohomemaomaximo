@@ -71,6 +71,11 @@ const Biblia = () => {
   const [direcaoLoading, setDirecaoLoading] = useState(false);
   const [direcaoLeitura, setDirecaoLeitura] = useState<string>("");
 
+  // Bible text fetching
+  interface ChapterResult { book: string; chapter: number; text: string; }
+  const [bibliaTexto, setBibliaTexto] = useState<ChapterResult[]>([]);
+  const [bibliaLoading, setBibliaLoading] = useState(false);
+
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
