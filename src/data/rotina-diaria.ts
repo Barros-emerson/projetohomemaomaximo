@@ -35,7 +35,7 @@ const workBase: RotinaItem[] = [
 ];
 
 const nightBase: RotinaItem[] = [
-  { id: "desacelerar", time: "22:00", label: "Desacelerar digital", detail: "Tela off. Rotina de sono. Bíblia com Camila (áudio devocional).", dotColor: "#C084FC", tags: [{ label: "Dopamina", color: "#C084FC" }, { label: "Libido", color: "#C084FC" }] },
+  { id: "desacelerar", time: "22:00", label: "Desacelerar digital", detail: "Tela off. Rotina de sono. Bíblia com Amor (áudio devocional).", dotColor: "#C084FC", tags: [{ label: "Dopamina", color: "#C084FC" }, { label: "Libido", color: "#C084FC" }] },
   { id: "dormir", time: "22:30", label: "Dormir", detail: "Meta 7h30. Polar monitora sono, HRV e Nightly Recharge.", alert: true, dotColor: "#F5C542", tags: [{ label: "GH noturno", color: "#F5C542" }, { label: "Recuperação", color: "#F5C542" }] },
 ];
 
