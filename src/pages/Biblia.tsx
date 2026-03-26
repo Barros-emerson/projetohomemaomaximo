@@ -231,6 +231,36 @@ const Biblia = () => {
     toast.success("WhatsApp aberto! Confirme o envio 💛");
   };
 
+  const compartilharAudio = useCallback(async () => {
+    if (!audioBlob) return;
+    const file = new File([audioBlob], `devocional-${hoje}.webm`, { type: "audio/webm" });
+    const msg = gerarMensagem();
+
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({
+          title: "Devocional de hoje",
+          text: msg,
+          files: [file],
+        });
+        toast.success("Compartilhado com sucesso! 💛");
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          toast.error("Erro ao compartilhar");
+        }
+      }
+    } else {
+      // Fallback: download the file
+      const url = URL.createObjectURL(audioBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `devocional-${hoje}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.info("Áudio baixado! Envie manualmente pelo WhatsApp.");
+    }
+  }, [audioBlob, hoje]);
+
   // Modo leitura limpo
   if (modoLeitura && leituraSelecionada) {
     return (
