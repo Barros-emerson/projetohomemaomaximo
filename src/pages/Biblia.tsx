@@ -31,10 +31,9 @@ const Biblia = () => {
   const [reflexao, setReflexao] = useState(() => localStorage.getItem("ham-biblia-reflexao-hoje") || "");
   const [anotacoes, setAnotacoes] = useState(() => localStorage.getItem("ham-biblia-anotacoes-hoje") || "");
   const [oracaoTab, setOracaoTab] = useState("gratidao");
-  const [oracoes, setOracoes] = useState<Record<string, string>>(() => {
-    const saved = localStorage.getItem("ham-biblia-oracoes");
-    return saved ? JSON.parse(saved) : { gratidao: "", pedidos: "", intercessao: "" };
-  });
+  const [oracoes, setOracoes] = useState<Record<string, string>>({ gratidao: "", pedidos: "", intercessao: "" });
+  const [oracoesSalvas, setOracoesSalvas] = useState<Array<{ id: string; tipo: string; conteudo: string; data: string; created_at: string }>>([]);
+  const [salvandoOracao, setSalvandoOracao] = useState(false);
   const [streak, setStreak] = useState(() => {
     const saved = localStorage.getItem("ham-biblia-streak");
     return saved ? JSON.parse(saved) : { count: 0, lastDate: "" };
