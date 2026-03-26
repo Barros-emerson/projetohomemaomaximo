@@ -75,6 +75,7 @@ const defaultMetrics: Record<string, MetricItem[]> = {
     { label: "Stiff", value: "—", unit: "kg" },
     { label: "Barra Fixa", value: "—", unit: "kg" },
     { label: "Paralelas", value: "—", unit: "kg" },
+    { label: "Crucifixo", value: "—", unit: "kg" },
     { label: "Puxador Frente", value: "—", unit: "kg" },
     { label: "Remada Baixa", value: "—", unit: "kg" },
     { label: "Elevação Lateral", value: "—", unit: "kg" },
