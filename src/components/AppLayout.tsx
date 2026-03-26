@@ -58,6 +58,24 @@ export const AppLayout = () => {
   const pendingCount = tarefas.filter((t) => !t.done).length;
 
   const toggleTarefa = (id: string) => {
+    const tarefa = tarefas.find((t) => t.id === id);
+    if (tarefa && !tarefa.done) {
+      // Vibração
+      if (navigator.vibrate) navigator.vibrate(50);
+      // Som
+      try {
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.value = 0.15;
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        osc.stop(ctx.currentTime + 0.15);
+      } catch {}
+    }
     const updated = tarefas.map((t) => (t.id === id ? { ...t, done: !t.done } : t));
     setTarefas(updated);
     localStorage.setItem("ham-tarefas", JSON.stringify(updated));
