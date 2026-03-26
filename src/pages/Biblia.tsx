@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2, Plus, Phone } from "lucide-react";
+import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2, Plus, Phone, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -230,6 +230,36 @@ const Biblia = () => {
     setShowPreviewModal(false);
     toast.success("WhatsApp aberto! Confirme o envio 💛");
   };
+
+  const compartilharAudio = useCallback(async () => {
+    if (!audioBlob) return;
+    const file = new File([audioBlob], `devocional-${hoje}.webm`, { type: "audio/webm" });
+    const msg = gerarMensagem();
+
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({
+          title: "Devocional de hoje",
+          text: msg,
+          files: [file],
+        });
+        toast.success("Compartilhado com sucesso! 💛");
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          toast.error("Erro ao compartilhar");
+        }
+      }
+    } else {
+      // Fallback: download the file
+      const url = URL.createObjectURL(audioBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `devocional-${hoje}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.info("Áudio baixado! Envie manualmente pelo WhatsApp.");
+    }
+  }, [audioBlob, hoje]);
 
   // Modo leitura limpo
   if (modoLeitura && leituraSelecionada) {
@@ -494,37 +524,19 @@ const Biblia = () => {
               <span className="text-[10px] text-primary">✓ Áudio gravado</span>
             </div>
 
-            {/* Send audio as devotional via WhatsApp */}
-            <div className="border-t border-border pt-2">
-              <p className="text-[10px] font-mono text-muted-foreground mb-2">ENVIAR DEVOCIONAL COM ÁUDIO:</p>
-              {contatos.length === 0 ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10 rounded-xl"
-                  onClick={() => setShowContatosModal(true)}
-                >
-                  <Plus size={12} className="mr-1" />
-                  Cadastrar contato
-                </Button>
-              ) : (
-                <div className="flex gap-1.5 flex-wrap">
-                  {contatos.map((c, i) => (
-                    <Button
-                      key={i}
-                      size="sm"
-                      variant="outline"
-                      className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10 rounded-xl"
-                      onClick={() => abrirPreview(c)}
-                    >
-                      <Send size={10} className="mr-1" />
-                      {c.nome}
-                    </Button>
-                  ))}
-                </div>
-              )}
-              <p className="text-[9px] text-muted-foreground mt-1.5 italic">
-                💡 O WhatsApp abrirá com a mensagem. Envie o áudio em seguida na conversa.
+            {/* Share audio directly via Web Share API */}
+            <div className="border-t border-border pt-2 space-y-2">
+              <p className="text-[10px] font-mono text-muted-foreground mb-1">ENVIAR DEVOCIONAL COM ÁUDIO:</p>
+              <Button
+                size="sm"
+                className="w-full text-xs bg-green-600 hover:bg-green-700 text-white rounded-xl"
+                onClick={compartilharAudio}
+              >
+                <Share2 size={14} className="mr-1.5" />
+                Compartilhar áudio + mensagem
+              </Button>
+              <p className="text-[9px] text-muted-foreground italic">
+                📎 Envia o áudio + texto do devocional direto para o WhatsApp ou qualquer app.
               </p>
             </div>
           </div>
