@@ -14,6 +14,7 @@ import Config from "@/pages/Config";
 import Tarefas from "@/pages/Tarefas";
 import Biblia from "@/pages/Biblia";
 import Notas from "@/pages/Notas";
+import Historico from "@/pages/Historico";
 import Performance from "@/pages/Performance";
 import NotFound from "@/pages/NotFound";
 
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/tarefas" element={<Tarefas />} />
               <Route path="/biblia" element={<Biblia />} />
               <Route path="/notas" element={<Notas />} />
+              <Route path="/historico" element={<Historico />} />
               <Route path="/performance" element={<Performance />} />
             </Route>
             <Route path="*" element={<NotFound />} />
