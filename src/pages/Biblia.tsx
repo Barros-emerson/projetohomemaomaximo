@@ -1,5 +1,6 @@
-import { useState, useRef, useCallback } from "react";
-import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2, Plus, Phone, Share2 } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2, Plus, Phone, Share2, RefreshCw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -65,6 +66,11 @@ const Biblia = () => {
   const [isPlayingMp3, setIsPlayingMp3] = useState(false);
   const mp3PlayerRef = useRef<HTMLAudioElement | null>(null);
 
+  // Direção de Deus (AI)
+  const [direcaoDeDeus, setDirecaoDeDeus] = useState<string>("");
+  const [direcaoLoading, setDirecaoLoading] = useState(false);
+  const [direcaoLeitura, setDirecaoLeitura] = useState<string>("");
+
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -128,6 +134,43 @@ const Biblia = () => {
     y.setDate(y.getDate() - 1);
     return d.toISOString().split("T")[0] === y.toISOString().split("T")[0];
   };
+
+  const buscarDirecao = useCallback(async (leitura: string) => {
+    if (!leitura) return;
+    setDirecaoLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("direcao-de-deus", {
+        body: { leitura },
+      });
+      if (error) throw error;
+      if (data?.frase) {
+        setDirecaoDeDeus(data.frase);
+        setDirecaoLeitura(leitura);
+        localStorage.setItem("ham-direcao-de-deus", JSON.stringify({ frase: data.frase, leitura, date: hoje }));
+      }
+    } catch (err: any) {
+      console.error("Erro ao buscar direção:", err);
+      toast.error("Não foi possível gerar a direção de Deus");
+    } finally {
+      setDirecaoLoading(false);
+    }
+  }, [hoje]);
+
+  // Auto-load AI phrase for today's reading
+  useEffect(() => {
+    const passagem = devocionalHoje?.passagem;
+    if (!passagem) return;
+    const saved = localStorage.getItem("ham-direcao-de-deus");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.date === hoje && parsed.leitura === passagem) {
+        setDirecaoDeDeus(parsed.frase);
+        setDirecaoLeitura(parsed.leitura);
+        return;
+      }
+    }
+    buscarDirecao(passagem);
+  }, [devocionalHoje?.passagem, hoje, buscarDirecao]);
 
   const startRecording = useCallback(async () => {
     try {
@@ -213,6 +256,10 @@ const Biblia = () => {
 
     let msg = `✝️ *Devocional de hoje — ${dataFormatada}*\n\n`;
     msg += `📖 *Vamos ler:* ${leituraAtual?.passagem || "—"}\n\n`;
+
+    if (direcaoDeDeus) {
+      msg += `✨ *Direção de Deus:*\n"${direcaoDeDeus}"\n\n`;
+    }
 
     if (reflexao.trim()) {
       msg += `REFLEXÃO DO DIA ♥️:\n${reflexao.trim()}\n\n`;
@@ -457,6 +504,44 @@ const Biblia = () => {
         </div>
         <p className="text-sm text-foreground leading-relaxed italic">"{versiculo.texto}"</p>
         <p className="text-xs text-violet-400 mt-2 font-medium">{versiculo.referencia}</p>
+      </motion.div>
+
+      {/* Direção de Deus (AI) */}
+      <motion.div
+        initial={{ y: 12, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.15, duration: 0.5 }}
+        className="surface-card p-4 border-amber-500/20"
+      >
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Sparkles size={14} className="text-amber-400" />
+            <span className="font-mono text-[10px] tracking-widest text-amber-400 uppercase">Direção de Deus</span>
+          </div>
+          <button
+            onClick={() => devocionalHoje && buscarDirecao(devocionalHoje.passagem)}
+            disabled={direcaoLoading}
+            className="text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            <RefreshCw size={10} className={direcaoLoading ? "animate-spin" : ""} />
+            {direcaoLoading ? "" : "NOVA"}
+          </button>
+        </div>
+        {direcaoLoading ? (
+          <div className="flex items-center gap-2 py-2">
+            <div className="h-4 w-4 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+            <span className="text-xs text-muted-foreground">Buscando direção...</span>
+          </div>
+        ) : direcaoDeDeus ? (
+          <>
+            <p className="text-lg font-semibold text-foreground leading-snug italic">"{direcaoDeDeus}"</p>
+            <p className="text-[10px] text-amber-400/70 mt-2 font-mono">
+              — Emerson · Homem de verdade
+            </p>
+          </>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">Nenhuma direção gerada ainda.</p>
+        )}
       </motion.div>
 
       {/* Leitura do dia */}
