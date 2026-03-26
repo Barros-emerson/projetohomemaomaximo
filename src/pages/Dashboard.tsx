@@ -235,7 +235,44 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Devocional card */}
+      {/* Hidratação rápida */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="surface-card p-3 flex items-center gap-3"
+      >
+        <motion.button
+          onClick={adicionarAgua}
+          animate={aguaAnim ? { scale: [1, 1.15, 1] } : {}}
+          transition={{ duration: 0.3 }}
+          className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shrink-0 active:scale-90 transition-transform shadow-lg"
+          style={{ boxShadow: "0 4px 20px hsl(var(--primary) / 0.35)" }}
+        >
+          <Plus size={24} className="text-primary-foreground" strokeWidth={3} />
+        </motion.button>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-1.5">
+            <Droplets size={14} className="text-primary shrink-0" />
+            <span className="font-mono text-sm font-bold text-foreground">
+              {(aguaMl / 1000).toFixed(1)}L
+            </span>
+            <span className="font-mono text-[10px] text-muted-foreground">/ {(META_AGUA / 1000).toFixed(1)}L</span>
+          </div>
+          <div className="h-1.5 bg-secondary rounded-full overflow-hidden mt-1.5">
+            <motion.div
+              className="h-full rounded-full bg-primary"
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min((aguaMl / META_AGUA) * 100, 100)}%` }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+          </div>
+          <p className="text-[9px] text-muted-foreground mt-1 font-mono">
+            {Math.floor(aguaMl / 700)} garrafas · +700ml por toque
+          </p>
+        </div>
+      </motion.div>
+
       <motion.button
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
