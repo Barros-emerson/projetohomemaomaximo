@@ -59,6 +59,11 @@ const Biblia = () => {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewMsg, setPreviewMsg] = useState("");
   const [contatoParaEnviar, setContatoParaEnviar] = useState<Contato | null>(null);
+  const [mp3PreviewUrl, setMp3PreviewUrl] = useState<string | null>(null);
+  const [mp3PreviewBlob, setMp3PreviewBlob] = useState<Blob | null>(null);
+  const [isConvertingMp3, setIsConvertingMp3] = useState(false);
+  const [isPlayingMp3, setIsPlayingMp3] = useState(false);
+  const mp3PlayerRef = useRef<HTMLAudioElement | null>(null);
 
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -223,31 +228,38 @@ const Biblia = () => {
     return msg;
   };
 
-  const abrirPreview = (contato: Contato) => {
+  const abrirPreview = async (contato: Contato) => {
     setContatoParaEnviar(contato);
     setPreviewMsg(gerarMensagem());
+    setMp3PreviewUrl(null);
+    setMp3PreviewBlob(null);
     setShowPreviewModal(true);
+
+    // Auto-convert audio to MP3 when opening preview
+    if (audioBlob) {
+      setIsConvertingMp3(true);
+      try {
+        const mp3 = await convertToMp3(audioBlob);
+        const url = URL.createObjectURL(mp3);
+        setMp3PreviewBlob(mp3);
+        setMp3PreviewUrl(url);
+      } catch {
+        toast.error("Erro ao converter áudio para MP3");
+      } finally {
+        setIsConvertingMp3(false);
+      }
+    }
   };
 
   const enviarMensagem = async () => {
     if (!contatoParaEnviar) return;
 
-    // If there's a recorded audio, use Web Share API with audio + text
-    if (audioBlob) {
-      toast.loading("Convertendo áudio para MP3...", { id: "mp3-send" });
-      let mp3Blob: Blob;
-      try {
-        mp3Blob = await convertToMp3(audioBlob);
-      } catch {
-        toast.dismiss("mp3-send");
-        toast.error("Erro ao converter. Enviando como webm.");
-        mp3Blob = audioBlob;
-      }
-      toast.dismiss("mp3-send");
-
-      const isMp3 = mp3Blob.type === "audio/mpeg";
+    // Use pre-converted MP3 if available
+    const shareBlob = mp3PreviewBlob || audioBlob;
+    if (shareBlob) {
+      const isMp3 = shareBlob.type === "audio/mpeg";
       const ext = isMp3 ? "mp3" : "webm";
-      const file = new File([mp3Blob], `devocional-${hoje}.${ext}`, { type: mp3Blob.type });
+      const file = new File([shareBlob], `devocional-${hoje}.${ext}`, { type: shareBlob.type });
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         try {
@@ -256,6 +268,7 @@ const Biblia = () => {
             text: previewMsg,
             files: [file],
           });
+          cleanupMp3Preview();
           setShowPreviewModal(false);
           toast.success("Compartilhado com sucesso! 💛");
           return;
@@ -269,12 +282,38 @@ const Biblia = () => {
       }
     }
 
-    // Fallback: open WhatsApp link (no audio or Web Share not supported)
+    // Fallback: open WhatsApp link
     const numero = contatoParaEnviar.numero.replace(/\D/g, "");
     const url = `https://wa.me/${numero}?text=${encodeURIComponent(previewMsg)}`;
     window.open(url, "_blank");
+    cleanupMp3Preview();
     setShowPreviewModal(false);
     toast.success("WhatsApp aberto! Confirme o envio 💛");
+  };
+
+  const cleanupMp3Preview = () => {
+    if (mp3PreviewUrl) URL.revokeObjectURL(mp3PreviewUrl);
+    setMp3PreviewUrl(null);
+    setMp3PreviewBlob(null);
+    setIsPlayingMp3(false);
+    if (mp3PlayerRef.current) {
+      mp3PlayerRef.current.pause();
+      mp3PlayerRef.current = null;
+    }
+  };
+
+  const playMp3Preview = () => {
+    if (!mp3PreviewUrl) return;
+    if (isPlayingMp3 && mp3PlayerRef.current) {
+      mp3PlayerRef.current.pause();
+      setIsPlayingMp3(false);
+      return;
+    }
+    const audio = new Audio(mp3PreviewUrl);
+    mp3PlayerRef.current = audio;
+    audio.onended = () => setIsPlayingMp3(false);
+    audio.play();
+    setIsPlayingMp3(true);
   };
 
   const convertToMp3 = useCallback(async (blob: Blob): Promise<Blob> => {
@@ -777,6 +816,33 @@ const Biblia = () => {
             onChange={e => setPreviewMsg(e.target.value)}
             className="bg-secondary/50 border-border text-xs min-h-[200px] resize-none font-mono leading-relaxed rounded-xl"
           />
+          {/* MP3 Audio Preview Player */}
+          {audioBlob && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary/50 border border-border">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={playMp3Preview}
+                disabled={isConvertingMp3 || !mp3PreviewUrl}
+              >
+                {isPlayingMp3 ? <Square size={14} /> : <Play size={14} />}
+              </Button>
+              <div className="flex-1">
+                <p className="text-[10px] font-mono text-muted-foreground">
+                  {isConvertingMp3 ? "Convertendo para MP3..." : mp3PreviewUrl ? "🎙️ Áudio MP3 pronto" : "Preparando áudio..."}
+                </p>
+                {mp3PreviewBlob && (
+                  <p className="text-[10px] text-muted-foreground/70">
+                    {(mp3PreviewBlob.size / 1024).toFixed(0)} KB
+                  </p>
+                )}
+              </div>
+              {isConvertingMp3 && (
+                <div className="h-4 w-4 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin" />
+              )}
+            </div>
+          )}
           <div className="flex gap-2">
             <Button
               variant="outline"
