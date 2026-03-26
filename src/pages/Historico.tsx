@@ -299,7 +299,7 @@ const Historico = () => {
         supabase.from("treino_fotos").select("*").in("sessao_id", ids),
       ]);
 
-      setExercicios((exRes.data as Exercicio[]) || []);
+      setExercicios((exRes.data as unknown as Exercicio[]) || []);
       setFotos((fotoRes.data as Foto[]) || []);
     } catch (err) {
       console.error("Erro ao buscar histórico:", err);
