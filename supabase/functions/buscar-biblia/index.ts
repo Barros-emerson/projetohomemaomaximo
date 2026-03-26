@@ -133,12 +133,12 @@ async function fetchChapter(book: string, chapter: number): Promise<string> {
   
   if (response.ok) {
     const data = await response.json();
-    if (data.text) {
-      return data.text;
-    }
-    // If it returns verses array
+    // Prefer verses array for numbered output
     if (data.verses && Array.isArray(data.verses)) {
-      return data.verses.map((v: any) => `${v.verse}. ${v.text}`).join("\n");
+      return data.verses.map((v: any) => `${v.verse} ${v.text.trim()}`).join("\n");
+    }
+    if (data.text) {
+      return data.text.trim();
     }
   }
 
