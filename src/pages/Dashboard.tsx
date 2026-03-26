@@ -83,6 +83,23 @@ const Dashboard = () => {
   const [checklistPct, setChecklistPct] = useState(() => getChecklistPct(getTodayI()));
   const [treinoPct, setTreinoPct] = useState(() => getTreinoPct(getTodayI()));
   const [bibliaPct, setBibliaPct] = useState(() => getBibliaPct());
+  const dateKey = new Date().toISOString().slice(0, 10);
+  const [aguaMl, setAguaMl] = useState(() => {
+    const saved = localStorage.getItem(`ham-agua-${dateKey}`);
+    return saved ? parseInt(saved) : 0;
+  });
+  const [aguaAnim, setAguaAnim] = useState(false);
+  const META_AGUA = 3500;
+
+  const adicionarAgua = useCallback(() => {
+    setAguaMl(prev => {
+      const novo = prev + 700;
+      localStorage.setItem(`ham-agua-${dateKey}`, String(novo));
+      return novo;
+    });
+    setAguaAnim(true);
+    setTimeout(() => setAguaAnim(false), 400);
+  }, [dateKey]);
   
   useEffect(() => {
     const update = () => {
