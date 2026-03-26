@@ -3,37 +3,20 @@ import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, Minus, BarChart3, Calendar, Zap, Dumbbell, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-interface SessaoComExercicios {
-  id: string;
-  data: string;
-  dia_semana: number;
-  tipo: string;
-  foco: string;
-  duracao_segundos: number;
-  total_series: number;
-  series_completas: number;
-  exercicios: {
-    exercicio_id: string;
-    nome: string;
-    sets_planejados: number;
-    sets_completos: number;
-    cargas: { set: number; kg: string }[];
-  }[];
-}
-
 interface ComparativoMetrica {
   label: string;
   icon: React.ReactNode;
   atual: string;
   anterior: string;
-  variacao: number; // percentage
-  positivo: boolean; // is increase good?
+  variacao: number;
+  positivo: boolean;
 }
 
 const TreinoComparativo = () => {
   const [loading, setLoading] = useState(true);
   const [metricas, setMetricas] = useState<ComparativoMetrica[]>([]);
   const [temDados, setTemDados] = useState(false);
+  const [periodoLabel, setPeriodoLabel] = useState("COMPARATIVO SEMANAL");
 
   useEffect(() => {
     calcularComparativo();
@@ -42,57 +25,59 @@ const TreinoComparativo = () => {
   const calcularComparativo = async () => {
     try {
       const hoje = new Date();
-      const inicio4Semanas = new Date(hoje);
-      inicio4Semanas.setDate(inicio4Semanas.getDate() - 28);
-      const inicio8Semanas = new Date(hoje);
-      inicio8Semanas.setDate(inicio8Semanas.getDate() - 56);
+      // Current week: last 7 days. Previous week: 7-14 days ago.
+      const inicioSemanaAtual = new Date(hoje);
+      inicioSemanaAtual.setDate(inicioSemanaAtual.getDate() - 7);
+      const inicioSemanaAnterior = new Date(hoje);
+      inicioSemanaAnterior.setDate(inicioSemanaAnterior.getDate() - 14);
 
-      // Buscar sessões das últimas 8 semanas
       const { data: sessoes } = await supabase
         .from("treino_sessoes")
         .select("*")
-        .gte("data", inicio8Semanas.toISOString().slice(0, 10))
+        .gte("data", inicioSemanaAnterior.toISOString().slice(0, 10))
         .order("data", { ascending: true });
 
-      if (!sessoes || sessoes.length < 2) {
+      if (!sessoes || sessoes.length === 0) {
         setTemDados(false);
         setLoading(false);
         return;
       }
 
-      // Buscar exercícios
       const sessaoIds = sessoes.map(s => s.id);
       const { data: exercicios } = await supabase
         .from("treino_exercicios")
         .select("*")
         .in("sessao_id", sessaoIds);
 
-      // Separar em duas metades: últimas 4 semanas vs 4 semanas anteriores
-      const metade = inicio4Semanas.toISOString().slice(0, 10);
+      const metade = inicioSemanaAtual.toISOString().slice(0, 10);
       const recentes = sessoes.filter(s => s.data >= metade);
       const anteriores = sessoes.filter(s => s.data < metade);
 
-      if (anteriores.length === 0 || recentes.length === 0) {
+      // If only current week data, show stats without comparison
+      if (recentes.length === 0 && anteriores.length === 0) {
         setTemDados(false);
         setLoading(false);
         return;
       }
 
+      // Show data even if only one week exists
+      const hasComparison = anteriores.length > 0 && recentes.length > 0;
       setTemDados(true);
+      setPeriodoLabel(hasComparison ? "COMPARATIVO SEMANAL" : "RESUMO DA SEMANA");
 
-      const exRecentes = exercicios?.filter(e => recentes.some(s => s.id === e.sessao_id)) || [];
-      const exAnteriores = exercicios?.filter(e => anteriores.some(s => s.id === e.sessao_id)) || [];
+      const atual = recentes.length > 0 ? recentes : anteriores;
+      const anterior = hasComparison ? anteriores : [];
 
-      // Duração média
-      const duracaoMediaRecente = recentes.reduce((a, s) => a + s.duracao_segundos, 0) / recentes.length;
-      const duracaoMediaAnterior = anteriores.reduce((a, s) => a + s.duracao_segundos, 0) / anteriores.length;
+      const exAtuais = exercicios?.filter(e => atual.some(s => s.id === e.sessao_id)) || [];
+      const exAnteriores = exercicios?.filter(e => anterior.some(s => s.id === e.sessao_id)) || [];
 
-      // Conclusão média (%)
-      const conclusaoRecente = recentes.reduce((a, s) => a + (s.total_series > 0 ? s.series_completas / s.total_series : 0), 0) / recentes.length * 100;
-      const conclusaoAnterior = anteriores.reduce((a, s) => a + (s.total_series > 0 ? s.series_completas / s.total_series : 0), 0) / anteriores.length * 100;
+      const duracaoMediaAtual = atual.reduce((a, s) => a + s.duracao_segundos, 0) / atual.length;
+      const duracaoMediaAnterior = anterior.length > 0 ? anterior.reduce((a, s) => a + s.duracao_segundos, 0) / anterior.length : 0;
 
-      // Carga máxima
-      const maxCarga = (exList: typeof exRecentes) => {
+      const conclusaoAtual = atual.reduce((a, s) => a + (s.total_series > 0 ? s.series_completas / s.total_series : 0), 0) / atual.length * 100;
+      const conclusaoAnterior = anterior.length > 0 ? anterior.reduce((a, s) => a + (s.total_series > 0 ? s.series_completas / s.total_series : 0), 0) / anterior.length * 100 : 0;
+
+      const maxCarga = (exList: typeof exAtuais) => {
         return exList.reduce((max, ex) => {
           const cargas = (ex.cargas as any[]) || [];
           const exMax = cargas.reduce((m: number, c: any) => {
@@ -103,19 +88,16 @@ const TreinoComparativo = () => {
         }, 0);
       };
 
-      const cargaMaxRecente = maxCarga(exRecentes);
+      const cargaMaxAtual = maxCarga(exAtuais);
       const cargaMaxAnterior = maxCarga(exAnteriores);
 
-      // Frequência
-      const freqRecente = recentes.length;
-      const freqAnterior = anteriores.length;
+      const freqAtual = atual.length;
+      const freqAnterior = anterior.length;
 
-      // Volume total (séries completadas)
-      const volumeRecente = recentes.reduce((a, s) => a + s.series_completas, 0);
-      const volumeAnterior = anteriores.reduce((a, s) => a + s.series_completas, 0);
+      const volumeAtual = atual.reduce((a, s) => a + s.series_completas, 0);
+      const volumeAnterior = anterior.reduce((a, s) => a + s.series_completas, 0);
 
-      // Carga média por exercício
-      const mediaCargas = (exList: typeof exRecentes) => {
+      const mediaCargas = (exList: typeof exAtuais) => {
         let total = 0, count = 0;
         exList.forEach(ex => {
           const cargas = (ex.cargas as any[]) || [];
@@ -127,11 +109,11 @@ const TreinoComparativo = () => {
         return count > 0 ? total / count : 0;
       };
 
-      const cargaMediaRecente = mediaCargas(exRecentes);
+      const cargaMediaAtual = mediaCargas(exAtuais);
       const cargaMediaAnterior = mediaCargas(exAnteriores);
 
-      const calcVariacao = (atual: number, anterior: number) =>
-        anterior > 0 ? ((atual - anterior) / anterior) * 100 : 0;
+      const calcVariacao = (at: number, ant: number) =>
+        ant > 0 ? ((at - ant) / ant) * 100 : 0;
 
       const formatMin = (s: number) => `${Math.round(s / 60)}min`;
 
@@ -139,50 +121,50 @@ const TreinoComparativo = () => {
         {
           label: "Frequência",
           icon: <Calendar size={16} />,
-          atual: `${freqRecente}x`,
-          anterior: `${freqAnterior}x`,
-          variacao: calcVariacao(freqRecente, freqAnterior),
+          atual: `${freqAtual}x`,
+          anterior: hasComparison ? `${freqAnterior}x` : "—",
+          variacao: hasComparison ? calcVariacao(freqAtual, freqAnterior) : 0,
           positivo: true,
         },
         {
           label: "Carga Máxima",
           icon: <TrendingUp size={16} />,
-          atual: cargaMaxRecente > 0 ? `${cargaMaxRecente}kg` : "—",
-          anterior: cargaMaxAnterior > 0 ? `${cargaMaxAnterior}kg` : "—",
-          variacao: calcVariacao(cargaMaxRecente, cargaMaxAnterior),
+          atual: cargaMaxAtual > 0 ? `${cargaMaxAtual}kg` : "—",
+          anterior: hasComparison && cargaMaxAnterior > 0 ? `${cargaMaxAnterior}kg` : "—",
+          variacao: hasComparison ? calcVariacao(cargaMaxAtual, cargaMaxAnterior) : 0,
           positivo: true,
         },
         {
           label: "Carga Média",
           icon: <Dumbbell size={16} />,
-          atual: cargaMediaRecente > 0 ? `${cargaMediaRecente.toFixed(1)}kg` : "—",
-          anterior: cargaMediaAnterior > 0 ? `${cargaMediaAnterior.toFixed(1)}kg` : "—",
-          variacao: calcVariacao(cargaMediaRecente, cargaMediaAnterior),
+          atual: cargaMediaAtual > 0 ? `${cargaMediaAtual.toFixed(1)}kg` : "—",
+          anterior: hasComparison && cargaMediaAnterior > 0 ? `${cargaMediaAnterior.toFixed(1)}kg` : "—",
+          variacao: hasComparison ? calcVariacao(cargaMediaAtual, cargaMediaAnterior) : 0,
           positivo: true,
         },
         {
           label: "Volume Total",
           icon: <Zap size={16} />,
-          atual: `${volumeRecente} séries`,
-          anterior: `${volumeAnterior} séries`,
-          variacao: calcVariacao(volumeRecente, volumeAnterior),
+          atual: `${volumeAtual} séries`,
+          anterior: hasComparison ? `${volumeAnterior} séries` : "—",
+          variacao: hasComparison ? calcVariacao(volumeAtual, volumeAnterior) : 0,
           positivo: true,
         },
         {
           label: "Conclusão",
           icon: <BarChart3 size={16} />,
-          atual: `${Math.round(conclusaoRecente)}%`,
-          anterior: `${Math.round(conclusaoAnterior)}%`,
-          variacao: calcVariacao(conclusaoRecente, conclusaoAnterior),
+          atual: `${Math.round(conclusaoAtual)}%`,
+          anterior: hasComparison ? `${Math.round(conclusaoAnterior)}%` : "—",
+          variacao: hasComparison ? calcVariacao(conclusaoAtual, conclusaoAnterior) : 0,
           positivo: true,
         },
         {
           label: "Duração Média",
           icon: <Clock size={16} />,
-          atual: formatMin(duracaoMediaRecente),
-          anterior: formatMin(duracaoMediaAnterior),
-          variacao: calcVariacao(duracaoMediaRecente, duracaoMediaAnterior),
-          positivo: false, // less time = more efficient
+          atual: formatMin(duracaoMediaAtual),
+          anterior: hasComparison ? formatMin(duracaoMediaAnterior) : "—",
+          variacao: hasComparison ? calcVariacao(duracaoMediaAtual, duracaoMediaAnterior) : 0,
+          positivo: false,
         },
       ]);
     } catch (err) {
@@ -208,7 +190,7 @@ const TreinoComparativo = () => {
       <div className="surface-card p-6 text-center border border-border">
         <BarChart3 size={24} className="text-muted-foreground mx-auto mb-2" />
         <p className="text-sm text-muted-foreground">
-          Continue treinando! O comparativo aparece após 4 semanas de dados.
+          Finalize seu primeiro treino para ver o resumo semanal aqui.
         </p>
       </div>
     );
@@ -223,7 +205,7 @@ const TreinoComparativo = () => {
       <div className="flex items-center gap-2 px-1">
         <BarChart3 size={16} className="text-primary" />
         <h3 className="font-mono text-[10px] font-bold tracking-widest text-muted-foreground">
-          COMPARATIVO 4 SEMANAS
+          {periodoLabel}
         </h3>
       </div>
 
@@ -232,6 +214,7 @@ const TreinoComparativo = () => {
           const isUp = m.variacao > 0;
           const isGood = m.positivo ? isUp : !isUp;
           const isNeutral = Math.abs(m.variacao) < 1;
+          const noComparison = m.anterior === "—";
 
           return (
             <motion.div
@@ -247,28 +230,30 @@ const TreinoComparativo = () => {
                   <div>
                     <p className="text-sm font-semibold text-foreground">{m.label}</p>
                     <p className="text-[10px] text-muted-foreground">
-                      Antes: {m.anterior}
+                      {noComparison ? "Sem dados anteriores" : `Antes: ${m.anterior}`}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-mono text-lg font-extrabold text-foreground">{m.atual}</p>
-                  <div className={`flex items-center gap-1 justify-end text-[10px] font-mono font-bold ${
-                    isNeutral
-                      ? "text-muted-foreground"
-                      : isGood
-                      ? "text-green-400"
-                      : "text-red-400"
-                  }`}>
-                    {isNeutral ? (
-                      <Minus size={10} />
-                    ) : isUp ? (
-                      <TrendingUp size={10} />
-                    ) : (
-                      <TrendingDown size={10} />
-                    )}
-                    {isNeutral ? "=" : `${isUp ? "+" : ""}${Math.round(m.variacao)}%`}
-                  </div>
+                  {!noComparison && (
+                    <div className={`flex items-center gap-1 justify-end text-[10px] font-mono font-bold ${
+                      isNeutral
+                        ? "text-muted-foreground"
+                        : isGood
+                        ? "text-green-400"
+                        : "text-red-400"
+                    }`}>
+                      {isNeutral ? (
+                        <Minus size={10} />
+                      ) : isUp ? (
+                        <TrendingUp size={10} />
+                      ) : (
+                        <TrendingDown size={10} />
+                      )}
+                      {isNeutral ? "=" : `${isUp ? "+" : ""}${Math.round(m.variacao)}%`}
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
