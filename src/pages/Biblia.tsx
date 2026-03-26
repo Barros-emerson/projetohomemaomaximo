@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2, Plus, Phone, Share2, RefreshCw } from "lucide-react";
+import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2, Plus, Phone, Share2, RefreshCw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -70,6 +70,11 @@ const Biblia = () => {
   const [direcaoDeDeus, setDirecaoDeDeus] = useState<string>("");
   const [direcaoLoading, setDirecaoLoading] = useState(false);
   const [direcaoLeitura, setDirecaoLeitura] = useState<string>("");
+
+  // Bible text fetching
+  interface ChapterResult { book: string; chapter: number; text: string; }
+  const [bibliaTexto, setBibliaTexto] = useState<ChapterResult[]>([]);
+  const [bibliaLoading, setBibliaLoading] = useState(false);
 
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -171,6 +176,25 @@ const Biblia = () => {
     }
     buscarDirecao(passagem);
   }, [devocionalHoje?.passagem, hoje, buscarDirecao]);
+
+  const buscarTextoBiblia = useCallback(async (passagem: string) => {
+    setBibliaLoading(true);
+    setBibliaTexto([]);
+    try {
+      const { data, error } = await supabase.functions.invoke("buscar-biblia", {
+        body: { passagem },
+      });
+      if (error) throw error;
+      if (data?.chapters) {
+        setBibliaTexto(data.chapters);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar texto bíblico:", err);
+      toast.error("Não foi possível carregar o texto bíblico");
+    } finally {
+      setBibliaLoading(false);
+    }
+  }, []);
 
   const startRecording = useCallback(async () => {
     try {
@@ -441,7 +465,7 @@ const Biblia = () => {
     return (
       <div className="fixed inset-0 z-50 bg-background flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <button onClick={() => setModoLeitura(false)} className="text-muted-foreground">
+          <button onClick={() => { setModoLeitura(false); setBibliaTexto([]); }} className="text-muted-foreground">
             <X size={24} />
           </button>
           <span className="font-mono text-xs tracking-widest text-muted-foreground">MODO LEITURA</span>
@@ -452,15 +476,37 @@ const Biblia = () => {
             <p className="text-xs font-mono tracking-widest text-violet-400 uppercase">Dia {leituraSelecionada.dia}</p>
             <h2 className="text-2xl font-bold text-foreground leading-tight">{leituraSelecionada.passagem}</h2>
             <div className="h-px bg-border my-4" />
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Abra sua Bíblia (NVI/ARC) e leia a passagem acima com atenção.
-              Após a leitura, feche este modo e registre sua reflexão.
-            </p>
+
+            {bibliaLoading ? (
+              <div className="flex flex-col items-center gap-3 py-12">
+                <Loader2 size={28} className="text-violet-400 animate-spin" />
+                <p className="text-sm text-muted-foreground">Carregando texto bíblico...</p>
+              </div>
+            ) : bibliaTexto.length > 0 ? (
+              <div className="space-y-8">
+                {bibliaTexto.map((ch, idx) => (
+                  <div key={idx}>
+                    <h3 className="font-mono text-xs tracking-widest text-violet-400 uppercase mb-3">
+                      {ch.book} {ch.chapter}
+                    </h3>
+                    <p className="text-sm text-foreground leading-[1.9] whitespace-pre-line">
+                      {ch.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Não foi possível carregar o texto. Abra sua Bíblia e leia a passagem acima.
+              </p>
+            )}
+
             <Button
               className="w-full mt-8 bg-violet-600 hover:bg-violet-700 text-white"
               onClick={() => {
                 concluirLeitura(leituraSelecionada.dia);
                 setModoLeitura(false);
+                setBibliaTexto([]);
               }}
             >
               <Check size={16} className="mr-2" />
@@ -587,6 +633,7 @@ const Biblia = () => {
             onClick={() => {
               setLeituraSelecionada(devocionalHoje);
               setModoLeitura(true);
+              buscarTextoBiblia(devocionalHoje.passagem);
             }}
           >
             <div>
