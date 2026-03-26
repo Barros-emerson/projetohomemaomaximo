@@ -44,6 +44,31 @@ const getChecklistPct = (dayIdx: number): number => {
   } catch { return 0; }
 };
 
+const getTreinoPct = (dayIdx: number): number => {
+  try {
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const saved = localStorage.getItem(`ham-treino-sets-${dayIdx}-${dateStr}`);
+    if (!saved) return 0;
+    const parsed = JSON.parse(saved);
+    const doneSets = Object.values(parsed).reduce((a: number, v: any) => a + (Array.isArray(v) ? v.length : 0), 0);
+    const totalSets = weekPlan[dayIdx].exercises.reduce((a, e) => a + parseInt(e.sets), 0);
+    return totalSets > 0 ? Math.round(((doneSets as number) / totalSets) * 100) : 0;
+  } catch { return 0; }
+};
+
+const getBibliaPct = (): number => {
+  try {
+    const saved = localStorage.getItem("ham-biblia-leituras");
+    if (!saved) return 0;
+    const leituras = JSON.parse(saved);
+    const planoId = "salmos-proverbios";
+    const plano = leituras[planoId];
+    if (!plano || !Array.isArray(plano)) return 0;
+    const done = plano.filter((l: any) => l.concluido).length;
+    return Math.round((done / plano.length) * 100);
+  } catch { return 0; }
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [now, setNow] = useState(new Date());
