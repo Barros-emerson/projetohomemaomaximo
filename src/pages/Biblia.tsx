@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2, Plus, Phone, Share2, RefreshCw } from "lucide-react";
+import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2, Plus, Phone, Share2, RefreshCw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
