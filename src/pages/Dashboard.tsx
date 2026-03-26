@@ -17,7 +17,7 @@ import {
 import { rotinaSemanal } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
-import { getFraseHoje } from "@/data/frases-poder";
+import { getFraseHoje, frasesPoder } from "@/data/frases-poder";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
