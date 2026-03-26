@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,7 +11,7 @@ import {
   BookOpen,
   ChevronRight,
   Flame,
-  Plus,
+  GlassWater,
 } from "lucide-react";
 import { rotinaSemanal } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
@@ -89,6 +89,8 @@ const Dashboard = () => {
     return saved ? parseInt(saved) : 0;
   });
   const [aguaAnim, setAguaAnim] = useState(false);
+  const [aguaDetails, setAguaDetails] = useState(false);
+  const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const META_AGUA = 3500;
 
   const adicionarAgua = useCallback(() => {
@@ -201,7 +203,7 @@ const Dashboard = () => {
       </motion.div>
 
       {/* Stories progress */}
-      <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
+      <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar relative">
         {[
           { label: "Rotina", pct: checklistPct, color: "hsl(38 92% 60%)", path: "/rotina" },
           { label: "Treino", pct: treinoPct, color: "hsl(0 80% 65%)", path: "/treino" },
@@ -233,45 +235,86 @@ const Dashboard = () => {
             <span className="text-[9px] text-muted-foreground tracking-wider font-medium uppercase">{s.label}</span>
           </motion.button>
         ))}
+
+        {/* Água - circle button */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 + 4 * 0.04 }}
+          className="flex flex-col items-center gap-1.5 shrink-0 relative"
+        >
+          <motion.button
+            animate={aguaAnim ? { scale: [1, 1.15, 1] } : {}}
+            transition={{ duration: 0.3 }}
+            onClick={adicionarAgua}
+            onTouchStart={() => {
+              longPressTimer.current = setTimeout(() => setAguaDetails(true), 500);
+            }}
+            onTouchEnd={() => {
+              if (longPressTimer.current) clearTimeout(longPressTimer.current);
+            }}
+            onMouseDown={() => {
+              longPressTimer.current = setTimeout(() => setAguaDetails(true), 500);
+            }}
+            onMouseUp={() => {
+              if (longPressTimer.current) clearTimeout(longPressTimer.current);
+            }}
+            className="w-14 h-14 rounded-full flex items-center justify-center relative active:scale-95 transition-transform"
+          >
+            <svg className="w-full h-full -rotate-90 absolute" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="25" fill="none" stroke="hsl(var(--secondary))" strokeWidth="3" />
+              <circle
+                cx="28" cy="28" r="25" fill="none"
+                stroke="hsl(152 60% 52%)"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeDasharray={`${2 * Math.PI * 25}`}
+                strokeDashoffset={`${2 * Math.PI * 25 * (1 - Math.min(aguaMl / META_AGUA, 1))}`}
+              />
+            </svg>
+            <GlassWater size={18} className="text-foreground" />
+          </motion.button>
+          <span className="text-[9px] text-muted-foreground tracking-wider font-medium uppercase">ÁGUA</span>
+
+          {/* Long press details popup */}
+          {aguaDetails && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="absolute top-16 left-1/2 -translate-x-1/2 z-50 surface-card p-3 rounded-xl min-w-[160px] shadow-lg border border-border"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-baseline gap-1.5 mb-2">
+                <Droplets size={12} className="text-primary shrink-0" />
+                <span className="font-mono text-sm font-bold text-foreground">
+                  {(aguaMl / 1000).toFixed(1)}L
+                </span>
+                <span className="font-mono text-[10px] text-muted-foreground">/ {(META_AGUA / 1000).toFixed(1)}L</span>
+              </div>
+              <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-300"
+                  style={{ width: `${Math.min((aguaMl / META_AGUA) * 100, 100)}%` }}
+                />
+              </div>
+              <p className="text-[9px] text-muted-foreground mt-1.5 font-mono">
+                {Math.floor(aguaMl / 700)} garrafas · +700ml/toque
+              </p>
+              <button
+                onClick={() => setAguaDetails(false)}
+                className="mt-2 w-full text-[10px] font-mono text-primary font-medium"
+              >
+                FECHAR
+              </button>
+            </motion.div>
+          )}
+        </motion.div>
       </div>
 
-      {/* Hidratação rápida */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="surface-card p-3 flex items-center gap-3"
-      >
-        <motion.button
-          onClick={adicionarAgua}
-          animate={aguaAnim ? { scale: [1, 1.15, 1] } : {}}
-          transition={{ duration: 0.3 }}
-          className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shrink-0 active:scale-90 transition-transform shadow-lg"
-          style={{ boxShadow: "0 4px 20px hsl(var(--primary) / 0.35)" }}
-        >
-          <Plus size={24} className="text-primary-foreground" strokeWidth={3} />
-        </motion.button>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-1.5">
-            <Droplets size={14} className="text-primary shrink-0" />
-            <span className="font-mono text-sm font-bold text-foreground">
-              {(aguaMl / 1000).toFixed(1)}L
-            </span>
-            <span className="font-mono text-[10px] text-muted-foreground">/ {(META_AGUA / 1000).toFixed(1)}L</span>
-          </div>
-          <div className="h-1.5 bg-secondary rounded-full overflow-hidden mt-1.5">
-            <motion.div
-              className="h-full rounded-full bg-primary"
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.min((aguaMl / META_AGUA) * 100, 100)}%` }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-            />
-          </div>
-          <p className="text-[9px] text-muted-foreground mt-1 font-mono">
-            {Math.floor(aguaMl / 700)} garrafas · +700ml por toque
-          </p>
-        </div>
-      </motion.div>
+      {/* Overlay to close details */}
+      {aguaDetails && (
+        <div className="fixed inset-0 z-40" onClick={() => setAguaDetails(false)} />
+      )}
 
       <motion.button
         initial={{ opacity: 0, y: 8 }}
