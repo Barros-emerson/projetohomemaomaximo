@@ -311,7 +311,19 @@ const Perfil = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData>(loadProfile);
   const [metrics, setMetrics] = useState<Record<string, MetricItem[]>>(loadMetrics);
-  const [userPhoto] = useState<string | null>(() => localStorage.getItem("ham-user-photo"));
+  const [userPhoto, setUserPhoto] = useState<string | null>(() => localStorage.getItem("ham-user-photo"));
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      localStorage.setItem("ham-user-photo", dataUrl);
+      setUserPhoto(dataUrl);
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
