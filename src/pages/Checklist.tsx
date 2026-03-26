@@ -317,13 +317,25 @@ const Checklist = () => {
 
       {/* Timeline */}
       <div className="space-y-1">
+        <AnimatePresence initial={false}>
         {adjustedItems.map((item, i) => {
           const isDone = checked.has(item.id);
           const hasRealTime = !!realTimes[item.id];
           const isAdjusted = item.adjustedTime !== null && item.deltaMinutes > 0;
           const canEditTime = !item.immutable && parseTime(item.time) !== null;
 
+          // Progressive reveal: first item always visible, others only after previous is checked
+          const isVisible = i === 0 || checked.has(adjustedItems[i - 1].id);
+          if (!isVisible) return null;
+
           return (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
             <SwipeableItem
               key={item.id}
               index={i}
@@ -400,8 +412,10 @@ const Checklist = () => {
                 )}
               </div>
             </SwipeableItem>
+            </motion.div>
           );
         })}
+        </AnimatePresence>
       </div>
 
       {/* Diet Suggestions */}
