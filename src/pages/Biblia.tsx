@@ -885,6 +885,38 @@ const Biblia = () => {
             </TabsContent>
           ))}
         </Tabs>
+
+        <Button
+          onClick={salvarOracaoDB}
+          disabled={salvandoOracao || !Object.values(oracoes).some(v => v.trim())}
+          className="w-full mt-3 bg-violet-600 hover:bg-violet-700 text-white text-xs h-9 gap-2"
+        >
+          {salvandoOracao ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+          Salvar Oração
+        </Button>
+
+        {oracoesSalvas.length > 0 && (
+          <div className="mt-4 space-y-2">
+            <p className="text-[10px] font-mono text-muted-foreground tracking-widest flex items-center gap-1">
+              <Clock size={10} /> ORAÇÕES SALVAS
+            </p>
+            <div className="space-y-2 max-h-[200px] overflow-y-auto">
+              {oracoesSalvas.map(o => (
+                <div key={o.id} className="bg-secondary/40 rounded-lg p-2.5 border border-border/50">
+                  <div className="flex items-center justify-between mb-1">
+                    <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-violet-500/30 text-violet-400">
+                      {o.tipo === "gratidao" ? "Gratidão" : o.tipo === "pedidos" ? "Pedidos" : "Intercessão"}
+                    </Badge>
+                    <span className="text-[9px] text-muted-foreground font-mono">
+                      {new Date(o.data + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-foreground/80 leading-relaxed line-clamp-2">{o.conteudo}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </motion.div>
 
       {/* Modal trocar plano */}
