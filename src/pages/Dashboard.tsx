@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   CheckSquare,
@@ -12,11 +12,12 @@ import {
   ChevronRight,
   Flame,
   GlassWater,
+  RefreshCw,
 } from "lucide-react";
 import { rotinaSemanal } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
-import { getFraseHoje } from "@/data/frases-poder";
+import { getFraseHoje, frasesPoder } from "@/data/frases-poder";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
@@ -90,6 +91,8 @@ const Dashboard = () => {
   });
   const [aguaAnim, setAguaAnim] = useState(false);
   const [aguaDetails, setAguaDetails] = useState(false);
+  const [fraseAtual, setFraseAtual] = useState(() => getFraseHoje());
+  const [fraseKey, setFraseKey] = useState(0);
   const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const META_AGUA = 3500;
 
@@ -176,30 +179,35 @@ const Dashboard = () => {
         transition={{ delay: 0.05 }}
         className="surface-card p-4"
       >
-        <p className="text-[8px] font-mono text-muted-foreground/60 tracking-widest mb-2">🗡️ MENTALIDADE DO DIA</p>
-        {(() => {
-          const frase = getFraseHoje();
-          return (
-            <>
-              <motion.p
-                initial={{ opacity: 0, y: 6, filter: "blur(4px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
-                className="text-[13px] text-foreground leading-[1.5] italic"
-              >
-                "{frase.texto}"
-              </motion.p>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.7, duration: 0.6 }}
-                className="text-[10px] text-muted-foreground mt-2 font-mono"
-              >
-                — {frase.autor}{frase.obra ? `, ${frase.obra}` : ""}
-              </motion.p>
-            </>
-          );
-        })()}
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[8px] font-mono text-muted-foreground/60 tracking-widest">🗡️ MENTALIDADE DO DIA</p>
+          <button
+            onClick={() => {
+              const random = frasesPoder[Math.floor(Math.random() * frasesPoder.length)];
+              setFraseAtual(random);
+              setFraseKey(k => k + 1);
+            }}
+            className="text-muted-foreground/50 hover:text-foreground transition-colors"
+          >
+            <RefreshCw size={12} />
+          </button>
+        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={fraseKey}
+            initial={{ opacity: 0, y: 6, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -6, filter: "blur(4px)" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <p className="text-[13px] text-foreground leading-[1.5] italic">
+              "{fraseAtual.texto}"
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-2 font-mono">
+              — {fraseAtual.autor}{fraseAtual.obra ? `, ${fraseAtual.obra}` : ""}
+            </p>
+          </motion.div>
+        </AnimatePresence>
       </motion.div>
 
       {/* Stories progress */}
