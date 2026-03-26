@@ -126,10 +126,44 @@ const Biblia = () => {
   };
 
   const salvarOracoes = (key: string, value: string) => {
-    const updated = { ...oracoes, [key]: value };
-    setOracoes(updated);
-    localStorage.setItem("ham-biblia-oracoes", JSON.stringify(updated));
+    setOracoes(prev => ({ ...prev, [key]: value }));
   };
+
+  const salvarOracaoDB = useCallback(async () => {
+    const entries = Object.entries(oracoes).filter(([, v]) => v.trim());
+    if (entries.length === 0) { toast.error("Escreva algo antes de salvar"); return; }
+    setSalvandoOracao(true);
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const inserts = entries.map(([tipo, conteudo]) => ({ tipo, conteudo, data: today }));
+      const { error } = await supabase.from("oracoes").insert(inserts);
+      if (error) throw error;
+      toast.success("Oração salva!");
+      setOracoes({ gratidao: "", pedidos: "", intercessao: "" });
+      carregarOracoes();
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao salvar oração");
+    } finally {
+      setSalvandoOracao(false);
+    }
+  }, [oracoes]);
+
+  const carregarOracoes = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("oracoes")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      setOracoesSalvas(data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  useEffect(() => { carregarOracoes(); }, [carregarOracoes]);
 
   const isYesterday = (dateStr: string) => {
     if (!dateStr) return false;
