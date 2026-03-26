@@ -137,42 +137,37 @@ const Dashboard = () => {
             <span className="font-mono text-primary font-bold">EB</span>
           </div>
         )}
-        <div>
+        <div className="flex-1">
           <p className="text-base font-semibold text-foreground">{greeting()}, Emerson</p>
           <p className="text-xs text-muted-foreground">
             {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
           </p>
         </div>
+        <div className="flex flex-col items-center shrink-0">
+          <span className="font-mono font-black text-lg text-gradient">{totalScore}</span>
+          <span className="font-mono text-[8px] text-muted-foreground tracking-wider">/100</span>
+        </div>
       </motion.div>
 
-      {/* Score + Frase do dia */}
+      {/* Frase do dia */}
       <motion.div
         initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.05 }}
-        className="surface-card p-4 flex gap-3"
+        className="surface-card p-4"
       >
-        {/* Score lado esquerdo */}
-        <div className="flex flex-col items-center justify-center min-w-[90px] border-r border-border pr-3">
-          <p className="text-[8px] font-mono text-muted-foreground tracking-widest mb-1">SCORE</p>
-          <div className="flex items-baseline gap-0.5">
-            <span className="font-mono font-black text-3xl text-gradient">{totalScore}</span>
-            <span className="font-mono text-xs text-muted-foreground">/100</span>
-          </div>
-        </div>
-        {/* Frase do dia lado direito */}
+        <p className="text-[8px] font-mono text-muted-foreground/60 tracking-widest mb-2">🗡️ MENTALIDADE DO DIA</p>
         {(() => {
           const frase = getFraseHoje();
           return (
-            <div className="flex-1 flex flex-col justify-center min-w-0">
-              <p className="text-[8px] font-mono text-muted-foreground/60 tracking-widest mb-1.5">🗡️ MENTALIDADE</p>
-              <p className="text-[11px] text-foreground/90 leading-[1.4] italic line-clamp-3">
+            <>
+              <p className="text-[13px] text-foreground leading-[1.5] italic">
                 "{frase.texto}"
               </p>
-              <p className="text-[9px] text-muted-foreground mt-1.5 font-mono">
+              <p className="text-[10px] text-muted-foreground mt-2 font-mono">
                 — {frase.autor}{frase.obra ? `, ${frase.obra}` : ""}
               </p>
-            </div>
+            </>
           );
         })()}
       </motion.div>
