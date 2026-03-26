@@ -14,6 +14,7 @@ import Config from "@/pages/Config";
 import Tarefas from "@/pages/Tarefas";
 import Biblia from "@/pages/Biblia";
 import Notas from "@/pages/Notas";
+import Historico from "@/pages/Historico";
 import Performance from "@/pages/Performance";
 import NotFound from "@/pages/NotFound";
 
