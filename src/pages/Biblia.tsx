@@ -465,7 +465,7 @@ const Biblia = () => {
     return (
       <div className="fixed inset-0 z-50 bg-background flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <button onClick={() => setModoLeitura(false)} className="text-muted-foreground">
+          <button onClick={() => { setModoLeitura(false); setBibliaTexto([]); }} className="text-muted-foreground">
             <X size={24} />
           </button>
           <span className="font-mono text-xs tracking-widest text-muted-foreground">MODO LEITURA</span>
@@ -476,15 +476,37 @@ const Biblia = () => {
             <p className="text-xs font-mono tracking-widest text-violet-400 uppercase">Dia {leituraSelecionada.dia}</p>
             <h2 className="text-2xl font-bold text-foreground leading-tight">{leituraSelecionada.passagem}</h2>
             <div className="h-px bg-border my-4" />
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Abra sua Bíblia (NVI/ARC) e leia a passagem acima com atenção.
-              Após a leitura, feche este modo e registre sua reflexão.
-            </p>
+
+            {bibliaLoading ? (
+              <div className="flex flex-col items-center gap-3 py-12">
+                <Loader2 size={28} className="text-violet-400 animate-spin" />
+                <p className="text-sm text-muted-foreground">Carregando texto bíblico...</p>
+              </div>
+            ) : bibliaTexto.length > 0 ? (
+              <div className="space-y-8">
+                {bibliaTexto.map((ch, idx) => (
+                  <div key={idx}>
+                    <h3 className="font-mono text-xs tracking-widest text-violet-400 uppercase mb-3">
+                      {ch.book} {ch.chapter}
+                    </h3>
+                    <p className="text-sm text-foreground leading-[1.9] whitespace-pre-line">
+                      {ch.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Não foi possível carregar o texto. Abra sua Bíblia e leia a passagem acima.
+              </p>
+            )}
+
             <Button
               className="w-full mt-8 bg-violet-600 hover:bg-violet-700 text-white"
               onClick={() => {
                 concluirLeitura(leituraSelecionada.dia);
                 setModoLeitura(false);
+                setBibliaTexto([]);
               }}
             >
               <Check size={16} className="mr-2" />
