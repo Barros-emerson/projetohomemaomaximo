@@ -92,8 +92,14 @@ const Treino = () => {
     return {};
   });
   const [loads, setLoads] = useState<Record<string, Record<number, string>>>({});
-  const [workoutActive, setWorkoutActive] = useState(false);
-  const [workoutTime, setWorkoutTime] = useState(0);
+  const [workoutActive, setWorkoutActive] = useState(() => {
+    const start = localStorage.getItem("ham-treino-start");
+    return !!start;
+  });
+  const [workoutTime, setWorkoutTime] = useState(() => {
+    const start = localStorage.getItem("ham-treino-start");
+    return start ? Math.floor((Date.now() - parseInt(start)) / 1000) : 0;
+  });
   const [showTimer, setShowTimer] = useState(false);
   const [restSeconds, setRestSeconds] = useState(90);
   const [photos, setPhotos] = useState<string[]>(() => {
@@ -118,7 +124,11 @@ const Treino = () => {
 
   useEffect(() => {
     if (!workoutActive) return;
-    const t = setInterval(() => setWorkoutTime((s) => s + 1), 1000);
+    const startTs = localStorage.getItem("ham-treino-start");
+    if (!startTs) return;
+    const tick = () => setWorkoutTime(Math.floor((Date.now() - parseInt(startTs)) / 1000));
+    tick();
+    const t = setInterval(tick, 1000);
     return () => clearInterval(t);
   }, [workoutActive]);
 
@@ -228,7 +238,10 @@ const Treino = () => {
           <div className="mt-3 flex items-center gap-3">
             {!workoutActive ? (
               <button
-                onClick={() => setWorkoutActive(true)}
+                onClick={() => {
+                  localStorage.setItem("ham-treino-start", Date.now().toString());
+                  setWorkoutActive(true);
+                }}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold tracking-wider transition-all active:scale-95 ${day.bgClass} ${day.colorClass} border ${day.borderClass}`}
               >
                 <Play size={14} />
@@ -243,7 +256,11 @@ const Treino = () => {
                   {doneSets}/{totalSets} séries
                 </div>
                 <button
-                  onClick={() => setWorkoutActive(false)}
+                  onClick={() => {
+                    localStorage.removeItem("ham-treino-start");
+                    setWorkoutActive(false);
+                    setWorkoutTime(0);
+                  }}
                   className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-destructive/10 border border-destructive/25 text-destructive font-mono text-[10px] font-bold tracking-wider active:scale-95"
                 >
                   <Square size={12} />
