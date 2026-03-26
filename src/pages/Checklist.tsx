@@ -351,18 +351,16 @@ const Checklist = () => {
 
               {/* Time column */}
               <div className="w-12 shrink-0 mt-0.5">
-                <span className="font-mono text-xs block" style={{ color: item.alert ? "#F5C542" : "hsl(var(--muted-foreground))" }}>
-                  {item.time}
-                </span>
-                {hasRealTime && (
-                  <span className="font-mono text-[10px] block" style={{ color: "#FB923C" }}>
+                {hasRealTime ? (
+                  <span className="font-mono text-xs block" style={{ color: "#FB923C" }}>
                     {realTimes[item.id]}
                   </span>
-                )}
-                {isAdjusted && !hasRealTime && (
+                ) : isAdjusted ? (
                   <span className="font-mono text-[10px] block" style={{ color: "#FB923C" }}>
                     → {item.adjustedTime}
                   </span>
+                ) : (
+                  <span className="font-mono text-xs block text-muted-foreground/30">--:--</span>
                 )}
               </div>
 
