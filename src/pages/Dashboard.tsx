@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { rotinaSemanal } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
-import { versiculosMemorizacao } from "@/data/biblia-planos";
+import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
@@ -44,6 +44,31 @@ const getChecklistPct = (dayIdx: number): number => {
   } catch { return 0; }
 };
 
+const getTreinoPct = (dayIdx: number): number => {
+  try {
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const saved = localStorage.getItem(`ham-treino-sets-${dayIdx}-${dateStr}`);
+    if (!saved) return 0;
+    const parsed = JSON.parse(saved);
+    const doneSets = Object.values(parsed).reduce((a: number, v: any) => a + (Array.isArray(v) ? v.length : 0), 0);
+    const totalSets = weekPlan[dayIdx].exercises.reduce((a, e) => a + parseInt(e.sets), 0);
+    return totalSets > 0 ? Math.round(((doneSets as number) / totalSets) * 100) : 0;
+  } catch { return 0; }
+};
+
+const getBibliaPct = (): number => {
+  try {
+    const saved = localStorage.getItem("ham-biblia-leituras");
+    if (!saved) return 0;
+    const leituras = JSON.parse(saved);
+    const planoId = "salmos-proverbios";
+    const plano = leituras[planoId];
+    if (!plano || !Array.isArray(plano)) return 0;
+    const done = plano.filter((l: any) => l.concluido).length;
+    return Math.round((done / plano.length) * 100);
+  } catch { return 0; }
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [now, setNow] = useState(new Date());
@@ -54,12 +79,17 @@ const Dashboard = () => {
   }, []);
 
   // Re-read localStorage periodically for live updates
-  const [checklistPct, setChecklistPct] = useState(() => getChecklistPct((() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; })()));
+  const getTodayI = () => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; };
+  const [checklistPct, setChecklistPct] = useState(() => getChecklistPct(getTodayI()));
+  const [treinoPct, setTreinoPct] = useState(() => getTreinoPct(getTodayI()));
+  const [bibliaPct, setBibliaPct] = useState(() => getBibliaPct());
   
   useEffect(() => {
     const update = () => {
-      const todayI = (() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; })();
+      const todayI = getTodayI();
       setChecklistPct(getChecklistPct(todayI));
+      setTreinoPct(getTreinoPct(todayI));
+      setBibliaPct(getBibliaPct());
     };
     window.addEventListener("focus", update);
     window.addEventListener("storage", update);
@@ -133,8 +163,8 @@ const Dashboard = () => {
       <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
         {[
           { label: "Rotina", pct: checklistPct, color: "hsl(38 92% 60%)", path: "/rotina" },
-          { label: "Treino", pct: 0, color: "hsl(0 80% 65%)", path: "/treino" },
-          { label: "Bíblia", pct: 0, color: "hsl(270 55% 65%)", path: "/biblia" },
+          { label: "Treino", pct: treinoPct, color: "hsl(0 80% 65%)", path: "/treino" },
+          { label: "Bíblia", pct: bibliaPct, color: "hsl(270 55% 65%)", path: "/biblia" },
           { label: "Sono", pct: 0, color: "hsl(215 75% 60%)", path: "/sono" },
         ].map((s, i) => (
           <motion.button
