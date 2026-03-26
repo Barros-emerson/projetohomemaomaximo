@@ -10,7 +10,6 @@ import {
   StickyNote,
   X,
   ClipboardList,
-  BookOpen,
 } from "lucide-react";
 
 const mainTabs = [
@@ -46,8 +45,6 @@ export const BottomNav = () => {
               onClick={(e) => e.stopPropagation()}
             >
               {[
-                { path: "/rotina", icon: Zap, label: "CHECK", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
-                { path: "/biblia", icon: BookOpen, label: "BÍBLIA", color: "text-violet-400", bg: "bg-violet-400/10 border-violet-400/20" },
                 { path: "/notas", icon: StickyNote, label: "NOTA", color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/20" },
                 { path: "/tarefas", icon: ClipboardList, label: "TAREFA", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
               ].map((item) => (
