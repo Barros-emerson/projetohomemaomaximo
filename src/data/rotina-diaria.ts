@@ -35,7 +35,7 @@ const workBase: RotinaItem[] = [
 ];
 
 const nightBase: RotinaItem[] = [
-  { id: "desacelerar", time: "22:00", label: "Desacelerar digital", detail: "Tela off. Rotina de sono. Bíblia com Camila (áudio devocional).", dotColor: "#C084FC", tags: [{ label: "Dopamina", color: "#C084FC" }, { label: "Libido", color: "#C084FC" }] },
+  { id: "desacelerar", time: "22:00", label: "Desacelerar digital", detail: "Tela off. Rotina de sono. Bíblia com Amor (áudio devocional).", dotColor: "#C084FC", tags: [{ label: "Dopamina", color: "#C084FC" }, { label: "Libido", color: "#C084FC" }] },
   { id: "dormir", time: "22:30", label: "Dormir", detail: "Meta 7h30. Polar monitora sono, HRV e Nightly Recharge.", alert: true, dotColor: "#F5C542", tags: [{ label: "GH noturno", color: "#F5C542" }, { label: "Recuperação", color: "#F5C542" }] },
 ];
 
@@ -130,7 +130,7 @@ export const rotinaSemanal: RotinaDia[] = [
     ],
     items: [
       { id: "acordar_sab", time: "7:30", label: "Acordar sem pressa", detail: "Máximo 7:30. Café preto sem pressa. Ritmo de recuperação.", dotColor: "#F5C542" },
-      { id: "biblia_sab", time: "8:00", label: "Bíblia — Leitura com Camila", detail: "Devocional do casal. Hábito diário.", alert: true, dotColor: "#C084FC", tags: [{ label: "Casal", color: "#C084FC" }, { label: "Áudio automático", color: "#C084FC" }] },
+      { id: "biblia_sab", time: "8:00", label: "Bíblia — Leitura com Amor", detail: "Devocional do casal. Hábito diário.", alert: true, dotColor: "#C084FC", tags: [{ label: "Casal", color: "#C084FC" }, { label: "Áudio automático", color: "#C084FC" }] },
       { id: "sair_sab", time: "9:00", label: "Sair para o Jiu-Jitsu", detail: "Treino começa às 10:00. Chegar antes para prep.", dotColor: "#22D3EE" },
       { id: "jiu_sab", time: "10:00", label: "Jiu-Jitsu — PROFESSOR (pegado)", detail: "Até 11:30. Só porrada mesmo sendo professor. Estímulo hormonal alto.", alert: true, dotColor: "#22D3EE", tags: [{ label: "Alta intensidade", color: "#F87171" }, { label: "GH", color: "#F5C542" }] },
       { id: "almoco_sab", time: "12:00", label: "Almoço pós-treino", detail: "Restaurante próximo ao treino ou em casa. Sol + água + proteína.", dotColor: "#FB923C" },

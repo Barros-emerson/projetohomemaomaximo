@@ -21,7 +21,7 @@ export const AppLayout = () => {
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm tracking-tight text-foreground">
-              PROJETO <span className="text-gradient font-bold">ALFA 1000</span>
+              HOMEM <span className="text-gradient font-bold">DE VERDADE</span>
             </span>
           </div>
           <div className="flex items-center gap-3">
