@@ -70,7 +70,7 @@ const Notas = () => {
         <div className="flex items-center gap-2">
           <StickyNote size={16} className="text-primary" />
           <h2 className="font-mono text-xs font-bold tracking-[0.15em] text-foreground uppercase">
-            Notas
+            Minhas Notas
           </h2>
         </div>
         <button
