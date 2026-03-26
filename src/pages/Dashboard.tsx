@@ -161,12 +161,22 @@ const Dashboard = () => {
           const frase = getFraseHoje();
           return (
             <>
-              <p className="text-[13px] text-foreground leading-[1.5] italic">
+              <motion.p
+                initial={{ opacity: 0, y: 6, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
+                className="text-[13px] text-foreground leading-[1.5] italic"
+              >
                 "{frase.texto}"
-              </p>
-              <p className="text-[10px] text-muted-foreground mt-2 font-mono">
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7, duration: 0.6 }}
+                className="text-[10px] text-muted-foreground mt-2 font-mono"
+              >
                 — {frase.autor}{frase.obra ? `, ${frase.obra}` : ""}
-              </p>
+              </motion.p>
             </>
           );
         })()}
