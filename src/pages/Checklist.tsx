@@ -126,6 +126,17 @@ const Checklist = () => {
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editTimeValue, setEditTimeValue] = useState("");
 
+  // Persist checked items
+  useEffect(() => {
+    localStorage.setItem(getStorageKey(selectedDay), JSON.stringify([...checked]));
+  }, [checked, selectedDay]);
+
+  // Persist real times
+  useEffect(() => {
+    const key = `ham-checklist-times-${selectedDay}-${new Date().toISOString().slice(0, 10)}`;
+    localStorage.setItem(key, JSON.stringify(realTimes));
+  }, [realTimes, selectedDay]);
+
   const day = rotinaSemanal[selectedDay];
 
   // Cascade logic: compute adjusted times based on real times
