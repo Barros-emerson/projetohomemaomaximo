@@ -425,91 +425,88 @@ const Checklist = () => {
         </AnimatePresence>
       </div>
 
-      {/* Diet Suggestions */}
+      {/* Diet - progressive reveal matching routine items */}
       {(() => {
         const dieta = dietaSemanal[selectedDay];
         if (!dieta) return null;
 
-        // Find current/next meal based on time
-        const now = new Date();
-        const nowMins = now.getHours() * 60 + now.getMinutes();
-        const currentMealIdx = dieta.refeicoes.reduce((best, ref, idx) => {
-          const m = ref.time.match(/^(\d{1,2}):(\d{2})$/);
-          if (!m) return best;
-          const refMins = parseInt(m[1]) * 60 + parseInt(m[2]);
-          if (refMins <= nowMins) return idx;
-          return best;
-        }, 0);
+        // Find the current active routine item (first unchecked visible one)
+        const activeItem = adjustedItems.find((item, i) => {
+          const isVisible = i === 0 || checked.has(adjustedItems[i - 1].id);
+          return isVisible && !checked.has(item.id);
+        });
+
+        if (!activeItem) return null; // all done
+
+        // Match: find the meal whose time is <= the active item's time (closest before/equal)
+        const activeTimeMins = parseTime(activeItem.adjustedTime || activeItem.time);
+        
+        let bestMealIdx = 0;
+        if (activeTimeMins !== null) {
+          dieta.refeicoes.forEach((ref, idx) => {
+            const refMins = parseTime(ref.time);
+            if (refMins !== null && refMins <= activeTimeMins) {
+              bestMealIdx = idx;
+            }
+          });
+        }
+
+        const currentMeal = dieta.refeicoes[bestMealIdx];
+        if (!currentMeal) return null;
 
         return (
           <motion.div
+            key={currentMeal.time + currentMeal.label}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-6 space-y-3"
+            className="mt-4 space-y-2"
           >
             <div className="flex items-center gap-2 px-1">
               <Utensils size={14} className="text-primary" />
-              <span className="font-mono text-xs font-bold tracking-widest text-foreground">
-                ALIMENTAÇÃO — {dieta.titulo}
+              <span className="font-mono text-[10px] font-bold tracking-widest text-muted-foreground">
+                ALIMENTAÇÃO
               </span>
             </div>
 
-            <div className="space-y-2">
-              {dieta.refeicoes.map((ref, idx) => {
-                const isCurrent = selectedDay === getTodayIndex() && idx === currentMealIdx;
-                return (
-                  <motion.details
-                    key={ref.time + ref.label}
-                    initial={{ opacity: 0, x: -6 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.03 }}
-                    className={`surface-card rounded-lg group ${isCurrent ? "ring-1 ring-primary/30" : ""}`}
-                    {...(isCurrent ? { open: true } : {})}
-                  >
-                    <summary className="flex items-center gap-3 px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-                      <div
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ background: ref.dotColor }}
-                      />
-                      <span className="font-mono text-xs text-muted-foreground w-11 shrink-0">
-                        {ref.time}
-                      </span>
-                      <span className="font-mono text-sm text-foreground flex-1">
-                        {ref.label}
-                      </span>
-                      {isCurrent && (
-                        <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                          AGORA
-                        </span>
-                      )}
-                      <ChevronDown size={14} className="text-muted-foreground transition-transform group-open:rotate-180" />
-                    </summary>
+            <div className="surface-card rounded-lg overflow-hidden">
+              <div className="flex items-center gap-3 px-4 py-3">
+                <div
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ background: currentMeal.dotColor }}
+                />
+                <span className="font-mono text-xs text-muted-foreground w-11 shrink-0">
+                  {currentMeal.time}
+                </span>
+                <span className="font-mono text-sm text-foreground flex-1">
+                  {currentMeal.label}
+                </span>
+                <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                  AGORA
+                </span>
+              </div>
 
-                    <div className="px-4 pb-3 pt-1 space-y-2">
-                      {ref.subtitle && (
-                        <p className="font-mono text-[10px] font-bold text-primary tracking-wide">
-                          {ref.subtitle}
-                        </p>
-                      )}
-                      <div className="space-y-1">
-                        {ref.items.map((item, i) => (
-                          <div key={i} className="flex items-center gap-2">
-                            <span className="text-sm">{item.emoji}</span>
-                            <span className="font-mono text-[11px] text-muted-foreground">
-                              {item.text}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      {ref.tip && (
-                        <p className="font-mono text-[10px] text-primary/80 mt-1.5 border-l-2 border-primary/20 pl-2">
-                          → {ref.tip}
-                        </p>
-                      )}
+              <div className="px-4 pb-3 pt-0 space-y-2">
+                {currentMeal.subtitle && (
+                  <p className="font-mono text-[10px] font-bold text-primary tracking-wide">
+                    {currentMeal.subtitle}
+                  </p>
+                )}
+                <div className="space-y-1">
+                  {currentMeal.items.map((item, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="text-sm">{item.emoji}</span>
+                      <span className="font-mono text-[11px] text-muted-foreground">
+                        {item.text}
+                      </span>
                     </div>
-                  </motion.details>
-                );
-              })}
+                  ))}
+                </div>
+                {currentMeal.tip && (
+                  <p className="font-mono text-[10px] text-primary/80 mt-1.5 border-l-2 border-primary/20 pl-2">
+                    → {currentMeal.tip}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Rules & hydration */}
