@@ -362,55 +362,62 @@ const Checklist = () => {
                 </AnimatePresence>
               </button>
 
-              {/* Time column */}
-              <div className="w-12 shrink-0 mt-0.5">
-                {hasRealTime ? (
-                  <span className="font-mono text-xs block" style={{ color: "#FB923C" }}>
-                    {realTimes[item.id]}
-                  </span>
-                ) : isAdjusted ? (
-                  <span className="font-mono text-[10px] block" style={{ color: "#FB923C" }}>
-                    → {item.adjustedTime}
-                  </span>
-                ) : (
-                  <span className="font-mono text-xs block text-muted-foreground/30">--:--</span>
-                )}
-              </div>
-
-              {/* Dot */}
-              <div
-                className="w-2 h-2 rounded-full shrink-0 mt-2"
-                style={{ background: item.dotColor, boxShadow: item.alert ? `0 0 6px ${item.dotColor}` : undefined }}
-              />
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className={`font-mono text-sm block ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                    {item.label}
-                  </span>
-                  {isAdjusted && !isDone && (
-                    <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: "#FB923C", background: "rgba(251,146,60,0.12)" }}>
-                      +{item.deltaMinutes}min
-                    </span>
-                  )}
-                  {item.immutable && (
-                    <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: "#C084FC", background: "rgba(192,132,252,0.1)" }}>
-                      IMÓVEL
-                    </span>
+              {isDone ? (
+                /* Compact done view: just title + time */
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="font-mono text-xs text-muted-foreground line-through truncate">{item.label}</span>
+                  {hasRealTime && (
+                    <span className="font-mono text-[10px] shrink-0" style={{ color: "#FB923C" }}>{realTimes[item.id]}</span>
                   )}
                 </div>
-                <span className="font-mono text-[10px] text-muted-foreground/60 block mt-0.5">{item.detail}</span>
-                {item.tags && item.tags.length > 0 && (
-                  <div className="flex gap-1 flex-wrap mt-1.5">
-                    {item.tags.map((t) => (
-                      <span key={t.label} className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ color: t.color, background: `${t.color}15` }}>
-                        {t.label}
+              ) : (
+                /* Full unchecked view */
+                <>
+                  {/* Time column */}
+                  <div className="w-12 shrink-0 mt-0.5">
+                    {isAdjusted ? (
+                      <span className="font-mono text-[10px] block" style={{ color: "#FB923C" }}>
+                        → {item.adjustedTime}
                       </span>
-                    ))}
+                    ) : (
+                      <span className="font-mono text-xs block text-muted-foreground/30">--:--</span>
+                    )}
                   </div>
-                )}
-              </div>
+
+                  {/* Dot */}
+                  <div
+                    className="w-2 h-2 rounded-full shrink-0 mt-2"
+                    style={{ background: item.dotColor, boxShadow: item.alert ? `0 0 6px ${item.dotColor}` : undefined }}
+                  />
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-sm block text-foreground">{item.label}</span>
+                      {isAdjusted && (
+                        <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: "#FB923C", background: "rgba(251,146,60,0.12)" }}>
+                          +{item.deltaMinutes}min
+                        </span>
+                      )}
+                      {item.immutable && (
+                        <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: "#C084FC", background: "rgba(192,132,252,0.1)" }}>
+                          IMÓVEL
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-mono text-[10px] text-muted-foreground/60 block mt-0.5">{item.detail}</span>
+                    {item.tags && item.tags.length > 0 && (
+                      <div className="flex gap-1 flex-wrap mt-1.5">
+                        {item.tags.map((t) => (
+                          <span key={t.label} className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ color: t.color, background: `${t.color}15` }}>
+                            {t.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </SwipeableItem>
             </motion.div>
           );
