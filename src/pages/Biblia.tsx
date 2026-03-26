@@ -135,6 +135,43 @@ const Biblia = () => {
     return d.toISOString().split("T")[0] === y.toISOString().split("T")[0];
   };
 
+  const buscarDirecao = useCallback(async (leitura: string) => {
+    if (!leitura) return;
+    setDirecaoLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("direcao-de-deus", {
+        body: { leitura },
+      });
+      if (error) throw error;
+      if (data?.frase) {
+        setDirecaoDeDeus(data.frase);
+        setDirecaoLeitura(leitura);
+        localStorage.setItem("ham-direcao-de-deus", JSON.stringify({ frase: data.frase, leitura, date: hoje }));
+      }
+    } catch (err: any) {
+      console.error("Erro ao buscar direção:", err);
+      toast.error("Não foi possível gerar a direção de Deus");
+    } finally {
+      setDirecaoLoading(false);
+    }
+  }, [hoje]);
+
+  // Auto-load AI phrase for today's reading
+  useEffect(() => {
+    const passagem = devocionalHoje?.passagem;
+    if (!passagem) return;
+    const saved = localStorage.getItem("ham-direcao-de-deus");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.date === hoje && parsed.leitura === passagem) {
+        setDirecaoDeDeus(parsed.frase);
+        setDirecaoLeitura(parsed.leitura);
+        return;
+      }
+    }
+    buscarDirecao(passagem);
+  }, [devocionalHoje?.passagem, hoje, buscarDirecao]);
+
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
