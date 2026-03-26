@@ -177,6 +177,25 @@ const Biblia = () => {
     buscarDirecao(passagem);
   }, [devocionalHoje?.passagem, hoje, buscarDirecao]);
 
+  const buscarTextoBiblia = useCallback(async (passagem: string) => {
+    setBibliaLoading(true);
+    setBibliaTexto([]);
+    try {
+      const { data, error } = await supabase.functions.invoke("buscar-biblia", {
+        body: { passagem },
+      });
+      if (error) throw error;
+      if (data?.chapters) {
+        setBibliaTexto(data.chapters);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar texto bíblico:", err);
+      toast.error("Não foi possível carregar o texto bíblico");
+    } finally {
+      setBibliaLoading(false);
+    }
+  }, []);
+
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
