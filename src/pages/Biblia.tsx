@@ -481,16 +481,52 @@ const Biblia = () => {
             )}
           </Button>
         ) : (
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" className="text-xs" onClick={playAudio} disabled={isPlaying}>
-              <Play size={12} className="mr-1" />
-              {isPlaying ? "Tocando..." : "Ouvir"}
-            </Button>
-            <Button size="sm" variant="outline" className="text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={deleteAudio}>
-              <Trash2 size={12} className="mr-1" />
-              Apagar
-            </Button>
-            <span className="text-[10px] text-primary">✓ Áudio gravado</span>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" className="text-xs" onClick={playAudio} disabled={isPlaying}>
+                <Play size={12} className="mr-1" />
+                {isPlaying ? "Tocando..." : "Ouvir"}
+              </Button>
+              <Button size="sm" variant="outline" className="text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={deleteAudio}>
+                <Trash2 size={12} className="mr-1" />
+                Apagar
+              </Button>
+              <span className="text-[10px] text-primary">✓ Áudio gravado</span>
+            </div>
+
+            {/* Send audio as devotional via WhatsApp */}
+            <div className="border-t border-border pt-2">
+              <p className="text-[10px] font-mono text-muted-foreground mb-2">ENVIAR DEVOCIONAL COM ÁUDIO:</p>
+              {contatos.length === 0 ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10 rounded-xl"
+                  onClick={() => setShowContatosModal(true)}
+                >
+                  <Plus size={12} className="mr-1" />
+                  Cadastrar contato
+                </Button>
+              ) : (
+                <div className="flex gap-1.5 flex-wrap">
+                  {contatos.map((c, i) => (
+                    <Button
+                      key={i}
+                      size="sm"
+                      variant="outline"
+                      className="text-xs border-green-600/30 text-green-500 hover:bg-green-600/10 rounded-xl"
+                      onClick={() => abrirPreview(c)}
+                    >
+                      <Send size={10} className="mr-1" />
+                      {c.nome}
+                    </Button>
+                  ))}
+                </div>
+              )}
+              <p className="text-[9px] text-muted-foreground mt-1.5 italic">
+                💡 O WhatsApp abrirá com a mensagem. Envie o áudio em seguida na conversa.
+              </p>
+            </div>
           </div>
         )}
       </motion.div>
