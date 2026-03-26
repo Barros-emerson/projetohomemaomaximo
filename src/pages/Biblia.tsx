@@ -257,6 +257,10 @@ const Biblia = () => {
     let msg = `✝️ *Devocional de hoje — ${dataFormatada}*\n\n`;
     msg += `📖 *Vamos ler:* ${leituraAtual?.passagem || "—"}\n\n`;
 
+    if (direcaoDeDeus) {
+      msg += `✨ *Direção de Deus:*\n"${direcaoDeDeus}"\n\n`;
+    }
+
     if (reflexao.trim()) {
       msg += `REFLEXÃO DO DIA ♥️:\n${reflexao.trim()}\n\n`;
     }
