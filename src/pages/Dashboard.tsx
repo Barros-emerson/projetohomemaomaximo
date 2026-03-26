@@ -145,19 +145,36 @@ const Dashboard = () => {
         </div>
       </motion.div>
 
-      {/* Score */}
+      {/* Score + Frase do dia */}
       <motion.div
         initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.05 }}
-        className="surface-card p-5 text-center"
+        className="surface-card p-4 flex gap-3"
       >
-        <p className="text-[10px] font-mono text-muted-foreground tracking-widest mb-2">SCORE SEMANAL</p>
-        <div className="flex items-baseline justify-center gap-1">
-          <span className="font-mono font-black text-5xl text-gradient">{totalScore}</span>
-          <span className="font-mono text-lg text-muted-foreground">/100</span>
+        {/* Score lado esquerdo */}
+        <div className="flex flex-col items-center justify-center min-w-[90px] border-r border-border pr-3">
+          <p className="text-[8px] font-mono text-muted-foreground tracking-widest mb-1">SCORE</p>
+          <div className="flex items-baseline gap-0.5">
+            <span className="font-mono font-black text-3xl text-gradient">{totalScore}</span>
+            <span className="font-mono text-xs text-muted-foreground">/100</span>
+          </div>
         </div>
-        <p className="text-[11px] text-muted-foreground mt-2">Complete rotina e treino para subir o score</p>
+        {/* Frase do dia lado direito */}
+        {(() => {
+          const frase = getFraseHoje();
+          return (
+            <div className="flex-1 flex flex-col justify-center min-w-0">
+              <p className="text-[8px] font-mono text-muted-foreground/60 tracking-widest mb-1.5">🗡️ MENTALIDADE</p>
+              <p className="text-[11px] text-foreground/90 leading-[1.4] italic line-clamp-3">
+                "{frase.texto}"
+              </p>
+              <p className="text-[9px] text-muted-foreground mt-1.5 font-mono">
+                — {frase.autor}{frase.obra ? `, ${frase.obra}` : ""}
+              </p>
+            </div>
+          );
+        })()}
       </motion.div>
 
       {/* Stories progress */}
