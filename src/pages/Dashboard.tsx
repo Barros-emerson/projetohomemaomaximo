@@ -79,12 +79,17 @@ const Dashboard = () => {
   }, []);
 
   // Re-read localStorage periodically for live updates
-  const [checklistPct, setChecklistPct] = useState(() => getChecklistPct((() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; })()));
+  const getTodayI = () => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; };
+  const [checklistPct, setChecklistPct] = useState(() => getChecklistPct(getTodayI()));
+  const [treinoPct, setTreinoPct] = useState(() => getTreinoPct(getTodayI()));
+  const [bibliaPct, setBibliaPct] = useState(() => getBibliaPct());
   
   useEffect(() => {
     const update = () => {
-      const todayI = (() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; })();
+      const todayI = getTodayI();
       setChecklistPct(getChecklistPct(todayI));
+      setTreinoPct(getTreinoPct(todayI));
+      setBibliaPct(getBibliaPct());
     };
     window.addEventListener("focus", update);
     window.addEventListener("storage", update);
