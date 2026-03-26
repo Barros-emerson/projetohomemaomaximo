@@ -458,6 +458,9 @@ const Perfil = () => {
       <EditableFieldGroup title="Força Atual (1RM)" items={metrics.strength} onUpdateItem={(i, v) => updateMetric("strength", i, v)} delay={0.21} />
       <EditableFieldGroup title="Objetivos e Metas" items={metrics.goals} onUpdateItem={(i, v) => updateMetric("goals", i, v)} delay={0.24} />
 
+      {/* Evolution Report */}
+      <EvolucaoRelatorio />
+
       {/* Quick links */}
       <motion.div
         initial={{ opacity: 0, y: 14, filter: "blur(4px)" }}
