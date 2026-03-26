@@ -66,6 +66,11 @@ const Biblia = () => {
   const [isPlayingMp3, setIsPlayingMp3] = useState(false);
   const mp3PlayerRef = useRef<HTMLAudioElement | null>(null);
 
+  // Direção de Deus (AI)
+  const [direcaoDeDeus, setDirecaoDeDeus] = useState<string>("");
+  const [direcaoLoading, setDirecaoLoading] = useState(false);
+  const [direcaoLeitura, setDirecaoLeitura] = useState<string>("");
+
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
