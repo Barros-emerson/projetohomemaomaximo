@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { rotinaSemanal } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
-import { versiculosMemorizacao } from "@/data/biblia-planos";
+import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
