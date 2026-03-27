@@ -26,13 +26,16 @@ const getTodayIndex = () => {
 
 const getWeekOfYear = () => Math.ceil(((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7);
 
-const getPillarScores = (checklistPct: number, treinoPct: number) => [
-  { name: "Checklist", icon: CheckSquare, weight: 35, score: Math.round(35 * checklistPct / 100), color: "hsl(38 92% 60%)" },
-  { name: "Treino", icon: Dumbbell, weight: 25, score: Math.round(25 * treinoPct / 100), color: "hsl(0 80% 65%)" },
-  { name: "Sono", icon: Moon, weight: 20, score: 0, color: "hsl(215 75% 60%)" },
-  { name: "Sol", icon: Sun, weight: 10, score: 0, color: "hsl(38 92% 60%)" },
-  { name: "Hidratação", icon: Droplets, weight: 10, score: 0, color: "hsl(152 60% 52%)" },
-];
+const getPillarScores = (checklistPct: number, treinoPct: number, aguaMl: number, metaAgua: number) => {
+  const aguaPct = Math.min(Math.round((aguaMl / metaAgua) * 100), 100);
+  return [
+    { name: "Checklist", icon: CheckSquare, weight: 35, score: Math.round(35 * checklistPct / 100), color: "hsl(38 92% 60%)" },
+    { name: "Treino", icon: Dumbbell, weight: 25, score: Math.round(25 * treinoPct / 100), color: "hsl(0 80% 65%)" },
+    { name: "Sono", icon: Moon, weight: 20, score: 0, color: "hsl(215 75% 60%)" },
+    { name: "Sol", icon: Sun, weight: 10, score: 0, color: "hsl(38 92% 60%)" },
+    { name: "Hidratação", icon: Droplets, weight: 10, score: Math.round(10 * aguaPct / 100), color: "hsl(152 60% 52%)" },
+  ];
+};
 
 const getChecklistPct = (dayIdx: number): number => {
   try {
@@ -96,6 +99,10 @@ const Dashboard = () => {
   const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const META_AGUA = 3500;
 
+  const CICLO_AGUA = 2800; // 4 clicks of 700ml
+  const aguaCicloAtual = aguaMl % CICLO_AGUA; // progress within current cycle
+  const aguaLitros = (aguaMl / 1000).toFixed(1);
+
   const adicionarAgua = useCallback(() => {
     setAguaMl(prev => {
       const novo = prev + 700;
@@ -142,7 +149,7 @@ const Dashboard = () => {
   };
 
   const userPhoto = localStorage.getItem("ham-user-photo");
-  const pillars = getPillarScores(checklistPct, treinoPct);
+  const pillars = getPillarScores(checklistPct, treinoPct, aguaMl, META_AGUA);
   const totalScore = pillars.reduce((acc, p) => acc + p.score, 0);
 
   return (
@@ -277,10 +284,13 @@ const Dashboard = () => {
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeDasharray={`${2 * Math.PI * 25}`}
-                strokeDashoffset={`${2 * Math.PI * 25 * (1 - Math.min(aguaMl / META_AGUA, 1))}`}
+                strokeDashoffset={`${2 * Math.PI * 25 * (1 - Math.min(aguaCicloAtual / CICLO_AGUA, 1))}`}
               />
             </svg>
-            <GlassWater size={18} className="text-foreground" />
+            <div className="flex flex-col items-center">
+              <GlassWater size={16} className="text-foreground" />
+              <span className="font-mono text-[8px] font-bold text-foreground">{aguaLitros}L</span>
+            </div>
           </motion.button>
           <span className="text-[9px] text-muted-foreground tracking-wider font-medium uppercase">ÁGUA</span>
 
@@ -295,7 +305,7 @@ const Dashboard = () => {
               <div className="flex items-baseline gap-1.5 mb-2">
                 <Droplets size={12} className="text-primary shrink-0" />
                 <span className="font-mono text-sm font-bold text-foreground">
-                  {(aguaMl / 1000).toFixed(1)}L
+                  {aguaLitros}L
                 </span>
                 <span className="font-mono text-[10px] text-muted-foreground">/ {(META_AGUA / 1000).toFixed(1)}L</span>
               </div>
@@ -306,7 +316,7 @@ const Dashboard = () => {
                 />
               </div>
               <p className="text-[9px] text-muted-foreground mt-1.5 font-mono">
-                {Math.floor(aguaMl / 700)} garrafas · +700ml/toque
+                {Math.floor(aguaMl / 700)} copos · +700ml/toque · Ciclo {Math.floor(aguaMl / CICLO_AGUA) + 1}
               </p>
               <button
                 onClick={() => setAguaDetails(false)}
