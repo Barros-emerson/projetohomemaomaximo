@@ -128,7 +128,7 @@ function parsePassagem(passagem: string): { book: string; chapters: number[] } |
 
 async function fetchChapter(book: string, chapter: number): Promise<string> {
   // bible-api.com with almeida (Portuguese) - uses Portuguese book names with encoding
-  const url = `https://bible-api.com/${encodeURIComponent(book)}+${chapter}?translation=almeida`;
+  const url = `https://bible-api.com/${encodeURIComponent(book)}+${chapter}?translation=ntlh`;
   const response = await fetch(url);
   
   if (response.ok) {
