@@ -45,7 +45,7 @@ const getPillarScores = (checklistPct: number, treinoPct: number, aguaMl: number
 
 const getChecklistPct = (dayIdx: number): number => {
   try {
-    const dateStr = new Date().toISOString().slice(0, 10);
+    const dateStr = getLocalDateStr();
     const saved = localStorage.getItem(`ham-checklist-${dayIdx}-${dateStr}`);
     if (!saved) return 0;
     const checkedItems: string[] = JSON.parse(saved);
