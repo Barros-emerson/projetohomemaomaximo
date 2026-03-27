@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2, Plus, Phone, Share2, RefreshCw, Loader2, Save, Clock } from "lucide-react";
+import DevocionalEvolucao from "@/components/biblia/DevocionalEvolucao";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -849,6 +850,9 @@ const Biblia = () => {
           </div>
         )}
       </motion.div>
+
+      {/* Evolução e validação do devocional */}
+      <DevocionalEvolucao />
 
       {/* Seção de oração */}
       <motion.div
