@@ -851,6 +851,9 @@ const Biblia = () => {
         )}
       </motion.div>
 
+      {/* Evolução e validação do devocional */}
+      <DevocionalEvolucao />
+
       {/* Seção de oração */}
       <motion.div
         initial={{ y: 12, opacity: 0 }}
