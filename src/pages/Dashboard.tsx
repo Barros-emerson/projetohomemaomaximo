@@ -26,13 +26,16 @@ const getTodayIndex = () => {
 
 const getWeekOfYear = () => Math.ceil(((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7);
 
-const getPillarScores = (checklistPct: number, treinoPct: number) => [
-  { name: "Checklist", icon: CheckSquare, weight: 35, score: Math.round(35 * checklistPct / 100), color: "hsl(38 92% 60%)" },
-  { name: "Treino", icon: Dumbbell, weight: 25, score: Math.round(25 * treinoPct / 100), color: "hsl(0 80% 65%)" },
-  { name: "Sono", icon: Moon, weight: 20, score: 0, color: "hsl(215 75% 60%)" },
-  { name: "Sol", icon: Sun, weight: 10, score: 0, color: "hsl(38 92% 60%)" },
-  { name: "Hidratação", icon: Droplets, weight: 10, score: 0, color: "hsl(152 60% 52%)" },
-];
+const getPillarScores = (checklistPct: number, treinoPct: number, aguaMl: number, metaAgua: number) => {
+  const aguaPct = Math.min(Math.round((aguaMl / metaAgua) * 100), 100);
+  return [
+    { name: "Checklist", icon: CheckSquare, weight: 35, score: Math.round(35 * checklistPct / 100), color: "hsl(38 92% 60%)" },
+    { name: "Treino", icon: Dumbbell, weight: 25, score: Math.round(25 * treinoPct / 100), color: "hsl(0 80% 65%)" },
+    { name: "Sono", icon: Moon, weight: 20, score: 0, color: "hsl(215 75% 60%)" },
+    { name: "Sol", icon: Sun, weight: 10, score: 0, color: "hsl(38 92% 60%)" },
+    { name: "Hidratação", icon: Droplets, weight: 10, score: Math.round(10 * aguaPct / 100), color: "hsl(152 60% 52%)" },
+  ];
+};
 
 const getChecklistPct = (dayIdx: number): number => {
   try {
