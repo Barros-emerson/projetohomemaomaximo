@@ -217,7 +217,7 @@ const Biblia = () => {
     setBibliaTexto([]);
     try {
       const { data, error } = await supabase.functions.invoke("buscar-biblia", {
-        body: { passagem },
+        body: { passagem, versao: versaoBiblia },
       });
       if (error) throw error;
       if (data?.chapters) {
@@ -229,7 +229,7 @@ const Biblia = () => {
     } finally {
       setBibliaLoading(false);
     }
-  }, []);
+  }, [versaoBiblia]);
 
   const startRecording = useCallback(async () => {
     try {
