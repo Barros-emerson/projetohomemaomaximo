@@ -72,9 +72,10 @@ const RestTimer = ({
   );
 };
 
+const getLocalDate = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
 const getTreinoStorageKey = (dayIdx: number) => {
-  const dateStr = new Date().toISOString().slice(0, 10);
-  return `ham-treino-sets-${dayIdx}-${dateStr}`;
+  return `ham-treino-sets-${dayIdx}-${getLocalDate()}`;
 };
 
 const Treino = () => {
