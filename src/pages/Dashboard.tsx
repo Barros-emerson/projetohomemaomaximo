@@ -56,7 +56,7 @@ const getChecklistPct = (dayIdx: number): number => {
 
 const getTreinoPct = (dayIdx: number): number => {
   try {
-    const dateStr = new Date().toISOString().slice(0, 10);
+    const dateStr = getLocalDateStr();
     const saved = localStorage.getItem(`ham-treino-sets-${dayIdx}-${dateStr}`);
     if (!saved) return 0;
     const parsed = JSON.parse(saved);
