@@ -131,7 +131,7 @@ const Treino = () => {
 
   // Persist loads
   useEffect(() => {
-    const key = `ham-treino-loads-${selectedDay}-${new Date().toISOString().slice(0, 10)}`;
+    const key = `ham-treino-loads-${selectedDay}-${getLocalDate()}`;
     localStorage.setItem(key, JSON.stringify(loads));
   }, [loads, selectedDay]);
 
