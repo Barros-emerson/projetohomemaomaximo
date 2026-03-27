@@ -41,7 +41,7 @@ const getQualidade = (min: number): { label: string; color: string; emoji: strin
 };
 
 const Sono = () => {
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
   const [horaDormiu, setHoraDormiu] = useState("23:00");
   const [horaAcordou, setHoraAcordou] = useState("06:00");
   const [registroHoje, setRegistroHoje] = useState<SonoRegistro | null>(null);

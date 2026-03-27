@@ -72,9 +72,10 @@ const RestTimer = ({
   );
 };
 
+const getLocalDate = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
 const getTreinoStorageKey = (dayIdx: number) => {
-  const dateStr = new Date().toISOString().slice(0, 10);
-  return `ham-treino-sets-${dayIdx}-${dateStr}`;
+  return `ham-treino-sets-${dayIdx}-${getLocalDate()}`;
 };
 
 const Treino = () => {
@@ -93,7 +94,7 @@ const Treino = () => {
   });
   const [loads, setLoads] = useState<Record<string, Record<number, string>>>(() => {
     try {
-      const saved = localStorage.getItem(`ham-treino-loads-${getTodayIndex()}-${new Date().toISOString().slice(0, 10)}`);
+      const saved = localStorage.getItem(`ham-treino-loads-${getTodayIndex()}-${getLocalDate()}`);
       if (saved) return JSON.parse(saved);
     } catch {}
     return {};
@@ -130,7 +131,7 @@ const Treino = () => {
 
   // Persist loads
   useEffect(() => {
-    const key = `ham-treino-loads-${selectedDay}-${new Date().toISOString().slice(0, 10)}`;
+    const key = `ham-treino-loads-${selectedDay}-${getLocalDate()}`;
     localStorage.setItem(key, JSON.stringify(loads));
   }, [loads, selectedDay]);
 
@@ -289,7 +290,7 @@ const Treino = () => {
     setPhotos([]);
     localStorage.removeItem("ham-treino-photos-today");
     localStorage.removeItem(getTreinoStorageKey(selectedDay));
-    localStorage.removeItem(`ham-treino-loads-${selectedDay}-${new Date().toISOString().slice(0, 10)}`);
+    localStorage.removeItem(`ham-treino-loads-${selectedDay}-${getLocalDate()}`);
   };
 
   const totalSets = day.exercises.reduce((a, e) => a + parseInt(e.sets), 0);

@@ -101,8 +101,8 @@ const SwipeableItem = ({ children, index, isDone, onSwipeRight, onSwipeLeft }: S
   );
 };
 const getStorageKey = (dayIdx: number) => {
-  const today = new Date();
-  const dateStr = today.toISOString().slice(0, 10);
+  const d = new Date();
+  const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   return `ham-checklist-${dayIdx}-${dateStr}`;
 };
 
@@ -115,7 +115,7 @@ const loadChecked = (dayIdx: number): Set<string> => {
 
 const loadRealTimes = (dayIdx: number): Record<string, string> => {
   try {
-    const saved = localStorage.getItem(`ham-checklist-times-${dayIdx}-${new Date().toISOString().slice(0, 10)}`);
+    const saved = localStorage.getItem(`ham-checklist-times-${dayIdx}-${(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })()}`);
     return saved ? JSON.parse(saved) : {};
   } catch { return {}; }
 };
@@ -134,7 +134,7 @@ const Checklist = () => {
 
   // Persist real times
   useEffect(() => {
-    const key = `ham-checklist-times-${selectedDay}-${new Date().toISOString().slice(0, 10)}`;
+    const d = new Date(); const key = `ham-checklist-times-${selectedDay}-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     localStorage.setItem(key, JSON.stringify(realTimes));
   }, [realTimes, selectedDay]);
 

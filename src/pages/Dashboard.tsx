@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getLocalDateStr } from "@/lib/dateUtils";
 import { useNavigate } from "react-router-dom";
 import {
   CheckSquare,
@@ -40,7 +41,7 @@ const getPillarScores = (checklistPct: number, treinoPct: number, aguaMl: number
 
 const getChecklistPct = (dayIdx: number): number => {
   try {
-    const dateStr = new Date().toISOString().slice(0, 10);
+    const dateStr = getLocalDateStr();
     const saved = localStorage.getItem(`ham-checklist-${dayIdx}-${dateStr}`);
     if (!saved) return 0;
     const checkedItems: string[] = JSON.parse(saved);
@@ -51,7 +52,7 @@ const getChecklistPct = (dayIdx: number): number => {
 
 const getTreinoPct = (dayIdx: number): number => {
   try {
-    const dateStr = new Date().toISOString().slice(0, 10);
+    const dateStr = getLocalDateStr();
     const saved = localStorage.getItem(`ham-treino-sets-${dayIdx}-${dateStr}`);
     if (!saved) return 0;
     const parsed = JSON.parse(saved);
@@ -89,7 +90,7 @@ const Dashboard = () => {
   const [treinoPct, setTreinoPct] = useState(() => getTreinoPct(getTodayI()));
   const [bibliaPct, setBibliaPct] = useState(() => getBibliaPct());
   const [sonoPct, setSonoPct] = useState(0);
-  const dateKey = new Date().toISOString().slice(0, 10);
+  const dateKey = getLocalDateStr();
   const [aguaMl, setAguaMl] = useState(() => {
     const saved = localStorage.getItem(`ham-agua-${dateKey}`);
     return saved ? parseInt(saved) : 0;
@@ -135,7 +136,7 @@ const Dashboard = () => {
   // Fetch sleep data for today
   useEffect(() => {
     const fetchSono = async () => {
-      const hoje = new Date().toISOString().slice(0, 10);
+      const hoje = getLocalDateStr();
       const { data } = await supabase
         .from("sono_registros")
         .select("duracao_minutos")
