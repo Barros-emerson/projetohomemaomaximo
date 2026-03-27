@@ -284,19 +284,15 @@ const Dashboard = () => {
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeDasharray={`${2 * Math.PI * 25}`}
-                strokeDashoffset={`${2 * Math.PI * 25 * (1 - Math.min(aguaMl / META_AGUA, 1))}`}
+                strokeDashoffset={`${2 * Math.PI * 25 * (1 - Math.min(aguaCicloAtual / CICLO_AGUA, 1))}`}
               />
             </svg>
-            <GlassWater size={18} className="text-foreground" />
+            <div className="flex flex-col items-center">
+              <GlassWater size={16} className="text-foreground" />
+              <span className="font-mono text-[8px] font-bold text-foreground">{aguaLitros}L</span>
+            </div>
           </motion.button>
           <span className="text-[9px] text-muted-foreground tracking-wider font-medium uppercase">ÁGUA</span>
-
-          {/* Long press details popup */}
-          {aguaDetails && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: -4 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              className="absolute top-16 left-1/2 -translate-x-1/2 z-50 surface-card p-3 rounded-xl min-w-[160px] shadow-lg border border-border"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-baseline gap-1.5 mb-2">
