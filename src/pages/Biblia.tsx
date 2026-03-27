@@ -42,6 +42,7 @@ const Biblia = () => {
   const [showPlanoModal, setShowPlanoModal] = useState(false);
   const [modoLeitura, setModoLeitura] = useState(false);
   const [leituraSelecionada, setLeituraSelecionada] = useState<LeituraDia | null>(null);
+  const [versaoBiblia, setVersaoBiblia] = useState(() => localStorage.getItem("ham-versao-biblia") || "ARA");
   
   // Multiple contacts
   const [contatos, setContatos] = useState<Contato[]>(() => {
