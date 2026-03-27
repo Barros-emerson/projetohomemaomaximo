@@ -132,6 +132,23 @@ const Dashboard = () => {
     };
   }, []);
 
+  // Fetch sleep data for today
+  useEffect(() => {
+    const fetchSono = async () => {
+      const hoje = new Date().toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from("sono_registros")
+        .select("duracao_minutos")
+        .eq("data", hoje)
+        .limit(1);
+      if (data && data.length > 0) {
+        const pct = Math.min(Math.round((data[0].duracao_minutos / 420) * 100), 100);
+        setSonoPct(pct);
+      }
+    };
+    fetchSono();
+  }, []);
+
   const todayIdx = (() => { const d = now.getDay(); return d === 0 ? 6 : d - 1; })();
   const todayRoutine = rotinaSemanal[todayIdx];
   const todayTraining = weekPlan[todayIdx];
