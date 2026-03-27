@@ -21,11 +21,6 @@ import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
 import { getFraseHoje, frasesPoder } from "@/data/frases-poder";
 import { supabase } from "@/integrations/supabase/client";
 
-const getLocalDateStr = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
-
 const getTodayIndex = () => {
   const d = new Date().getDay();
   return d === 0 ? 6 : d - 1;
