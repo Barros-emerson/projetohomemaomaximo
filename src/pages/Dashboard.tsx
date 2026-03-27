@@ -18,6 +18,7 @@ import { rotinaSemanal } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
 import { getFraseHoje, frasesPoder } from "@/data/frases-poder";
+import { supabase } from "@/integrations/supabase/client";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
@@ -26,12 +27,12 @@ const getTodayIndex = () => {
 
 const getWeekOfYear = () => Math.ceil(((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7);
 
-const getPillarScores = (checklistPct: number, treinoPct: number, aguaMl: number, metaAgua: number) => {
+const getPillarScores = (checklistPct: number, treinoPct: number, aguaMl: number, metaAgua: number, sonoPct: number) => {
   const aguaPct = Math.min(Math.round((aguaMl / metaAgua) * 100), 100);
   return [
     { name: "Checklist", icon: CheckSquare, weight: 35, score: Math.round(35 * checklistPct / 100), color: "hsl(38 92% 60%)" },
     { name: "Treino", icon: Dumbbell, weight: 25, score: Math.round(25 * treinoPct / 100), color: "hsl(0 80% 65%)" },
-    { name: "Sono", icon: Moon, weight: 20, score: 0, color: "hsl(215 75% 60%)" },
+    { name: "Sono", icon: Moon, weight: 20, score: Math.round(20 * sonoPct / 100), color: "hsl(215 75% 60%)" },
     { name: "Sol", icon: Sun, weight: 10, score: 0, color: "hsl(38 92% 60%)" },
     { name: "Hidratação", icon: Droplets, weight: 10, score: Math.round(10 * aguaPct / 100), color: "hsl(152 60% 52%)" },
   ];
@@ -87,6 +88,7 @@ const Dashboard = () => {
   const [checklistPct, setChecklistPct] = useState(() => getChecklistPct(getTodayI()));
   const [treinoPct, setTreinoPct] = useState(() => getTreinoPct(getTodayI()));
   const [bibliaPct, setBibliaPct] = useState(() => getBibliaPct());
+  const [sonoPct, setSonoPct] = useState(0);
   const dateKey = new Date().toISOString().slice(0, 10);
   const [aguaMl, setAguaMl] = useState(() => {
     const saved = localStorage.getItem(`ham-agua-${dateKey}`);
@@ -130,6 +132,23 @@ const Dashboard = () => {
     };
   }, []);
 
+  // Fetch sleep data for today
+  useEffect(() => {
+    const fetchSono = async () => {
+      const hoje = new Date().toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from("sono_registros")
+        .select("duracao_minutos")
+        .eq("data", hoje)
+        .limit(1);
+      if (data && data.length > 0) {
+        const pct = Math.min(Math.round((data[0].duracao_minutos / 420) * 100), 100);
+        setSonoPct(pct);
+      }
+    };
+    fetchSono();
+  }, []);
+
   const todayIdx = (() => { const d = now.getDay(); return d === 0 ? 6 : d - 1; })();
   const todayRoutine = rotinaSemanal[todayIdx];
   const todayTraining = weekPlan[todayIdx];
@@ -149,7 +168,7 @@ const Dashboard = () => {
   };
 
   const userPhoto = localStorage.getItem("ham-user-photo");
-  const pillars = getPillarScores(checklistPct, treinoPct, aguaMl, META_AGUA);
+  const pillars = getPillarScores(checklistPct, treinoPct, aguaMl, META_AGUA, sonoPct);
   const totalScore = pillars.reduce((acc, p) => acc + p.score, 0);
 
   return (
@@ -223,7 +242,7 @@ const Dashboard = () => {
           { label: "Rotina", pct: checklistPct, color: "hsl(38 92% 60%)", path: "/rotina" },
           { label: "Treino", pct: treinoPct, color: "hsl(0 80% 65%)", path: "/treino" },
           { label: "Bíblia", pct: bibliaPct, color: "hsl(270 55% 65%)", path: "/biblia" },
-          { label: "Sono", pct: 0, color: "hsl(215 75% 60%)", path: "/sono" },
+          { label: "Sono", pct: sonoPct, color: "hsl(215 75% 60%)", path: "/sono" },
         ].map((s, i) => (
           <motion.button
             key={s.label}

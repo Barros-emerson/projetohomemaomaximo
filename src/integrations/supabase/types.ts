@@ -68,6 +68,36 @@ export type Database = {
         }
         Relationships: []
       }
+      sono_registros: {
+        Row: {
+          created_at: string
+          data: string
+          duracao_minutos: number
+          hora_acordou: string
+          hora_dormiu: string
+          id: string
+          suficiente: boolean
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          duracao_minutos?: number
+          hora_acordou: string
+          hora_dormiu: string
+          id?: string
+          suficiente?: boolean
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          duracao_minutos?: number
+          hora_acordou?: string
+          hora_dormiu?: string
+          id?: string
+          suficiente?: boolean
+        }
+        Relationships: []
+      }
       treino_exercicios: {
         Row: {
           cargas: Json | null
