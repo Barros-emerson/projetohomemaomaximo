@@ -94,7 +94,7 @@ const Treino = () => {
   });
   const [loads, setLoads] = useState<Record<string, Record<number, string>>>(() => {
     try {
-      const saved = localStorage.getItem(`ham-treino-loads-${getTodayIndex()}-${new Date().toISOString().slice(0, 10)}`);
+      const saved = localStorage.getItem(`ham-treino-loads-${getTodayIndex()}-${getLocalDate()}`);
       if (saved) return JSON.parse(saved);
     } catch {}
     return {};
