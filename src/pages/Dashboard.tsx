@@ -94,7 +94,7 @@ const Dashboard = () => {
   const [treinoPct, setTreinoPct] = useState(() => getTreinoPct(getTodayI()));
   const [bibliaPct, setBibliaPct] = useState(() => getBibliaPct());
   const [sonoPct, setSonoPct] = useState(0);
-  const dateKey = new Date().toISOString().slice(0, 10);
+  const dateKey = getLocalDateStr();
   const [aguaMl, setAguaMl] = useState(() => {
     const saved = localStorage.getItem(`ham-agua-${dateKey}`);
     return saved ? parseInt(saved) : 0;
