@@ -293,12 +293,19 @@ const Dashboard = () => {
             </div>
           </motion.button>
           <span className="text-[9px] text-muted-foreground tracking-wider font-medium uppercase">ÁGUA</span>
+
+          {/* Long press details popup */}
+          {aguaDetails && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="absolute top-16 left-1/2 -translate-x-1/2 z-50 surface-card p-3 rounded-xl min-w-[160px] shadow-lg border border-border"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-baseline gap-1.5 mb-2">
                 <Droplets size={12} className="text-primary shrink-0" />
                 <span className="font-mono text-sm font-bold text-foreground">
-                  {(aguaMl / 1000).toFixed(1)}L
+                  {aguaLitros}L
                 </span>
                 <span className="font-mono text-[10px] text-muted-foreground">/ {(META_AGUA / 1000).toFixed(1)}L</span>
               </div>
@@ -309,7 +316,7 @@ const Dashboard = () => {
                 />
               </div>
               <p className="text-[9px] text-muted-foreground mt-1.5 font-mono">
-                {Math.floor(aguaMl / 700)} garrafas · +700ml/toque
+                {Math.floor(aguaMl / 700)} copos · +700ml/toque · Ciclo {Math.floor(aguaMl / CICLO_AGUA) + 1}
               </p>
               <button
                 onClick={() => setAguaDetails(false)}
