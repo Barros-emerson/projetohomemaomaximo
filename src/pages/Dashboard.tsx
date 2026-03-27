@@ -96,6 +96,10 @@ const Dashboard = () => {
   const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const META_AGUA = 3500;
 
+  const CICLO_AGUA = 2800; // 4 clicks of 700ml
+  const aguaCicloAtual = aguaMl % CICLO_AGUA; // progress within current cycle
+  const aguaLitros = (aguaMl / 1000).toFixed(1);
+
   const adicionarAgua = useCallback(() => {
     setAguaMl(prev => {
       const novo = prev + 700;
