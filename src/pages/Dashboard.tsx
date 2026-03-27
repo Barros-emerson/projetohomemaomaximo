@@ -140,7 +140,7 @@ const Dashboard = () => {
   // Fetch sleep data for today
   useEffect(() => {
     const fetchSono = async () => {
-      const hoje = new Date().toISOString().slice(0, 10);
+      const hoje = getLocalDateStr();
       const { data } = await supabase
         .from("sono_registros")
         .select("duracao_minutos")
