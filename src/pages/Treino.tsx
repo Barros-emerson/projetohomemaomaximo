@@ -290,7 +290,7 @@ const Treino = () => {
     setPhotos([]);
     localStorage.removeItem("ham-treino-photos-today");
     localStorage.removeItem(getTreinoStorageKey(selectedDay));
-    localStorage.removeItem(`ham-treino-loads-${selectedDay}-${new Date().toISOString().slice(0, 10)}`);
+    localStorage.removeItem(`ham-treino-loads-${selectedDay}-${getLocalDate()}`);
   };
 
   const totalSets = day.exercises.reduce((a, e) => a + parseInt(e.sets), 0);

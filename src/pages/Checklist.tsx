@@ -134,7 +134,7 @@ const Checklist = () => {
 
   // Persist real times
   useEffect(() => {
-    const key = `ham-checklist-times-${selectedDay}-${new Date().toISOString().slice(0, 10)}`;
+    const d = new Date(); const key = `ham-checklist-times-${selectedDay}-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     localStorage.setItem(key, JSON.stringify(realTimes));
   }, [realTimes, selectedDay]);
 
