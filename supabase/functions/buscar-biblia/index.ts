@@ -92,7 +92,9 @@ async function fetchChapter(bookNum: number, chapter: number, version: string): 
   if (response.ok) {
     const data = await response.json();
     if (Array.isArray(data) && data.length > 0) {
-      return data.map((v: { verse: number; text: string }) => `${v.verse} ${v.text.trim()}`).join("\n");
+      return data.map((v: { verse: number; text: string }) => 
+        `${v.verse} ${v.text.replace(/<br\s*\/?>/gi, "").trim()}`
+      ).join("\n");
     }
   }
 
