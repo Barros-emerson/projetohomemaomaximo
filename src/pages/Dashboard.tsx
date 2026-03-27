@@ -88,6 +88,7 @@ const Dashboard = () => {
   const [checklistPct, setChecklistPct] = useState(() => getChecklistPct(getTodayI()));
   const [treinoPct, setTreinoPct] = useState(() => getTreinoPct(getTodayI()));
   const [bibliaPct, setBibliaPct] = useState(() => getBibliaPct());
+  const [sonoPct, setSonoPct] = useState(0);
   const dateKey = new Date().toISOString().slice(0, 10);
   const [aguaMl, setAguaMl] = useState(() => {
     const saved = localStorage.getItem(`ham-agua-${dateKey}`);
