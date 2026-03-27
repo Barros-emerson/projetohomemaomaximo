@@ -242,7 +242,7 @@ const Dashboard = () => {
           { label: "Rotina", pct: checklistPct, color: "hsl(38 92% 60%)", path: "/rotina" },
           { label: "Treino", pct: treinoPct, color: "hsl(0 80% 65%)", path: "/treino" },
           { label: "Bíblia", pct: bibliaPct, color: "hsl(270 55% 65%)", path: "/biblia" },
-          { label: "Sono", pct: 0, color: "hsl(215 75% 60%)", path: "/sono" },
+          { label: "Sono", pct: sonoPct, color: "hsl(215 75% 60%)", path: "/sono" },
         ].map((s, i) => (
           <motion.button
             key={s.label}
