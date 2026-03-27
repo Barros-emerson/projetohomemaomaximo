@@ -5,96 +5,58 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Map Portuguese book names to bible-api.com almeida identifiers (uses Portuguese names)
-const bookMap: Record<string, string> = {
-  "gênesis": "gênesis",
-  "genesis": "gênesis",
-  "êxodo": "êxodo",
-  "exodo": "êxodo",
-  "levítico": "levítico",
-  "levitico": "levítico",
-  "números": "números",
-  "numeros": "números",
-  "deuteronômio": "deuteronômio",
-  "deuteronomio": "deuteronômio",
-  "josué": "josué",
-  "josue": "josué",
-  "juízes": "juízes",
-  "juizes": "juízes",
-  "rute": "rute",
-  "1 samuel": "1 samuel",
-  "2 samuel": "2 samuel",
-  "1 reis": "1 reis",
-  "2 reis": "2 reis",
-  "1 crônicas": "1 crônicas",
-  "2 crônicas": "2 crônicas",
-  "esdras": "esdras",
-  "neemias": "neemias",
-  "ester": "ester",
-  "jó": "jó",
-  "jo": "jó",
-  "salmo": "salmos",
-  "salmos": "salmos",
-  "provérbios": "provérbios",
-  "proverbios": "provérbios",
-  "eclesiastes": "eclesiastes",
-  "cantares": "cantares",
-  "isaías": "isaías",
-  "isaias": "isaías",
-  "jeremias": "jeremias",
-  "lamentações": "lamentações",
-  "ezequiel": "ezequiel",
-  "daniel": "daniel",
-  "oséias": "oséias",
-  "joel": "joel",
-  "amós": "amós",
-  "obadias": "obadias",
-  "jonas": "jonas",
-  "miquéias": "miquéias",
-  "naum": "naum",
-  "habacuque": "habacuque",
-  "sofonias": "sofonias",
-  "ageu": "ageu",
-  "zacarias": "zacarias",
-  "malaquias": "malaquias",
-  "mateus": "mateus",
-  "marcos": "marcos",
-  "lucas": "lucas",
-  "joão": "joão",
-  "joao": "joão",
-  "atos": "atos",
-  "romanos": "romanos",
-  "1 coríntios": "1 coríntios",
-  "1 corintios": "1 coríntios",
-  "2 coríntios": "2 coríntios",
-  "2 corintios": "2 coríntios",
-  "gálatas": "gálatas",
-  "galatas": "gálatas",
-  "efésios": "efésios",
-  "efesios": "efésios",
-  "filipenses": "filipenses",
-  "colossenses": "colossenses",
-  "1 tessalonicenses": "1 tessalonicenses",
-  "2 tessalonicenses": "2 tessalonicenses",
-  "1 timóteo": "1 timóteo",
-  "1 timoteo": "1 timóteo",
-  "2 timóteo": "2 timóteo",
-  "2 timoteo": "2 timóteo",
-  "tito": "tito",
-  "filemom": "filemom",
-  "hebreus": "hebreus",
-  "tiago": "tiago",
-  "1 pedro": "1 pedro",
-  "2 pedro": "2 pedro",
-  "1 joão": "1 joão",
-  "1 joao": "1 joão",
-  "2 joão": "2 joão",
-  "2 joao": "2 joão",
-  "3 joão": "3 joão",
-  "3 joao": "3 joão",
-  "judas": "judas",
-  "apocalipse": "apocalipse",
+// Map Portuguese book names to bolls.life book numbers
+const bookMap: Record<string, number> = {
+  "gênesis": 1, "genesis": 1,
+  "êxodo": 2, "exodo": 2,
+  "levítico": 3, "levitico": 3,
+  "números": 4, "numeros": 4,
+  "deuteronômio": 5, "deuteronomio": 5,
+  "josué": 6, "josue": 6,
+  "juízes": 7, "juizes": 7,
+  "rute": 8,
+  "1 samuel": 9, "2 samuel": 10,
+  "1 reis": 11, "2 reis": 12,
+  "1 crônicas": 13, "2 crônicas": 14,
+  "esdras": 15, "neemias": 16, "ester": 17,
+  "jó": 18, "jo": 18,
+  "salmo": 19, "salmos": 19,
+  "provérbios": 20, "proverbios": 20,
+  "eclesiastes": 21,
+  "cantares": 22, "cântico dos cânticos": 22,
+  "isaías": 23, "isaias": 23,
+  "jeremias": 24,
+  "lamentações": 25, "lamentacoes": 25,
+  "ezequiel": 26, "daniel": 27,
+  "oséias": 28, "oseias": 28,
+  "joel": 29,
+  "amós": 30, "amos": 30,
+  "obadias": 31, "jonas": 32,
+  "miquéias": 33, "miqueias": 33,
+  "naum": 34, "habacuque": 35,
+  "sofonias": 36, "ageu": 37,
+  "zacarias": 38, "malaquias": 39,
+  "mateus": 40, "marcos": 41, "lucas": 42,
+  "joão": 43, "joao": 43,
+  "atos": 44, "romanos": 45,
+  "1 coríntios": 46, "1 corintios": 46,
+  "2 coríntios": 47, "2 corintios": 47,
+  "gálatas": 48, "galatas": 48,
+  "efésios": 49, "efesios": 49,
+  "filipenses": 50, "colossenses": 51,
+  "1 tessalonicenses": 52, "2 tessalonicenses": 53,
+  "1 timóteo": 54, "1 timoteo": 54,
+  "2 timóteo": 55, "2 timoteo": 55,
+  "tito": 56, "filemom": 57,
+  "hebreus": 58, "tiago": 59,
+  "1 pedro": 60, "2 pedro": 61,
+  "1 joão": 62, "1 joao": 62,
+  "2 joão": 63, "2 joao": 63,
+  "3 joão": 64, "3 joao": 64,
+  "judas": 65, "apocalipse": 66,
 };
+
+const validVersions = ["NTLH", "ARA", "NAA", "NVI", "ACF"];
 
 interface ChapterResult {
   book: string;
@@ -102,78 +64,70 @@ interface ChapterResult {
   text: string;
 }
 
-function parsePassagem(passagem: string): { book: string; chapters: number[] } | null {
-  // e.g. "Salmo 1 + Provérbios 1", "Mateus 1–3", "Gênesis 1–3"
-  // For combined readings like "Salmo X + Provérbios X", handle first part
+function parsePassagem(passagem: string): { bookName: string; bookNum: number; chapters: number[] } | null {
   const cleanPassagem = passagem.split("+")[0].trim();
-  
-  // Match "Book Chapter" or "Book Chapter–Chapter"
   const match = cleanPassagem.match(/^(.+?)\s+(\d+)(?:\s*[–-]\s*(\d+))?$/i);
   if (!match) return null;
 
-  const bookName = match[1].trim().toLowerCase();
+  const bookName = match[1].trim();
+  const bookKey = bookName.toLowerCase();
   const startChapter = parseInt(match[2]);
   const endChapter = match[3] ? parseInt(match[3]) : startChapter;
 
-  const bookId = bookMap[bookName];
-  if (!bookId) return null;
+  const bookNum = bookMap[bookKey];
+  if (!bookNum) return null;
 
   const chapters: number[] = [];
   for (let i = startChapter; i <= endChapter; i++) {
     chapters.push(i);
   }
 
-  return { book: bookId, chapters };
+  return { bookName, bookNum, chapters };
 }
 
-async function fetchChapter(book: string, chapter: number): Promise<string> {
-  // bible-api.com with almeida (Portuguese) - uses Portuguese book names with encoding
-  const url = `https://bible-api.com/${encodeURIComponent(book)}+${chapter}?translation=almeida`;
+async function fetchChapter(bookNum: number, chapter: number, version: string): Promise<string> {
+  const url = `https://bolls.life/get-chapter/${version}/${bookNum}/${chapter}/`;
   const response = await fetch(url);
-  
+
   if (response.ok) {
     const data = await response.json();
-    // Prefer verses array for numbered output
-    if (data.verses && Array.isArray(data.verses)) {
-      return data.verses.map((v: any) => `${v.verse} ${v.text.trim()}`).join("\n");
-    }
-    if (data.text) {
-      return data.text.trim();
+    if (Array.isArray(data) && data.length > 0) {
+      return data.map((v: { verse: number; text: string }) => 
+        `${v.verse} ${v.text.replace(/<br\s*\/?>/gi, "").trim()}`
+      ).join("\n");
     }
   }
 
-  throw new Error(`Could not fetch ${book} ${chapter}`);
+  throw new Error(`Could not fetch book ${bookNum} chapter ${chapter} in ${version}`);
 }
 
-async function fetchAllParts(passagem: string): Promise<ChapterResult[]> {
+async function fetchAllParts(passagem: string, version: string): Promise<ChapterResult[]> {
   const results: ChapterResult[] = [];
-  
-  // Split by "+" for combined readings like "Salmo 1 + Provérbios 1"
   const parts = passagem.split("+").map(p => p.trim());
-  
+
   for (const part of parts) {
     const parsed = parsePassagem(part);
     if (!parsed) continue;
-    
+
     for (const chapter of parsed.chapters) {
       try {
-        const text = await fetchChapter(parsed.book, chapter);
+        const text = await fetchChapter(parsed.bookNum, chapter, version);
         results.push({
-          book: part.replace(/\d+[–-]?\d*/g, "").trim(),
+          book: parsed.bookName,
           chapter,
           text,
         });
       } catch (e) {
-        console.error(`Error fetching ${parsed.book} ${chapter}:`, e);
+        console.error(`Error fetching ${parsed.bookName} ${chapter}:`, e);
         results.push({
-          book: part.replace(/\d+[–-]?\d*/g, "").trim(),
+          book: parsed.bookName,
           chapter,
           text: `Não foi possível carregar ${part}. Tente novamente mais tarde.`,
         });
       }
     }
   }
-  
+
   return results;
 }
 
@@ -181,10 +135,11 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { passagem } = await req.json();
+    const { passagem, versao } = await req.json();
     if (!passagem) throw new Error("Passagem não informada");
 
-    const chapters = await fetchAllParts(passagem);
+    const version = validVersions.includes(versao) ? versao : "ARA";
+    const chapters = await fetchAllParts(passagem, version);
 
     return new Response(JSON.stringify({ chapters }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

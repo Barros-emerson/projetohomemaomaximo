@@ -42,6 +42,7 @@ const Biblia = () => {
   const [showPlanoModal, setShowPlanoModal] = useState(false);
   const [modoLeitura, setModoLeitura] = useState(false);
   const [leituraSelecionada, setLeituraSelecionada] = useState<LeituraDia | null>(null);
+  const [versaoBiblia, setVersaoBiblia] = useState(() => localStorage.getItem("ham-versao-biblia") || "ARA");
   
   // Multiple contacts
   const [contatos, setContatos] = useState<Contato[]>(() => {
@@ -216,7 +217,7 @@ const Biblia = () => {
     setBibliaTexto([]);
     try {
       const { data, error } = await supabase.functions.invoke("buscar-biblia", {
-        body: { passagem },
+        body: { passagem, versao: versaoBiblia },
       });
       if (error) throw error;
       if (data?.chapters) {
@@ -228,7 +229,7 @@ const Biblia = () => {
     } finally {
       setBibliaLoading(false);
     }
-  }, []);
+  }, [versaoBiblia]);
 
   const startRecording = useCallback(async () => {
     try {
@@ -502,7 +503,33 @@ const Biblia = () => {
           <button onClick={() => { setModoLeitura(false); setBibliaTexto([]); }} className="text-muted-foreground">
             <X size={24} />
           </button>
-          <span className="font-mono text-xs tracking-widest text-muted-foreground">MODO LEITURA</span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs tracking-widest text-muted-foreground">MODO LEITURA</span>
+            <select
+              value={versaoBiblia}
+              onChange={(e) => {
+                const v = e.target.value;
+                setVersaoBiblia(v);
+                localStorage.setItem("ham-versao-biblia", v);
+                if (leituraSelecionada) {
+                  setBibliaLoading(true);
+                  setBibliaTexto([]);
+                  supabase.functions.invoke("buscar-biblia", {
+                    body: { passagem: leituraSelecionada.passagem, versao: v },
+                  }).then(({ data }) => {
+                    if (data?.chapters) setBibliaTexto(data.chapters);
+                  }).catch(() => toast.error("Erro ao carregar versão"))
+                    .finally(() => setBibliaLoading(false));
+                }
+              }}
+              className="bg-secondary text-foreground text-xs font-mono rounded px-2 py-1 border border-border focus:outline-none"
+            >
+              <option value="ARA">ARA</option>
+              <option value="NTLH">NTLH</option>
+              <option value="NAA">NAA</option>
+              <option value="ACF">ACF</option>
+            </select>
+          </div>
           <div className="w-6" />
         </div>
         <ScrollArea className="flex-1 p-6">
