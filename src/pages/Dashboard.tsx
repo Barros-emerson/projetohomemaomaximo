@@ -149,7 +149,7 @@ const Dashboard = () => {
   };
 
   const userPhoto = localStorage.getItem("ham-user-photo");
-  const pillars = getPillarScores(checklistPct, treinoPct);
+  const pillars = getPillarScores(checklistPct, treinoPct, aguaMl, META_AGUA);
   const totalScore = pillars.reduce((acc, p) => acc + p.score, 0);
 
   return (
