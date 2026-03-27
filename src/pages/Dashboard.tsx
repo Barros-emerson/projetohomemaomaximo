@@ -18,6 +18,7 @@ import { rotinaSemanal } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
 import { getFraseHoje, frasesPoder } from "@/data/frases-poder";
+import { supabase } from "@/integrations/supabase/client";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
