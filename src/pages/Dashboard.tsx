@@ -19,6 +19,7 @@ import { rotinaSemanal } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
 import { getFraseHoje, frasesPoder } from "@/data/frases-poder";
+import { getTipoDiaHoje, TIPOS_DIA } from "@/pages/Checklist";
 import { supabase } from "@/integrations/supabase/client";
 
 const getTodayIndex = () => {
@@ -97,6 +98,9 @@ const Dashboard = () => {
   });
   const [aguaAnim, setAguaAnim] = useState(false);
   const [aguaDetails, setAguaDetails] = useState(false);
+  const [tipoDia] = useState(() => getTipoDiaHoje());
+  const tipoConfig = TIPOS_DIA.find(t => t.id === tipoDia)!;
+  const isDiaEspecial = tipoDia !== "normal";
   const [fraseAtual, setFraseAtual] = useState(() => getFraseHoje());
   const [fraseKey, setFraseKey] = useState(0);
   const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -170,7 +174,7 @@ const Dashboard = () => {
 
   const userPhoto = localStorage.getItem("ham-user-photo");
   const pillars = getPillarScores(checklistPct, treinoPct, aguaMl, META_AGUA, sonoPct);
-  const totalScore = pillars.reduce((acc, p) => acc + p.score, 0);
+  const totalScore = isDiaEspecial ? null : pillars.reduce((acc, p) => acc + p.score, 0);
 
   return (
     <div className="p-4 space-y-4 pb-24">
@@ -194,10 +198,32 @@ const Dashboard = () => {
           </p>
         </div>
         <div className="flex flex-col items-center shrink-0">
-          <span className="font-mono font-black text-lg text-gradient">{totalScore}</span>
-          <span className="font-mono text-[8px] text-muted-foreground tracking-wider">/100</span>
+          {isDiaEspecial ? (
+            <span className="text-xl">{tipoConfig.emoji}</span>
+          ) : (
+            <>
+              <span className="font-mono font-black text-lg text-gradient">{totalScore}</span>
+              <span className="font-mono text-[8px] text-muted-foreground tracking-wider">/100</span>
+            </>
+          )}
         </div>
       </motion.div>
+
+      {/* Tipo do dia — badge quando especial */}
+      {isDiaEspecial && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl border"
+          style={{ borderColor: tipoConfig.border, background: tipoConfig.bg }}
+        >
+          <span className="text-2xl">{tipoConfig.emoji}</span>
+          <div>
+            <p className="font-mono text-sm font-bold" style={{ color: tipoConfig.color }}>{tipoConfig.label}</p>
+            <p className="font-mono text-[10px] text-muted-foreground">{tipoConfig.mensagem}</p>
+          </div>
+        </motion.div>
+      )}
 
       {/* Frase do dia */}
       <motion.div
