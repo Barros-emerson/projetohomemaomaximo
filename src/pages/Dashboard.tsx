@@ -132,18 +132,17 @@ const Dashboard = () => {
   }, []);
   
   useEffect(() => {
-    const update = () => {
+    const update = async () => {
       const todayI = getTodayI();
-      setChecklistPct(getChecklistPct(todayI));
+      const clPct = await getChecklistPct(todayI);
+      setChecklistPct(clPct);
       setTreinoPct(getTreinoPct(todayI));
       setBibliaPct(getBibliaPct());
     };
     window.addEventListener("focus", update);
-    window.addEventListener("storage", update);
-    const interval = setInterval(update, 5000);
+    const interval = setInterval(update, 10000);
     return () => {
       window.removeEventListener("focus", update);
-      window.removeEventListener("storage", update);
       clearInterval(interval);
     };
   }, []);
