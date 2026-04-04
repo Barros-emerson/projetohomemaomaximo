@@ -41,14 +41,11 @@ const getPillarScores = (checklistPct: number, treinoPct: number, aguaMl: number
   ];
 };
 
-const getChecklistPct = (dayIdx: number): number => {
+const getChecklistPct = async (dayIdx: number): Promise<number> => {
   try {
-    const dateStr = getLocalDateStr();
-    const saved = localStorage.getItem(`ham-checklist-${dayIdx}-${dateStr}`);
-    if (!saved) return 0;
-    const checkedItems: string[] = JSON.parse(saved);
+    const map = await loadCheckedFromDB(dayIdx);
     const totalItems = rotinaSemanal[dayIdx].items.length;
-    return totalItems > 0 ? Math.round((checkedItems.length / totalItems) * 100) : 0;
+    return totalItems > 0 ? Math.round((map.size / totalItems) * 100) : 0;
   } catch { return 0; }
 };
 
