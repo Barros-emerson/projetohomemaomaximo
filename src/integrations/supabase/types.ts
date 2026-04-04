@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      agua_registros: {
+        Row: {
+          created_at: string
+          data: string
+          id: string
+          quantidade_ml: number
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          id?: string
+          quantidade_ml?: number
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          id?: string
+          quantidade_ml?: number
+        }
+        Relationships: []
+      }
+      checklist_items: {
+        Row: {
+          created_at: string
+          data: string
+          dia_semana: number
+          horario_real: string | null
+          id: string
+          item_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          dia_semana: number
+          horario_real?: string | null
+          id?: string
+          item_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          dia_semana?: number
+          horario_real?: string | null
+          id?: string
+          item_id?: string
+        }
+        Relationships: []
+      }
       oracoes: {
         Row: {
           conteudo: string
@@ -95,6 +143,27 @@ export type Database = {
           hora_dormiu?: string
           id?: string
           suficiente?: boolean
+        }
+        Relationships: []
+      }
+      tipo_dia: {
+        Row: {
+          created_at: string
+          data: string
+          id: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          id?: string
+          tipo?: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          id?: string
+          tipo?: string
         }
         Relationships: []
       }
