@@ -19,8 +19,9 @@ import { rotinaSemanal } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
 import { getFraseHoje, frasesPoder } from "@/data/frases-poder";
-import { getTipoDiaHoje, TIPOS_DIA } from "@/pages/Checklist";
+import { getTipoDiaHoje, TIPOS_DIA, type TipoDia } from "@/pages/Checklist";
 import { supabase } from "@/integrations/supabase/client";
+import { loadCheckedFromDB, loadAguaFromDB, saveAgua, loadTipoDiaFromDB } from "@/hooks/useChecklistDB";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
