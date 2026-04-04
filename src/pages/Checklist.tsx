@@ -1,9 +1,16 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Check, Clock, X, ChevronLeft, ChevronRight, Utensils, Droplets, AlertTriangle, Calendar } from "lucide-react";
 import { rotinaSemanal, type RotinaItem } from "@/data/rotina-diaria";
 import { dietaSemanal } from "@/data/dieta-semanal";
 import { getLocalDateStr } from "@/lib/dateUtils";
+import {
+  loadCheckedFromDB,
+  toggleChecklistItem,
+  updateChecklistTime,
+  loadTipoDiaFromDB,
+  saveTipoDia as saveTipoDiaDB,
+} from "@/hooks/useChecklistDB";
 
 const getTodayIndex = () => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; };
 const parseTime = (t: string): number | null => { const m = t.match(/^(\d{1,2}):(\d{2})$/); if (!m) return null; return parseInt(m[1]) * 60 + parseInt(m[2]); };
@@ -26,21 +33,11 @@ export const TIPOS_DIA: TipoDiaConfig[] = [
   { id: "livre",    label: "Livre",   emoji: "☀️", color: "#C084FC", bg: "rgba(192,132,252,0.1)",   border: "rgba(192,132,252,0.3)",   mensagem: "Dia livre escolhido. Recarregue.",                  contaScore: false },
 ];
 
-export const getTipoDiaHoje = (): TipoDia => {
-  try { const s = localStorage.getItem(`ham-tipoDia-${getLocalDateStr()}`); if (s && TIPOS_DIA.find(t => t.id === s)) return s as TipoDia; } catch {}
+export const getTipoDiaHoje = async (): Promise<TipoDia> => {
+  const tipo = await loadTipoDiaFromDB();
+  if (TIPOS_DIA.find(t => t.id === tipo)) return tipo as TipoDia;
   return "normal";
 };
-
-const loadTipoDia = (dateStr: string): TipoDia => {
-  try { const s = localStorage.getItem(`ham-tipoDia-${dateStr}`); if (s && TIPOS_DIA.find(t => t.id === s)) return s as TipoDia; } catch {}
-  return "normal";
-};
-
-// ─── STORAGE ─────────────────────────────────────────────────────────────────
-
-const getStorageKey = (dayIdx: number) => `ham-checklist-${dayIdx}-${getLocalDateStr()}`;
-const loadChecked = (dayIdx: number): Set<string> => { try { const s = localStorage.getItem(getStorageKey(dayIdx)); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); } };
-const loadRealTimes = (dayIdx: number): Record<string, string> => { try { const s = localStorage.getItem(`ham-checklist-times-${dayIdx}-${getLocalDateStr()}`); return s ? JSON.parse(s) : {}; } catch { return {}; } };
 
 // ─── SWIPEABLE ────────────────────────────────────────────────────────────────
 
@@ -113,22 +110,40 @@ const Checklist = () => {
   const todayIdx = getTodayIndex();
   const dateStr = getLocalDateStr();
   const [selectedDay, setSelectedDay] = useState(todayIdx);
-  const [checked, setChecked] = useState<Set<string>>(() => loadChecked(todayIdx));
-  const [realTimes, setRealTimes] = useState<Record<string, string>>(() => loadRealTimes(todayIdx));
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [realTimes, setRealTimes] = useState<Record<string, string>>({});
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editTimeValue, setEditTimeValue] = useState("");
-  const [tipoDia, setTipoDia] = useState<TipoDia>(() => loadTipoDia(dateStr));
+  const [tipoDia, setTipoDia] = useState<TipoDia>("normal");
   const [showTipoModal, setShowTipoModal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const isToday = selectedDay === todayIdx;
   const tipoConfig = TIPOS_DIA.find((t) => t.id === tipoDia)!;
   const isDiaEspecial = tipoDia !== "normal";
 
-  useEffect(() => { localStorage.setItem(getStorageKey(selectedDay), JSON.stringify([...checked])); }, [checked, selectedDay]);
-  useEffect(() => { localStorage.setItem(`ham-checklist-times-${selectedDay}-${getLocalDateStr()}`, JSON.stringify(realTimes)); }, [realTimes, selectedDay]);
+  // Load data from DB
+  const loadDayData = useCallback(async (dayIdx: number) => {
+    setLoading(true);
+    const map = await loadCheckedFromDB(dayIdx);
+    const newChecked = new Set<string>();
+    const newTimes: Record<string, string> = {};
+    map.forEach((time, id) => {
+      newChecked.add(id);
+      if (time) newTimes[id] = time;
+    });
+    setChecked(newChecked);
+    setRealTimes(newTimes);
+    setLoading(false);
+  }, []);
 
-  const handleSetTipo = (tipo: TipoDia) => {
+  useEffect(() => {
+    loadDayData(todayIdx);
+    loadTipoDiaFromDB().then((t) => setTipoDia(t as TipoDia));
+  }, [todayIdx, loadDayData]);
+
+  const handleSetTipo = async (tipo: TipoDia) => {
     setTipoDia(tipo);
-    localStorage.setItem(`ham-tipoDia-${dateStr}`, tipo);
+    await saveTipoDiaDB(tipo);
   };
 
   const day = rotinaSemanal[selectedDay];
@@ -152,24 +167,38 @@ const Checklist = () => {
   const doneItems = day.items.filter((i) => checked.has(i.id)).length;
   const pct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
 
-  const toggle = (id: string) => {
+  const toggle = async (id: string) => {
+    const wasChecked = checked.has(id);
+    const now = new Date();
+    const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`;
+
+    // Optimistic update
     setChecked((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
+      if (wasChecked) {
         next.delete(id);
-        setRealTimes((rt) => { const copy = { ...rt }; delete copy[id]; return copy; });
       } else {
         next.add(id);
-        const now = new Date();
-        setRealTimes((rt) => ({ ...rt, [id]: `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}` }));
       }
       return next;
     });
+
+    if (wasChecked) {
+      setRealTimes((rt) => { const copy = { ...rt }; delete copy[id]; return copy; });
+    } else {
+      setRealTimes((rt) => ({ ...rt, [id]: timeStr }));
+    }
+
+    // Persist to DB
+    await toggleChecklistItem(selectedDay, id, wasChecked, timeStr);
   };
 
   const openEdit = (item: RotinaItem) => { setEditingItem(item.id); setEditTimeValue(realTimes[item.id] || item.time); };
-  const saveEdit = () => {
-    if (editingItem && editTimeValue) setRealTimes((prev) => ({ ...prev, [editingItem]: editTimeValue }));
+  const saveEdit = async () => {
+    if (editingItem && editTimeValue) {
+      setRealTimes((prev) => ({ ...prev, [editingItem]: editTimeValue }));
+      await updateChecklistTime(selectedDay, editingItem, editTimeValue);
+    }
     setEditingItem(null); setEditTimeValue("");
   };
 
@@ -182,6 +211,11 @@ const Checklist = () => {
     return "Protocolo completo. Você é a máquina.";
   };
 
+  const handleSelectDay = async (i: number) => {
+    setSelectedDay(i);
+    await loadDayData(i);
+  };
+
   return (
     <div className="p-4 space-y-4">
       {/* Day selector */}
@@ -189,7 +223,7 @@ const Checklist = () => {
         {rotinaSemanal.map((d, i) => {
           const isTodayPill = i === todayIdx; const isSelected = i === selectedDay;
           return (
-            <button key={i} onClick={() => { setSelectedDay(i); setChecked(loadChecked(i)); setRealTimes(loadRealTimes(i)); }}
+            <button key={i} onClick={() => handleSelectDay(i)}
               className="shrink-0 px-3 py-2 rounded-lg border font-mono text-[10px] font-bold tracking-wider transition-all duration-200 active:scale-95"
               style={isSelected ? { color: d.pillColor, borderColor: d.pillBorder, background: d.pillBg } : { borderColor: "hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
               <div>{d.dayShort}</div>
@@ -270,62 +304,67 @@ const Checklist = () => {
       )}
 
       {/* Timeline */}
-      <div className="space-y-1">
-        <AnimatePresence initial={false}>
-          {adjustedItems.map((item, i) => {
-            const isDone = checked.has(item.id);
-            const hasRealTime = !!realTimes[item.id];
-            const isAdjusted = item.adjustedTime !== null && item.deltaMinutes > 0;
-            const canEditTime = !item.immutable && parseTime(item.time) !== null;
-            const isVisible = i === 0 || checked.has(adjustedItems[i - 1].id);
-            if (!isVisible) return null;
-            return (
-              <motion.div key={item.id} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
-                <SwipeableItem index={i} isDone={isDone} disabled={isDiaEspecial && isToday && !isDone}
-                  onSwipeRight={() => { if (!isDone) toggle(item.id); }}
-                  onSwipeLeft={() => { if (!isDone && canEditTime && isToday) openEdit(item); }}>
-                  <button onClick={() => toggle(item.id)}
-                    className="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all active:scale-90"
-                    style={isDone ? { background: "hsl(var(--primary))", borderColor: "hsl(var(--primary))" } : { borderColor: isDiaEspecial && isToday ? tipoConfig.color + "60" : "hsl(var(--muted-foreground) / 0.3)" }}>
-                    <AnimatePresence>{isDone && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}><Check size={14} className="text-primary-foreground" /></motion.div>}</AnimatePresence>
-                  </button>
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="space-y-1">
+          <AnimatePresence initial={false}>
+            {adjustedItems.map((item, i) => {
+              const isDone = checked.has(item.id);
+              const hasRealTime = !!realTimes[item.id];
+              const isAdjusted = item.adjustedTime !== null && item.deltaMinutes > 0;
+              const canEditTime = !item.immutable && parseTime(item.time) !== null;
+              const isVisible = i === 0 || checked.has(adjustedItems[i - 1].id);
+              if (!isVisible) return null;
+              return (
+                <motion.div key={item.id} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
+                  <SwipeableItem index={i} isDone={isDone} disabled={isDiaEspecial && isToday && !isDone}
+                    onSwipeRight={() => { if (!isDone) toggle(item.id); }}
+                    onSwipeLeft={() => { if (!isDone && canEditTime && isToday) openEdit(item); }}>
+                    <button onClick={() => toggle(item.id)}
+                      className="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all active:scale-90"
+                      style={isDone ? { background: "hsl(var(--primary))", borderColor: "hsl(var(--primary))" } : { borderColor: isDiaEspecial && isToday ? tipoConfig.color + "60" : "hsl(var(--muted-foreground) / 0.3)" }}>
+                      {isDone && <Check size={14} className="text-primary-foreground" />}
+                    </button>
 
-                  {isDone ? (
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="font-mono text-xs text-muted-foreground line-through truncate">{item.label}</span>
-                      {hasRealTime && <span className="font-mono text-[10px] shrink-0" style={{ color: "#FB923C" }}>{realTimes[item.id]}</span>}
-                    </div>
-                  ) : (
-                    <>
-                      <div className="w-12 shrink-0 mt-0.5">
-                        {isAdjusted
-                          ? <span className="font-mono text-[10px] block" style={{ color: "#FB923C" }}>→ {item.adjustedTime}</span>
-                          : <span className="font-mono text-[10px] block text-muted-foreground/40">{item.time}</span>}
+                    {isDone ? (
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-mono text-xs text-muted-foreground line-through truncate">{item.label}</span>
+                        {hasRealTime && <span className="font-mono text-[10px] text-primary shrink-0">{realTimes[item.id]}</span>}
                       </div>
-                      <div className="w-2 h-2 rounded-full shrink-0 mt-2"
-                        style={{ background: isDiaEspecial && isToday ? tipoConfig.color + "60" : item.dotColor, boxShadow: item.alert && !isDiaEspecial ? `0 0 6px ${item.dotColor}` : undefined }} />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-mono text-sm block text-foreground">{item.label}</span>
-                          {isAdjusted && <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: "#FB923C", background: "rgba(251,146,60,0.12)" }}>+{item.deltaMinutes}min</span>}
-                          {item.immutable && <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: "#C084FC", background: "rgba(192,132,252,0.1)" }}>IMÓVEL</span>}
-                          {isDiaEspecial && isToday && <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: tipoConfig.color, background: tipoConfig.bg }}>OPCIONAL</span>}
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isAdjusted
+                            ? <span className="font-mono text-xs font-bold" style={{ color: "#FB923C" }}>→ {item.adjustedTime}</span>
+                            : <span className="font-mono text-xs text-muted-foreground">{item.time}</span>}
                         </div>
-                        <span className="font-mono text-[10px] text-muted-foreground/60 block mt-0.5">{item.detail}</span>
-                        {item.tags && item.tags.length > 0 && !isDiaEspecial && (
-                          <div className="flex gap-1 flex-wrap mt-1.5">
-                            {item.tags.map((t) => <span key={t.label} className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ color: t.color, background: `${t.color}15` }}>{t.label}</span>)}
+                        <div className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5" style={{ background: item.dotColor }} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-mono text-sm text-foreground font-medium">{item.label}</span>
+                            {isAdjusted && <span className="text-[9px] font-mono font-bold" style={{ color: "#FB923C" }}>+{item.deltaMinutes}min</span>}
+                            {item.immutable && <span className="text-[8px] font-mono font-bold text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">IMÓVEL</span>}
+                            {isDiaEspecial && isToday && <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded" style={{ color: tipoConfig.color, background: tipoConfig.bg }}>OPCIONAL</span>}
                           </div>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </SwipeableItem>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
+                          <p className="font-mono text-[10px] text-muted-foreground leading-relaxed mt-0.5">{item.detail}</p>
+                          {item.tags && item.tags.length > 0 && !isDiaEspecial && (
+                            <div className="flex gap-1 mt-1 flex-wrap">
+                              {item.tags.map((t) => <span key={t.label} className="text-[8px] font-mono px-1.5 py-0.5 rounded-md bg-secondary" style={{ color: t.color }}>{t.label}</span>)}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </SwipeableItem>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* Diet */}
       {(!isDiaEspecial || !isToday) && (() => {
@@ -339,33 +378,33 @@ const Checklist = () => {
         const currentMeal = dieta.refeicoes[bestMealIdx];
         if (!currentMeal) return null;
         return (
-          <motion.div key={currentMeal.time} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-4 space-y-2">
-            <div className="flex items-center gap-2 px-1"><Utensils size={14} className="text-primary" /><span className="font-mono text-[10px] font-bold tracking-widest text-muted-foreground">ALIMENTAÇÃO</span></div>
-            <div className="surface-card rounded-lg overflow-hidden">
-              <div className="flex items-center gap-3 px-4 py-3">
-                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: currentMeal.dotColor }} />
-                <span className="font-mono text-xs text-muted-foreground w-11 shrink-0">{currentMeal.time}</span>
-                <span className="font-mono text-sm text-foreground flex-1">{currentMeal.label}</span>
-                <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">AGORA</span>
+          <div className="surface-card p-4 border-glow space-y-3">
+            <p className="font-mono text-[10px] text-muted-foreground tracking-widest flex items-center gap-1.5"><Utensils size={12} />ALIMENTAÇÃO</p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="w-1 h-8 rounded-full" style={{ background: "hsl(var(--primary))" }} />
+                <span className="font-mono text-xs text-muted-foreground">{currentMeal.time}</span>
+                <span className="font-mono text-sm text-foreground font-bold">{currentMeal.label}</span>
+                <span className="text-[8px] font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">AGORA</span>
               </div>
-              <div className="px-4 pb-3 pt-0 space-y-2">
-                {currentMeal.subtitle && <p className="font-mono text-[10px] font-bold text-primary tracking-wide">{currentMeal.subtitle}</p>}
-                <div className="space-y-1">{currentMeal.items.map((it, i) => <div key={i} className="flex items-center gap-2"><span className="text-sm">{it.emoji}</span><span className="font-mono text-[11px] text-muted-foreground">{it.text}</span></div>)}</div>
-                {currentMeal.tip && <p className="font-mono text-[10px] text-primary/80 mt-1.5 border-l-2 border-primary/20 pl-2">→ {currentMeal.tip}</p>}
+              <div className="pl-7">
+                {currentMeal.subtitle && <p className="font-mono text-[11px] text-muted-foreground italic mb-1">{currentMeal.subtitle}</p>}
+                <div className="space-y-0.5">{currentMeal.items.map((it, i) => <p key={i} className="font-mono text-[11px] text-foreground/80">{it.emoji}{it.text}</p>)}</div>
+                {currentMeal.tip && <p className="font-mono text-[10px] text-primary mt-1.5">→ {currentMeal.tip}</p>}
               </div>
             </div>
             {(dieta.regras.length > 0 || dieta.hidratacao) && (
-              <div className="surface-card rounded-lg p-4 space-y-3">
+              <div className="border-t border-border pt-2 mt-2 space-y-2">
                 {dieta.regras.map((regra, i) => (
                   <div key={i}>
-                    <div className="flex items-center gap-2 mb-1.5"><AlertTriangle size={12} style={{ color: "#F87171" }} /><span className="font-mono text-[10px] font-bold tracking-widest" style={{ color: "#F87171" }}>{regra.title}</span></div>
-                    {regra.items.map((it, j) => <p key={j} className="font-mono text-[10px] text-muted-foreground ml-5">✕ {it}</p>)}
+                    <p className="font-mono text-[9px] text-muted-foreground tracking-widest mb-0.5">{regra.title}</p>
+                    {regra.items.map((it, j) => <p key={j} className="font-mono text-[10px] text-muted-foreground">✕ {it}</p>)}
                   </div>
                 ))}
-                {dieta.hidratacao && <div className="flex items-center gap-2"><Droplets size={12} style={{ color: "#60A5FA" }} /><span className="font-mono text-[10px] text-muted-foreground"><span className="font-bold text-foreground">HIDRATAÇÃO:</span> {dieta.hidratacao}</span></div>}
+                {dieta.hidratacao && <p className="font-mono text-[10px] text-primary/80"><Droplets className="inline w-3 h-3 mr-1" />HIDRATAÇÃO: {dieta.hidratacao}</p>}
               </div>
             )}
-          </motion.div>
+          </div>
         );
       })()}
 
@@ -373,9 +412,9 @@ const Checklist = () => {
       <AnimatePresence>
         {editingItem && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-md" onClick={() => setEditingItem(null)}>
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-6" onClick={() => setEditingItem(null)}>
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className="surface-card p-6 border-glow w-[300px] space-y-4" onClick={(e) => e.stopPropagation()}>
+              className="surface-card p-5 border-glow w-full max-w-sm space-y-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between">
                 <p className="font-mono text-xs font-bold tracking-widest text-foreground">HORÁRIO REAL</p>
                 <button onClick={() => setEditingItem(null)} className="active:scale-90"><X size={18} className="text-muted-foreground" /></button>
@@ -384,9 +423,10 @@ const Checklist = () => {
               <input type="time" value={editTimeValue} onChange={(e) => setEditTimeValue(e.target.value)}
                 className="w-full bg-secondary border border-border rounded-lg px-4 py-3 font-mono text-lg text-foreground text-center focus:outline-none focus:ring-2 focus:ring-primary" />
               <div className="flex gap-2">
-                <button onClick={() => { if (editingItem) setRealTimes((p) => { const n = { ...p }; delete n[editingItem]; return n; }); setEditingItem(null); }}
+                <button onClick={async () => { if (editingItem) { setRealTimes((p) => { const n = { ...p }; delete n[editingItem]; return n; }); await updateChecklistTime(selectedDay, editingItem, null); } setEditingItem(null); }}
                   className="flex-1 py-2.5 rounded-lg border border-border font-mono text-xs text-muted-foreground active:scale-95">LIMPAR</button>
-                <button onClick={saveEdit} className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground font-mono text-xs font-bold active:scale-95">SALVAR</button>
+                <button onClick={saveEdit}
+                  className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground font-mono text-xs font-bold active:scale-95">SALVAR</button>
               </div>
             </motion.div>
           </motion.div>

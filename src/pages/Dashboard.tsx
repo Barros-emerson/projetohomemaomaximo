@@ -19,8 +19,9 @@ import { rotinaSemanal } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
 import { getFraseHoje, frasesPoder } from "@/data/frases-poder";
-import { getTipoDiaHoje, TIPOS_DIA } from "@/pages/Checklist";
+import { getTipoDiaHoje, TIPOS_DIA, type TipoDia } from "@/pages/Checklist";
 import { supabase } from "@/integrations/supabase/client";
+import { loadCheckedFromDB, loadAguaFromDB, saveAgua, loadTipoDiaFromDB } from "@/hooks/useChecklistDB";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
@@ -40,14 +41,11 @@ const getPillarScores = (checklistPct: number, treinoPct: number, aguaMl: number
   ];
 };
 
-const getChecklistPct = (dayIdx: number): number => {
+const getChecklistPct = async (dayIdx: number): Promise<number> => {
   try {
-    const dateStr = getLocalDateStr();
-    const saved = localStorage.getItem(`ham-checklist-${dayIdx}-${dateStr}`);
-    if (!saved) return 0;
-    const checkedItems: string[] = JSON.parse(saved);
+    const map = await loadCheckedFromDB(dayIdx);
     const totalItems = rotinaSemanal[dayIdx].items.length;
-    return totalItems > 0 ? Math.round((checkedItems.length / totalItems) * 100) : 0;
+    return totalItems > 0 ? Math.round((map.size / totalItems) * 100) : 0;
   } catch { return 0; }
 };
 
@@ -87,18 +85,15 @@ const Dashboard = () => {
 
   // Re-read localStorage periodically for live updates
   const getTodayI = () => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; };
-  const [checklistPct, setChecklistPct] = useState(() => getChecklistPct(getTodayI()));
+  const [checklistPct, setChecklistPct] = useState(0);
   const [treinoPct, setTreinoPct] = useState(() => getTreinoPct(getTodayI()));
   const [bibliaPct, setBibliaPct] = useState(() => getBibliaPct());
   const [sonoPct, setSonoPct] = useState(0);
   const dateKey = getLocalDateStr();
-  const [aguaMl, setAguaMl] = useState(() => {
-    const saved = localStorage.getItem(`ham-agua-${dateKey}`);
-    return saved ? parseInt(saved) : 0;
-  });
+  const [aguaMl, setAguaMl] = useState(0);
   const [aguaAnim, setAguaAnim] = useState(false);
   const [aguaDetails, setAguaDetails] = useState(false);
-  const [tipoDia] = useState(() => getTipoDiaHoje());
+  const [tipoDia, setTipoDia] = useState<TipoDia>("normal");
   const tipoConfig = TIPOS_DIA.find(t => t.id === tipoDia)!;
   const isDiaEspecial = tipoDia !== "normal";
   const [fraseAtual, setFraseAtual] = useState(() => getFraseHoje());
@@ -106,33 +101,48 @@ const Dashboard = () => {
   const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const META_AGUA = 3500;
 
-  const CICLO_AGUA = 2800; // 4 clicks of 700ml
-  const aguaCicloAtual = aguaMl % CICLO_AGUA; // progress within current cycle
+  const CICLO_AGUA = 2800;
+  const aguaCicloAtual = aguaMl % CICLO_AGUA;
   const aguaLitros = (aguaMl / 1000).toFixed(1);
 
-  const adicionarAgua = useCallback(() => {
+  // Load initial data from DB
+  useEffect(() => {
+    const loadData = async () => {
+      const todayI = getTodayI();
+      const [clPct, agua, tipo] = await Promise.all([
+        getChecklistPct(todayI),
+        loadAguaFromDB(),
+        loadTipoDiaFromDB(),
+      ]);
+      setChecklistPct(clPct);
+      setAguaMl(agua);
+      setTipoDia(tipo as TipoDia);
+    };
+    loadData();
+  }, []);
+
+  const adicionarAgua = useCallback(async () => {
     setAguaMl(prev => {
       const novo = prev + 700;
-      localStorage.setItem(`ham-agua-${dateKey}`, String(novo));
+      saveAgua(novo);
       return novo;
     });
     setAguaAnim(true);
     setTimeout(() => setAguaAnim(false), 400);
-  }, [dateKey]);
+  }, []);
   
   useEffect(() => {
-    const update = () => {
+    const update = async () => {
       const todayI = getTodayI();
-      setChecklistPct(getChecklistPct(todayI));
+      const clPct = await getChecklistPct(todayI);
+      setChecklistPct(clPct);
       setTreinoPct(getTreinoPct(todayI));
       setBibliaPct(getBibliaPct());
     };
     window.addEventListener("focus", update);
-    window.addEventListener("storage", update);
-    const interval = setInterval(update, 5000);
+    const interval = setInterval(update, 10000);
     return () => {
       window.removeEventListener("focus", update);
-      window.removeEventListener("storage", update);
       clearInterval(interval);
     };
   }, []);
