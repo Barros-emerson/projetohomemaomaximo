@@ -3,45 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Check, X, ChevronRight, Zap } from "lucide-react";
 import { rotinaSemanal } from "@/data/rotina-diaria";
-import { getLocalDateStr } from "@/lib/dateUtils";
+import { loadCheckedFromDB, toggleChecklistItem } from "@/hooks/useChecklistDB";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
   return d === 0 ? 6 : d - 1;
-};
-
-const getStorageKey = (dayIdx: number) =>
-  `ham-checklist-${dayIdx}-${getLocalDateStr()}`;
-
-const loadChecked = (dayIdx: number): Set<string> => {
-  try {
-    const s = localStorage.getItem(getStorageKey(dayIdx));
-    return s ? new Set(JSON.parse(s)) : new Set();
-  } catch {
-    return new Set();
-  }
-};
-
-const saveChecked = (dayIdx: number, checked: Set<string>) => {
-  localStorage.setItem(getStorageKey(dayIdx), JSON.stringify([...checked]));
-};
-
-const loadRealTimes = (dayIdx: number): Record<string, string> => {
-  try {
-    const s = localStorage.getItem(
-      `ham-checklist-times-${dayIdx}-${getLocalDateStr()}`
-    );
-    return s ? JSON.parse(s) : {};
-  } catch {
-    return {};
-  }
-};
-
-const saveRealTime = (dayIdx: number, id: string, time: string) => {
-  const key = `ham-checklist-times-${dayIdx}-${getLocalDateStr()}`;
-  const current = loadRealTimes(dayIdx);
-  current[id] = time;
-  localStorage.setItem(key, JSON.stringify(current));
 };
 
 export default function ModoFoco() {
@@ -49,13 +15,20 @@ export default function ModoFoco() {
   const todayIdx = getTodayIndex();
   const day = rotinaSemanal[todayIdx];
 
-  const [checked, setChecked] = useState<Set<string>>(() =>
-    loadChecked(todayIdx)
-  );
+  const [checked, setChecked] = useState<Set<string>>(new Set());
   const [currentItemIdx, setCurrentItemIdx] = useState(0);
   const [checking, setChecking] = useState(false);
   const [done, setDone] = useState(false);
   const [now, setNow] = useState(new Date());
+  const [loading, setLoading] = useState(true);
+
+  // Load checked items from DB on mount
+  useEffect(() => {
+    loadCheckedFromDB(todayIdx).then((map) => {
+      setChecked(new Set(map.keys()));
+      setLoading(false);
+    });
+  }, [todayIdx]);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
@@ -79,19 +52,19 @@ export default function ModoFoco() {
   const handleCheck = () => {
     if (!currentItem || checking) return;
     setChecking(true);
-    setTimeout(() => {
+    const nowTime = new Date();
+    const timeStr = `${nowTime.getHours()}:${nowTime
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+    
+    // Save to DB (not checked yet, so isChecked=false to insert)
+    toggleChecklistItem(todayIdx, currentItem.id, false, timeStr).then(() => {
       const newChecked = new Set(checked);
       newChecked.add(currentItem.id);
-      const now = new Date();
-      const timeStr = `${now.getHours()}:${now
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}`;
-      saveChecked(todayIdx, newChecked);
-      saveRealTime(todayIdx, currentItem.id, timeStr);
       setChecked(newChecked);
       setChecking(false);
-    }, 400);
+    });
   };
 
   const handleSkip = () => {
@@ -105,6 +78,14 @@ export default function ModoFoco() {
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <span className="text-muted-foreground font-mono text-sm animate-pulse">Carregando...</span>
+      </div>
+    );
+  }
 
   if (done) {
     return (
