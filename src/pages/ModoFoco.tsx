@@ -79,6 +79,14 @@ export default function ModoFoco() {
     minute: "2-digit",
   });
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <span className="text-muted-foreground font-mono text-sm animate-pulse">Carregando...</span>
+      </div>
+    );
+  }
+
   if (done) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
