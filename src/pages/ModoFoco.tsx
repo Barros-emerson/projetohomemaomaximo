@@ -52,19 +52,19 @@ export default function ModoFoco() {
   const handleCheck = () => {
     if (!currentItem || checking) return;
     setChecking(true);
-    setTimeout(() => {
+    const nowTime = new Date();
+    const timeStr = `${nowTime.getHours()}:${nowTime
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+    
+    // Save to DB (not checked yet, so isChecked=false to insert)
+    toggleChecklistItem(todayIdx, currentItem.id, false, timeStr).then(() => {
       const newChecked = new Set(checked);
       newChecked.add(currentItem.id);
-      const now = new Date();
-      const timeStr = `${now.getHours()}:${now
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}`;
-      saveChecked(todayIdx, newChecked);
-      saveRealTime(todayIdx, currentItem.id, timeStr);
       setChecked(newChecked);
       setChecking(false);
-    }, 400);
+    });
   };
 
   const handleSkip = () => {
