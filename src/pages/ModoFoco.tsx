@@ -3,45 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Check, X, ChevronRight, Zap } from "lucide-react";
 import { rotinaSemanal } from "@/data/rotina-diaria";
-import { getLocalDateStr } from "@/lib/dateUtils";
+import { loadCheckedFromDB, toggleChecklistItem } from "@/hooks/useChecklistDB";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
   return d === 0 ? 6 : d - 1;
-};
-
-const getStorageKey = (dayIdx: number) =>
-  `ham-checklist-${dayIdx}-${getLocalDateStr()}`;
-
-const loadChecked = (dayIdx: number): Set<string> => {
-  try {
-    const s = localStorage.getItem(getStorageKey(dayIdx));
-    return s ? new Set(JSON.parse(s)) : new Set();
-  } catch {
-    return new Set();
-  }
-};
-
-const saveChecked = (dayIdx: number, checked: Set<string>) => {
-  localStorage.setItem(getStorageKey(dayIdx), JSON.stringify([...checked]));
-};
-
-const loadRealTimes = (dayIdx: number): Record<string, string> => {
-  try {
-    const s = localStorage.getItem(
-      `ham-checklist-times-${dayIdx}-${getLocalDateStr()}`
-    );
-    return s ? JSON.parse(s) : {};
-  } catch {
-    return {};
-  }
-};
-
-const saveRealTime = (dayIdx: number, id: string, time: string) => {
-  const key = `ham-checklist-times-${dayIdx}-${getLocalDateStr()}`;
-  const current = loadRealTimes(dayIdx);
-  current[id] = time;
-  localStorage.setItem(key, JSON.stringify(current));
 };
 
 export default function ModoFoco() {
@@ -49,13 +15,20 @@ export default function ModoFoco() {
   const todayIdx = getTodayIndex();
   const day = rotinaSemanal[todayIdx];
 
-  const [checked, setChecked] = useState<Set<string>>(() =>
-    loadChecked(todayIdx)
-  );
+  const [checked, setChecked] = useState<Set<string>>(new Set());
   const [currentItemIdx, setCurrentItemIdx] = useState(0);
   const [checking, setChecking] = useState(false);
   const [done, setDone] = useState(false);
   const [now, setNow] = useState(new Date());
+  const [loading, setLoading] = useState(true);
+
+  // Load checked items from DB on mount
+  useEffect(() => {
+    loadCheckedFromDB(todayIdx).then((map) => {
+      setChecked(new Set(map.keys()));
+      setLoading(false);
+    });
+  }, [todayIdx]);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
