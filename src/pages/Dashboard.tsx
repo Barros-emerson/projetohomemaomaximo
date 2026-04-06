@@ -274,6 +274,26 @@ const Dashboard = () => {
         </AnimatePresence>
       </motion.div>
 
+      {/* Modo Foco — quick access */}
+      <motion.button
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.08 }}
+        onClick={() => navigate("/foco")}
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5 active:scale-[0.98] transition-transform"
+      >
+        <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+          <Focus size={18} className="text-primary" />
+        </div>
+        <div className="flex-1 text-left">
+          <p className="text-[10px] font-mono text-primary tracking-wider font-bold">MODO FOCO</p>
+          <p className="text-[11px] text-muted-foreground">
+            {checklistPct > 0 ? `${checklistPct}% concluído — continuar protocolo` : "Iniciar protocolo do dia"}
+          </p>
+        </div>
+        <ChevronRight size={16} className="text-primary/60 shrink-0" />
+      </motion.button>
+
       {/* Stories progress */}
       <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar relative">
         {[
