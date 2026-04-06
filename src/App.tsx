@@ -16,6 +16,7 @@ import Biblia from "@/pages/Biblia";
 import Notas from "@/pages/Notas";
 import Historico from "@/pages/Historico";
 import Performance from "@/pages/Performance";
+import ModoFoco from "@/pages/ModoFoco";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="/historico" element={<Historico />} />
               <Route path="/performance" element={<Performance />} />
             </Route>
+            <Route path="/foco" element={<ModoFoco />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
