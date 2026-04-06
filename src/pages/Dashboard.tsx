@@ -12,6 +12,7 @@ import {
   BookOpen,
   ChevronRight,
   Flame,
+  Focus,
   GlassWater,
   RefreshCw,
 } from "lucide-react";
