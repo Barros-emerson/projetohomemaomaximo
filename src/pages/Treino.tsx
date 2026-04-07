@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Square, Timer, Check, Camera, X, Image as ImageIcon } from "lucide-react";
+import { Play, Square, Timer, Check, Camera, X, Image as ImageIcon, RotateCcw } from "lucide-react";
 import { weekPlan } from "@/data/treino-plano";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -291,14 +291,19 @@ const Treino = () => {
     setSaving(false);
   };
 
-  const fecharRelatorio = () => {
-    setRelatorio(null);
+  const limparSeries = () => {
     setCompletedSets({});
     setLoads({});
-    setPhotos([]);
-    localStorage.removeItem("ham-treino-photos-today");
     localStorage.removeItem(getTreinoStorageKey(selectedDay));
     localStorage.removeItem(`ham-treino-loads-${selectedDay}-${getLocalDate()}`);
+    toast.success("Séries e cargas limpos!");
+  };
+
+  const fecharRelatorio = () => {
+    setRelatorio(null);
+    limparSeries();
+    setPhotos([]);
+    localStorage.removeItem("ham-treino-photos-today");
   };
 
   const totalSets = day.exercises.reduce((a, e) => a + parseInt(e.sets), 0);
@@ -373,17 +378,28 @@ const Treino = () => {
         {!isOff && (
           <div className="mt-3 flex items-center gap-3">
             {!workoutActive ? (
-              <button
-                onClick={() => {
-              localStorage.setItem("ham-treino-start", Date.now().toString());
-                  startTsRef.current = Date.now();
-                  setWorkoutActive(true);
-                }}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold tracking-wider transition-all active:scale-95 ${day.bgClass} ${day.colorClass} border ${day.borderClass}`}
-              >
-                <Play size={14} />
-                INICIAR TREINO
-              </button>
+              <div className="flex items-center gap-2 flex-1">
+                <button
+                  onClick={() => {
+                    localStorage.setItem("ham-treino-start", Date.now().toString());
+                    startTsRef.current = Date.now();
+                    setWorkoutActive(true);
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold tracking-wider transition-all active:scale-95 ${day.bgClass} ${day.colorClass} border ${day.borderClass}`}
+                >
+                  <Play size={14} />
+                  INICIAR TREINO
+                </button>
+                {doneSets > 0 && (
+                  <button
+                    onClick={limparSeries}
+                    className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-secondary border border-border text-muted-foreground font-mono text-[10px] font-bold tracking-wider active:scale-95 transition-all hover:text-foreground"
+                  >
+                    <RotateCcw size={12} />
+                    LIMPAR
+                  </button>
+                )}
+              </div>
             ) : (
               <div className="flex items-center gap-3 flex-1">
                 <div className="font-mono text-lg font-extrabold text-foreground">
