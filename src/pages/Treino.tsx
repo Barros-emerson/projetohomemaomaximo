@@ -103,10 +103,12 @@ const Treino = () => {
     return !!localStorage.getItem("ham-treino-start");
   });
   const [workoutTime, setWorkoutTime] = useState(0);
-  const startTsRef = useRef<number | null>(() => {
-    const s = localStorage.getItem("ham-treino-start");
-    return s ? parseInt(s) : null;
-  });
+  const startTsRef = useRef<number | null>(
+    (() => {
+      const s = localStorage.getItem("ham-treino-start");
+      return s ? parseInt(s) : null;
+    })()
+  );
   const [showTimer, setShowTimer] = useState(false);
   const [restSeconds, setRestSeconds] = useState(90);
   const [photos, setPhotos] = useState<string[]>(() => {
