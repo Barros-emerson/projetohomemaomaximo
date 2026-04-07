@@ -199,8 +199,8 @@ const Treino = () => {
 
   const finalizarTreino = async () => {
     setSaving(true);
-    const startTs = localStorage.getItem("ham-treino-start");
-    const duracao = startTs ? Math.floor((Date.now() - parseInt(startTs)) / 1000) : workoutTime;
+    const startTs = startTsRef.current || parseInt(localStorage.getItem("ham-treino-start") || "0");
+    const duracao = startTs ? Math.floor((Date.now() - startTs) / 1000) : workoutTime;
 
     const totalSeries = day.exercises.reduce((a, e) => a + parseInt(e.sets), 0);
     const seriesCompletas = Object.values(completedSets).reduce((a, s) => a + s.size, 0);
@@ -285,6 +285,7 @@ const Treino = () => {
 
     setRelatorio(relatorioData);
     localStorage.removeItem("ham-treino-start");
+    startTsRef.current = null;
     setWorkoutActive(false);
     setWorkoutTime(0);
     setSaving(false);
