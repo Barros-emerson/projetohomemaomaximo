@@ -141,6 +141,21 @@ const Checklist = () => {
     loadTipoDiaFromDB().then((t) => setTipoDia(t as TipoDia));
   }, [todayIdx, loadDayData]);
 
+  // Reload when page regains focus (e.g. returning from Modo Foco)
+  useEffect(() => {
+    const handleFocus = () => {
+      loadDayData(selectedDay);
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") handleFocus();
+    });
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
+  }, [selectedDay, loadDayData]);
+
   const handleSetTipo = async (tipo: TipoDia) => {
     setTipoDia(tipo);
     await saveTipoDiaDB(tipo);
