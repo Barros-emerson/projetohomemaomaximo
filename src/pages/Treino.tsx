@@ -139,11 +139,15 @@ const Treino = () => {
   }, [loads, selectedDay]);
 
   useEffect(() => {
-    if (!workoutActive) return;
-    const startTs = localStorage.getItem("ham-treino-start");
+    if (!workoutActive) {
+      setWorkoutTime(0);
+      return;
+    }
+    const startTs = startTsRef.current || parseInt(localStorage.getItem("ham-treino-start") || "0");
     if (!startTs) return;
-    const tick = () => setWorkoutTime(Math.floor((Date.now() - parseInt(startTs)) / 1000));
-    tick();
+    startTsRef.current = startTs;
+    const tick = () => setWorkoutTime(Math.floor((Date.now() - startTs) / 1000));
+    tick(); // immediate first tick
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);
   }, [workoutActive]);
@@ -370,7 +374,8 @@ const Treino = () => {
             {!workoutActive ? (
               <button
                 onClick={() => {
-                  localStorage.setItem("ham-treino-start", Date.now().toString());
+              localStorage.setItem("ham-treino-start", Date.now().toString());
+                  startTsRef.current = Date.now();
                   setWorkoutActive(true);
                 }}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold tracking-wider transition-all active:scale-95 ${day.bgClass} ${day.colorClass} border ${day.borderClass}`}
@@ -500,8 +505,7 @@ const Treino = () => {
                   </span>
                 </div>
 
-                {workoutActive && (
-                  <div className="flex gap-2 mt-2 flex-wrap">
+                <div className="flex gap-2 mt-2 flex-wrap">
                     {Array.from({ length: setsCount }).map((_, si) => {
                       const done = exSets.has(si);
                       return (
@@ -516,20 +520,17 @@ const Treino = () => {
                           >
                             {done ? <Check size={16} /> : si + 1}
                           </button>
-                          {done && (
-                            <input
-                              type="text"
-                              placeholder="kg"
-                              value={loads[ex.id]?.[si] || ""}
-                              onChange={(e) => setLoad(ex.id, si, e.target.value)}
-                              className="w-14 h-10 rounded-xl bg-secondary border border-border text-center font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary"
-                            />
-                          )}
+                          <input
+                            type="text"
+                            placeholder="kg"
+                            value={loads[ex.id]?.[si] || ""}
+                            onChange={(e) => setLoad(ex.id, si, e.target.value)}
+                            className="w-14 h-10 rounded-xl bg-secondary border border-border text-center font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary"
+                          />
                         </div>
                       );
                     })}
                   </div>
-                )}
               </motion.div>
             );
           })}
