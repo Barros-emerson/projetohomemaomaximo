@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Check, Clock, X, ChevronLeft, ChevronRight, Utensils, Droplets, AlertTriangle, Calendar } from "lucide-react";
 import { rotinaSemanal, type RotinaItem } from "@/data/rotina-diaria";
@@ -206,6 +207,28 @@ const Checklist = () => {
 
     // Persist to DB
     await toggleChecklistItem(selectedDay, id, wasChecked, timeStr);
+
+    // Ao marcar "dormir", salva hora_dormiu no registro de sono do dia seguinte
+    if (id === "dormir" && !wasChecked) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = getLocalDateStr(tomorrow);
+      const { data: existing } = await supabase
+        .from("sono_registros")
+        .select("id")
+        .eq("data", tomorrowStr)
+        .limit(1);
+      if (existing && existing.length > 0) {
+        await supabase
+          .from("sono_registros")
+          .update({ hora_dormiu: timeStr })
+          .eq("id", existing[0].id);
+      } else {
+        await supabase
+          .from("sono_registros")
+          .insert({ data: tomorrowStr, hora_dormiu: timeStr, hora_acordou: "06:00", duracao_minutos: 0, suficiente: false });
+      }
+    }
   };
 
   const openEdit = (item: RotinaItem) => { setEditingItem(item.id); setEditTimeValue(realTimes[item.id] || item.time); };
