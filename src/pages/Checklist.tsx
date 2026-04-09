@@ -205,6 +205,30 @@ const Checklist = () => {
       setRealTimes((rt) => ({ ...rt, [id]: timeStr }));
     }
 
+    // Ao marcar "acordar", salva hora_acordou (20 min antes) no registro de sono do dia atual
+    if ((id === "acordar" || id === "acordar_sab") && !wasChecked) {
+      const now = new Date();
+      const totalMin = now.getHours() * 60 + now.getMinutes() - 20;
+      const adjusted = totalMin < 0 ? 0 : totalMin;
+      const acordouTime = `${Math.floor(adjusted / 60)}:${(adjusted % 60).toString().padStart(2, "0")}`;
+      const todayStr = getLocalDateStr(new Date());
+      const { data: existing } = await supabase
+        .from("sono_registros")
+        .select("id")
+        .eq("data", todayStr)
+        .limit(1);
+      if (existing && existing.length > 0) {
+        await supabase
+          .from("sono_registros")
+          .update({ hora_acordou: acordouTime })
+          .eq("id", existing[0].id);
+      } else {
+        await supabase
+          .from("sono_registros")
+          .insert({ data: todayStr, hora_dormiu: "22:30", hora_acordou: acordouTime, duracao_minutos: 0, suficiente: false });
+      }
+    }
+
     // Persist to DB
     await toggleChecklistItem(selectedDay, id, wasChecked, timeStr);
 
