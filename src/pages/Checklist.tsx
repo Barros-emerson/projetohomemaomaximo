@@ -208,6 +208,17 @@ const Checklist = () => {
     // Persist to DB
     await toggleChecklistItem(selectedDay, id, wasChecked, timeStr);
 
+    // Helper: calcula duração e suficiente a partir de hora_dormiu e hora_acordou
+    const calcSono = (dormiu: string, acordou: string) => {
+      const [hd, md] = dormiu.split(":").map(Number);
+      const [ha, ma] = acordou.split(":").map(Number);
+      let minD = hd * 60 + md;
+      let minA = ha * 60 + ma;
+      if (minA <= minD) minA += 24 * 60;
+      const duracao = minA - minD;
+      return { duracao_minutos: duracao, suficiente: duracao >= 390 };
+    };
+
     // Ao marcar "dormir", salva hora_dormiu no registro de sono do dia seguinte
     if (id === "dormir" && !wasChecked) {
       const tomorrow = new Date();
@@ -215,18 +226,21 @@ const Checklist = () => {
       const tomorrowStr = getLocalDateStr(tomorrow);
       const { data: existing } = await supabase
         .from("sono_registros")
-        .select("id")
+        .select("*")
         .eq("data", tomorrowStr)
         .limit(1);
       if (existing && existing.length > 0) {
+        const rec = existing[0];
+        const sonoCalc = calcSono(timeStr, rec.hora_acordou);
         await supabase
           .from("sono_registros")
-          .update({ hora_dormiu: timeStr })
-          .eq("id", existing[0].id);
+          .update({ hora_dormiu: timeStr, ...sonoCalc })
+          .eq("id", rec.id);
       } else {
+        const sonoCalc = calcSono(timeStr, "06:00");
         await supabase
           .from("sono_registros")
-          .insert({ data: tomorrowStr, hora_dormiu: timeStr, hora_acordou: "06:00", duracao_minutos: 0, suficiente: false });
+          .insert({ data: tomorrowStr, hora_dormiu: timeStr, hora_acordou: "06:00", ...sonoCalc });
       }
     }
 
@@ -239,18 +253,21 @@ const Checklist = () => {
       const todayStr = getLocalDateStr(new Date());
       const { data: existingAcordar } = await supabase
         .from("sono_registros")
-        .select("id")
+        .select("*")
         .eq("data", todayStr)
         .limit(1);
       if (existingAcordar && existingAcordar.length > 0) {
+        const rec = existingAcordar[0];
+        const sonoCalc = calcSono(rec.hora_dormiu, acordouTime);
         await supabase
           .from("sono_registros")
-          .update({ hora_acordou: acordouTime })
-          .eq("id", existingAcordar[0].id);
+          .update({ hora_acordou: acordouTime, ...sonoCalc })
+          .eq("id", rec.id);
       } else {
+        const sonoCalc = calcSono("22:30", acordouTime);
         await supabase
           .from("sono_registros")
-          .insert({ data: todayStr, hora_dormiu: "22:30", hora_acordou: acordouTime, duracao_minutos: 0, suficiente: false });
+          .insert({ data: todayStr, hora_dormiu: "22:30", hora_acordou: acordouTime, ...sonoCalc });
       }
     }
   };
