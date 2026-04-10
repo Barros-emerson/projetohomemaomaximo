@@ -235,7 +235,7 @@ const Dashboard = () => {
   const totalScore = isDiaEspecial ? null : pillars.reduce((acc, p) => acc + p.score, 0);
 
   return (
-    <div className="p-4 space-y-4 pb-24">
+    <div className="p-4 space-y-5 pb-24 max-w-lg mx-auto">
       {/* Greeting */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -377,7 +377,7 @@ const Dashboard = () => {
       </motion.button>
 
       {/* Stories progress */}
-      <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar relative">
+      <div className="flex gap-4 justify-center pb-1 no-scrollbar relative">
         {[
           { label: "Rotina", pct: checklistPct, color: "hsl(38 92% 60%)", path: "/rotina" },
           { label: "Treino", pct: treinoPct, color: "hsl(0 80% 65%)", path: "/treino" },
@@ -605,7 +605,7 @@ const Dashboard = () => {
       {/* Pilares */}
       <div>
         <p className="text-[10px] font-mono text-muted-foreground tracking-widest mb-2 px-1">PILARES</p>
-        <div className="grid grid-cols-5 gap-1.5">
+        <div className="grid grid-cols-4 gap-2">
           {pillars.map((p, i) => {
             const Icon = p.icon;
             const pct = p.weight > 0 ? Math.round((p.score / p.weight) * 100) : 0;
