@@ -14,6 +14,7 @@ import {
   Focus,
   GlassWater,
   RefreshCw,
+  BarChart3,
 } from "lucide-react";
 import { rotinaSemanal } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
@@ -71,6 +72,48 @@ const getBibliaPct = (): number => {
     const done = plano.filter((l: any) => l.concluido).length;
     return Math.round((done / plano.length) * 100);
   } catch { return 0; }
+};
+
+interface ResumoOntem {
+  checklistPct: number;
+  treinoFeito: boolean;
+  sonoMin: number;
+  aguaMl: number;
+}
+
+const getResumoOntem = async (todayIdx: number): Promise<ResumoOntem | null> => {
+  try {
+    const ontem = new Date();
+    ontem.setDate(ontem.getDate() - 1);
+    const ontemStr = `${ontem.getFullYear()}-${String(ontem.getMonth() + 1).padStart(2, "0")}-${String(ontem.getDate()).padStart(2, "0")}`;
+    const ontemIdx = ontem.getDay() === 0 ? 6 : ontem.getDay() - 1;
+
+    const [checkRes, treinoRes, sonoRes, aguaRes] = await Promise.all([
+      supabase.from("checklist_items").select("item_id", { count: "exact" }).eq("data", ontemStr).eq("dia_semana", ontemIdx),
+      supabase.from("treino_sessoes").select("id").eq("data", ontemStr).limit(1),
+      supabase.from("sono_registros").select("duracao_minutos").eq("data", ontemStr).limit(1),
+      supabase.from("agua_registros").select("quantidade_ml").eq("data", ontemStr).limit(1),
+    ]);
+
+    const totalItems = rotinaSemanal[ontemIdx]?.items?.length || 1;
+    const checkedCount = checkRes.count || 0;
+    const checklistPct = Math.round((checkedCount / totalItems) * 100);
+    const treinoFeito = (treinoRes.data?.length || 0) > 0;
+    const sonoMin = sonoRes.data?.[0]?.duracao_minutos || 0;
+    const aguaMl = aguaRes.data?.[0]?.quantidade_ml || 0;
+
+    if (checkedCount === 0 && !treinoFeito && sonoMin === 0) return null;
+    return { checklistPct, treinoFeito, sonoMin, aguaMl };
+  } catch {
+    return null;
+  }
+};
+
+const formatSonoMin = (min: number) => {
+  if (min === 0) return "—";
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${h}h`;
 };
 
 const Dashboard = () => {
