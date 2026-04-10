@@ -13,15 +13,24 @@ interface HistoricoEntry {
   categoria: string;
 }
 
-const METRICAS_EVOLUCAO = [
-  { categoria: "biometrics", label: "Peso", unit: "kg", color: "hsl(152 60% 52%)" },
-  { categoria: "biometrics", label: "% Gordura", unit: "%", color: "hsl(38 92% 60%)" },
-  { categoria: "biometrics", label: "IMC", unit: "", color: "hsl(215 75% 60%)" },
-  { categoria: "biometrics", label: "Cintura", unit: "cm", color: "hsl(0 80% 65%)" },
-  { categoria: "hormones", label: "Testo Total", unit: "ng/dL", color: "hsl(270 55% 65%)" },
-  { categoria: "strength", label: "Supino Reto", unit: "kg", color: "hsl(152 60% 52%)" },
-  { categoria: "strength", label: "Agachamento", unit: "kg", color: "hsl(38 92% 60%)" },
-];
+const CORES_CATEGORIA: Record<string, string[]> = {
+  biometrics: ["hsl(152 60% 52%)", "hsl(38 92% 60%)", "hsl(215 75% 60%)", "hsl(0 80% 65%)", "hsl(270 55% 65%)"],
+  strength: ["hsl(38 92% 60%)", "hsl(152 60% 52%)", "hsl(0 80% 65%)", "hsl(215 75% 60%)", "hsl(270 55% 65%)", "hsl(180 60% 50%)", "hsl(330 60% 55%)"],
+  hormones: ["hsl(270 55% 65%)", "hsl(152 60% 52%)"],
+  goals: ["hsl(38 92% 60%)", "hsl(215 75% 60%)"],
+};
+
+const getColor = (categoria: string, index: number) => {
+  const cores = CORES_CATEGORIA[categoria] || CORES_CATEGORIA.biometrics;
+  return cores[index % cores.length];
+};
+
+interface MetricOption {
+  categoria: string;
+  label: string;
+  unit: string;
+  color: string;
+}
 
 const EvolucaoRelatorio = () => {
   const [historico, setHistorico] = useState<HistoricoEntry[]>([]);
