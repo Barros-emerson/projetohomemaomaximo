@@ -150,7 +150,7 @@ const EvolucaoRelatorio = () => {
             key={`${m.categoria}-${m.label}`}
             onClick={() => setSelectedMetric(m)}
             className={`shrink-0 px-3 py-1.5 rounded-lg font-mono text-[10px] font-bold tracking-wider transition-colors ${
-              selectedMetric.label === m.label && selectedMetric.categoria === m.categoria
+              selectedMetric?.label === m.label && selectedMetric?.categoria === m.categoria
                 ? "bg-primary text-primary-foreground"
                 : "bg-secondary text-muted-foreground"
             }`}
