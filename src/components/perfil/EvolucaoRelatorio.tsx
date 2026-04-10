@@ -96,7 +96,7 @@ const EvolucaoRelatorio = () => {
       valor: parseFloat(h.valor),
       label: format(parseISO(h.data), "dd/MM", { locale: ptBR }),
     }))
-    .filter((d) => !isNaN(d.valor));
+    .filter((d) => !isNaN(d.valor)) : [];
 
   const hasData = chartData.length >= 2;
   const lastTwo = chartData.slice(-2);
