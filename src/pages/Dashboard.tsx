@@ -234,12 +234,25 @@ const Dashboard = () => {
   const pillars = getPillarScores(checklistPct, treinoPct, aguaMl, META_AGUA, sonoPct);
   const totalScore = isDiaEspecial ? null : pillars.reduce((acc, p) => acc + p.score, 0);
 
+  const stagger = {
+    hidden: {},
+    show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+  };
+  const fadeUp = {
+    hidden: { opacity: 0, y: 14, filter: "blur(4px)" },
+    show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] } },
+  };
+
   return (
-    <div className="p-4 space-y-5 pb-24 max-w-lg mx-auto">
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      animate="show"
+      className="p-4 space-y-5 pb-24 max-w-lg mx-auto"
+    >
       {/* Greeting */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
+        variants={fadeUp}
         className="flex items-center gap-3"
       >
         {userPhoto ? (
