@@ -13,19 +13,34 @@ interface HistoricoEntry {
   categoria: string;
 }
 
-const METRICAS_EVOLUCAO = [
-  { categoria: "biometrics", label: "Peso", unit: "kg", color: "hsl(152 60% 52%)" },
-  { categoria: "biometrics", label: "% Gordura", unit: "%", color: "hsl(38 92% 60%)" },
-  { categoria: "biometrics", label: "IMC", unit: "", color: "hsl(215 75% 60%)" },
-  { categoria: "biometrics", label: "Cintura", unit: "cm", color: "hsl(0 80% 65%)" },
-  { categoria: "hormones", label: "Testo Total", unit: "ng/dL", color: "hsl(270 55% 65%)" },
-  { categoria: "strength", label: "Supino Reto", unit: "kg", color: "hsl(152 60% 52%)" },
-  { categoria: "strength", label: "Agachamento", unit: "kg", color: "hsl(38 92% 60%)" },
-];
+const CORES_CATEGORIA: Record<string, string[]> = {
+  biometrics: ["hsl(152 60% 52%)", "hsl(38 92% 60%)", "hsl(215 75% 60%)", "hsl(0 80% 65%)", "hsl(270 55% 65%)"],
+  strength: ["hsl(38 92% 60%)", "hsl(152 60% 52%)", "hsl(0 80% 65%)", "hsl(215 75% 60%)", "hsl(270 55% 65%)", "hsl(180 60% 50%)", "hsl(330 60% 55%)"],
+  hormones: ["hsl(270 55% 65%)", "hsl(152 60% 52%)"],
+  goals: ["hsl(38 92% 60%)", "hsl(215 75% 60%)"],
+};
+
+const getColor = (categoria: string, index: number) => {
+  const cores = CORES_CATEGORIA[categoria] || CORES_CATEGORIA.biometrics;
+  return cores[index % cores.length];
+};
+
+interface MetricOption {
+  categoria: string;
+  label: string;
+  unit: string;
+  color: string;
+}
+
+const UNIT_MAP: Record<string, string> = {
+  "Peso": "kg", "% Gordura": "%", "IMC": "", "Cintura": "cm", "Altura": "cm",
+  "Testo Total": "ng/dL", "Testo Livre": "pg/mL",
+  "Peso alvo": "kg", "% Gordura alvo": "%",
+};
 
 const EvolucaoRelatorio = () => {
   const [historico, setHistorico] = useState<HistoricoEntry[]>([]);
-  const [selectedMetric, setSelectedMetric] = useState(METRICAS_EVOLUCAO[0]);
+  const [selectedMetric, setSelectedMetric] = useState<MetricOption | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,16 +61,44 @@ const EvolucaoRelatorio = () => {
     }
   };
 
-  const chartData = historico
+  // Build dynamic metric list from actual DB data
+  const metricas: MetricOption[] = (() => {
+    const seen = new Set<string>();
+    const result: MetricOption[] = [];
+    const catCounters: Record<string, number> = {};
+    for (const h of historico) {
+      const key = `${h.categoria}::${h.label}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const idx = catCounters[h.categoria] || 0;
+      catCounters[h.categoria] = idx + 1;
+      result.push({
+        categoria: h.categoria,
+        label: h.label,
+        unit: UNIT_MAP[h.label] || (h.categoria === "strength" ? "kg" : ""),
+        color: getColor(h.categoria, idx),
+      });
+    }
+    return result;
+  })();
+
+  // Auto-select first metric
+  useEffect(() => {
+    if (metricas.length > 0 && !selectedMetric) {
+      setSelectedMetric(metricas[0]);
+    }
+  }, [metricas.length]);
+
+  const chartData = selectedMetric ? historico
     .filter((h) => h.label === selectedMetric.label && h.categoria === selectedMetric.categoria)
     .map((h) => ({
       data: h.data,
       valor: parseFloat(h.valor),
       label: format(parseISO(h.data), "dd/MM", { locale: ptBR }),
     }))
-    .filter((d) => !isNaN(d.valor));
+    .filter((d) => !isNaN(d.valor)) : [];
 
-  const hasData = chartData.length >= 2;
+  const hasData = chartData.length >= 1;
   const lastTwo = chartData.slice(-2);
   const variacao =
     lastTwo.length === 2 && lastTwo[0].valor > 0
@@ -69,6 +112,20 @@ const EvolucaoRelatorio = () => {
           <div className="h-4 bg-secondary rounded w-1/2 mx-auto" />
           <div className="h-32 bg-secondary rounded" />
         </div>
+      </div>
+    );
+  }
+
+  if (!selectedMetric) {
+    return (
+      <div className="surface-card p-6 text-center">
+        <BarChart3 size={24} className="text-muted-foreground mx-auto mb-2" />
+        <p className="text-sm text-muted-foreground font-mono">
+          Nenhuma métrica registrada ainda.
+        </p>
+        <p className="text-[10px] text-muted-foreground/60 font-mono mt-1">
+          Atualize suas métricas no Perfil para ver a evolução
+        </p>
       </div>
     );
   }
@@ -88,12 +145,12 @@ const EvolucaoRelatorio = () => {
 
       {/* Metric selector */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 px-1 scrollbar-hide">
-        {METRICAS_EVOLUCAO.map((m) => (
+        {metricas.map((m) => (
           <button
             key={`${m.categoria}-${m.label}`}
             onClick={() => setSelectedMetric(m)}
             className={`shrink-0 px-3 py-1.5 rounded-lg font-mono text-[10px] font-bold tracking-wider transition-colors ${
-              selectedMetric.label === m.label && selectedMetric.categoria === m.categoria
+              selectedMetric?.label === m.label && selectedMetric?.categoria === m.categoria
                 ? "bg-primary text-primary-foreground"
                 : "bg-secondary text-muted-foreground"
             }`}
