@@ -222,13 +222,26 @@ const Sono = () => {
             </div>
           </div>
 
-          {/* Mini bar chart */}
-          <div className="flex items-end gap-1 h-16 pt-2">
+          {/* Meta label */}
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-mono text-[9px] text-muted-foreground">Últimos 7 dias</span>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-0.5 bg-primary/50 border-t border-dashed border-primary/50" />
+              <span className="font-mono text-[9px] text-primary/70">meta 7h</span>
+            </div>
+          </div>
+          {/* Mini bar chart com linha de meta */}
+          <div className="relative flex items-end gap-1 h-20 pt-2">
+            {/* Linha de meta — 7h = 420min. Max escala = 540min (9h) = 100%. Meta = 420/540 = 77.7% */}
+            <div
+              className="absolute left-0 right-0 border-t border-dashed pointer-events-none"
+              style={{ bottom: `${(420 / 540) * 64}px`, borderColor: "hsl(var(--primary) / 0.4)" }}
+            />
             {Array.from({ length: 7 }).map((_, i) => {
               const dateStr = subDays(new Date(), 6 - i).toISOString().slice(0, 10);
               const reg = historico.find((r) => r.data === dateStr);
               const min = reg ? reg.duracao_minutos : 0;
-              const pct = Math.min((min / 540) * 100, 100); // 9h = 100%
+              const pct = Math.min((min / 540) * 100, 100);
               const q = getQualidade(min);
               const dayLabel = format(subDays(new Date(), 6 - i), "EEE", { locale: ptBR }).slice(0, 3).toUpperCase();
               return (
@@ -236,7 +249,7 @@ const Sono = () => {
                   <div
                     className="w-full rounded-t-md transition-all"
                     style={{
-                      height: `${Math.max(pct * 0.5, 2)}px`,
+                      height: `${Math.max(pct * 0.64, 2)}px`,
                       backgroundColor: min > 0 ? q.color : "hsl(var(--secondary))",
                     }}
                   />
