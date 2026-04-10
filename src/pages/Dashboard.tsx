@@ -458,7 +458,8 @@ const Dashboard = () => {
           {/* Long press details popup */}
           {aguaDetails && (
             <motion.div
-              variants={fadeUp}
+              initial={{ opacity: 0, scale: 0.9, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               className="absolute top-16 left-1/2 -translate-x-1/2 z-50 surface-card p-3 rounded-xl min-w-[160px] shadow-lg border border-border"
               onClick={(e) => e.stopPropagation()}
             >
