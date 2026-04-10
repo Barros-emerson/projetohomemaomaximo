@@ -32,9 +32,15 @@ interface MetricOption {
   color: string;
 }
 
+const UNIT_MAP: Record<string, string> = {
+  "Peso": "kg", "% Gordura": "%", "IMC": "", "Cintura": "cm", "Altura": "cm",
+  "Testo Total": "ng/dL", "Testo Livre": "pg/mL",
+  "Peso alvo": "kg", "% Gordura alvo": "%",
+};
+
 const EvolucaoRelatorio = () => {
   const [historico, setHistorico] = useState<HistoricoEntry[]>([]);
-  const [selectedMetric, setSelectedMetric] = useState(METRICAS_EVOLUCAO[0]);
+  const [selectedMetric, setSelectedMetric] = useState<MetricOption | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -54,6 +60,34 @@ const EvolucaoRelatorio = () => {
       setLoading(false);
     }
   };
+
+  // Build dynamic metric list from actual DB data
+  const metricas: MetricOption[] = (() => {
+    const seen = new Set<string>();
+    const result: MetricOption[] = [];
+    const catCounters: Record<string, number> = {};
+    for (const h of historico) {
+      const key = `${h.categoria}::${h.label}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const idx = catCounters[h.categoria] || 0;
+      catCounters[h.categoria] = idx + 1;
+      result.push({
+        categoria: h.categoria,
+        label: h.label,
+        unit: UNIT_MAP[h.label] || (h.categoria === "strength" ? "kg" : ""),
+        color: getColor(h.categoria, idx),
+      });
+    }
+    return result;
+  })();
+
+  // Auto-select first metric
+  useEffect(() => {
+    if (metricas.length > 0 && !selectedMetric) {
+      setSelectedMetric(metricas[0]);
+    }
+  }, [metricas.length]);
 
   const chartData = historico
     .filter((h) => h.label === selectedMetric.label && h.categoria === selectedMetric.categoria)
