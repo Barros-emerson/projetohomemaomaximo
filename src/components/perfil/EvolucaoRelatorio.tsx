@@ -89,7 +89,7 @@ const EvolucaoRelatorio = () => {
     }
   }, [metricas.length]);
 
-  const chartData = historico
+  const chartData = selectedMetric ? historico
     .filter((h) => h.label === selectedMetric.label && h.categoria === selectedMetric.categoria)
     .map((h) => ({
       data: h.data,
