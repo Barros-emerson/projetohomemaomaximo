@@ -131,7 +131,7 @@ const EvolucaoRelatorio = () => {
 
       {/* Metric selector */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 px-1 scrollbar-hide">
-        {METRICAS_EVOLUCAO.map((m) => (
+        {metricas.map((m) => (
           <button
             key={`${m.categoria}-${m.label}`}
             onClick={() => setSelectedMetric(m)}
