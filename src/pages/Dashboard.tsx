@@ -641,7 +641,7 @@ const Dashboard = () => {
           })}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
