@@ -136,6 +136,7 @@ const Dashboard = () => {
   const [aguaAnim, setAguaAnim] = useState(false);
   const [aguaDetails, setAguaDetails] = useState(false);
   const [tipoDia, setTipoDia] = useState<TipoDia>("normal");
+  const [resumoOntem, setResumoOntem] = useState<ResumoOntem | null>(null);
   const tipoConfig = TIPOS_DIA.find(t => t.id === tipoDia)!;
   const isDiaEspecial = tipoDia !== "normal";
   const [fraseAtual, setFraseAtual] = useState(() => getFraseHoje());
@@ -206,6 +207,11 @@ const Dashboard = () => {
     fetchSono();
   }, []);
 
+  useEffect(() => {
+    const todayI = getTodayI();
+    getResumoOntem(todayI).then(setResumoOntem);
+  }, []);
+
   const todayIdx = (() => { const d = now.getDay(); return d === 0 ? 6 : d - 1; })();
   const todayRoutine = rotinaSemanal[todayIdx];
   const todayTraining = weekPlan[todayIdx];
@@ -273,6 +279,41 @@ const Dashboard = () => {
           <div>
             <p className="font-mono text-sm font-bold" style={{ color: tipoConfig.color }}>{tipoConfig.label}</p>
             <p className="font-mono text-[10px] text-muted-foreground">{tipoConfig.mensagem}</p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Card Ontem */}
+      {resumoOntem && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.04 }}
+          className="surface-card px-4 py-3 flex items-center gap-3"
+        >
+          <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+            <span className="text-sm">📅</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-mono text-[9px] text-muted-foreground tracking-widest mb-1">ONTEM</p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="font-mono text-[11px]" style={{ color: resumoOntem.checklistPct >= 80 ? "#4ADE80" : resumoOntem.checklistPct >= 50 ? "#FBBF24" : "#F87171" }}>
+                📋 {resumoOntem.checklistPct}%
+              </span>
+              <span className="font-mono text-[11px]" style={{ color: resumoOntem.treinoFeito ? "#4ADE80" : "#6B7280" }}>
+                {resumoOntem.treinoFeito ? "💪 Treino ✓" : "💪 Sem treino"}
+              </span>
+              {resumoOntem.sonoMin > 0 && (
+                <span className="font-mono text-[11px]" style={{ color: resumoOntem.sonoMin >= 420 ? "#4ADE80" : resumoOntem.sonoMin >= 390 ? "#FBBF24" : "#F87171" }}>
+                  🌙 {formatSonoMin(resumoOntem.sonoMin)}
+                </span>
+              )}
+              {resumoOntem.aguaMl > 0 && (
+                <span className="font-mono text-[11px] text-blue-400">
+                  💧 {(resumoOntem.aguaMl / 1000).toFixed(1)}L
+                </span>
+              )}
+            </div>
           </div>
         </motion.div>
       )}
@@ -503,6 +544,29 @@ const Dashboard = () => {
                   : todayTraining.jiuType || "Descanso"
                 }
               </p>
+            </div>
+          </div>
+          <ChevronRight size={16} className="text-muted-foreground" />
+        </div>
+      </motion.button>
+
+      {/* Performance card */}
+      <motion.button
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18 }}
+        onClick={() => navigate("/performance")}
+        className="w-full surface-card p-4 text-left active:scale-[0.98] transition-transform"
+        style={{ borderColor: "hsl(187 80% 55% / 0.2)" }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-cyan-400/10 flex items-center justify-center">
+              <BarChart3 size={18} className="text-cyan-400" />
+            </div>
+            <div>
+              <p className="font-mono text-sm font-bold text-cyan-400">PERFORMANCE</p>
+              <p className="text-[11px] text-muted-foreground">Evolução corporal, treino e espiritual</p>
             </div>
           </div>
           <ChevronRight size={16} className="text-muted-foreground" />
