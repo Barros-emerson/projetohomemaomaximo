@@ -283,8 +283,7 @@ const Dashboard = () => {
       {/* Tipo do dia — badge quando especial */}
       {isDiaEspecial && (
         <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
+          variants={fadeUp}
           className="flex items-center gap-3 px-4 py-3 rounded-xl border"
           style={{ borderColor: tipoConfig.border, background: tipoConfig.bg }}
         >
@@ -299,9 +298,7 @@ const Dashboard = () => {
       {/* Card Ontem */}
       {resumoOntem && (
         <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.04 }}
+          variants={fadeUp}
           className="surface-card px-4 py-3 flex items-center gap-3"
         >
           <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shrink-0">
@@ -333,9 +330,7 @@ const Dashboard = () => {
 
       {/* Frase do dia */}
       <motion.div
-        initial={{ scale: 0.96, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.05 }}
+        variants={fadeUp}
         className="surface-card p-4"
       >
         <div className="flex items-center justify-between mb-2">
@@ -354,8 +349,7 @@ const Dashboard = () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={fraseKey}
-            initial={{ opacity: 0, y: 6, filter: "blur(4px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            variants={fadeUp}
             exit={{ opacity: 0, y: -6, filter: "blur(4px)" }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
@@ -371,9 +365,7 @@ const Dashboard = () => {
 
       {/* Modo Foco — quick access */}
       <motion.button
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.08 }}
+        variants={fadeUp}
         onClick={() => navigate("/foco")}
         className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5 active:scale-[0.98] transition-transform"
       >
@@ -399,9 +391,7 @@ const Dashboard = () => {
         ].map((s, i) => (
           <motion.button
             key={s.label}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + i * 0.04 }}
+            variants={fadeUp}
             onClick={() => navigate(s.path)}
             className="flex flex-col items-center gap-1.5 shrink-0 active:scale-95 transition-transform"
           >
@@ -425,9 +415,7 @@ const Dashboard = () => {
 
         {/* Água - circle button */}
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 + 4 * 0.04 }}
+          variants={fadeUp}
           className="flex flex-col items-center gap-1.5 shrink-0 relative"
         >
           <motion.button
@@ -469,8 +457,7 @@ const Dashboard = () => {
           {/* Long press details popup */}
           {aguaDetails && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: -4 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
+              variants={fadeUp}
               className="absolute top-16 left-1/2 -translate-x-1/2 z-50 surface-card p-3 rounded-xl min-w-[160px] shadow-lg border border-border"
               onClick={(e) => e.stopPropagation()}
             >
@@ -507,9 +494,7 @@ const Dashboard = () => {
       )}
 
       <motion.button
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.12 }}
+        variants={fadeUp}
         onClick={() => navigate("/biblia")}
         className="w-full surface-card p-4 text-left active:scale-[0.98] transition-transform border-violet-500/15"
       >
@@ -538,9 +523,7 @@ const Dashboard = () => {
 
       {/* Training card */}
       <motion.button
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
+        variants={fadeUp}
         onClick={() => navigate("/treino")}
         className="w-full surface-card p-4 text-left active:scale-[0.98] transition-transform"
       >
@@ -565,9 +548,7 @@ const Dashboard = () => {
 
       {/* Performance card */}
       <motion.button
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.18 }}
+        variants={fadeUp}
         onClick={() => navigate("/performance")}
         className="w-full surface-card p-4 text-left active:scale-[0.98] transition-transform"
         style={{ borderColor: "hsl(187 80% 55% / 0.2)" }}
@@ -588,9 +569,7 @@ const Dashboard = () => {
 
       {/* Routine preview */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        variants={fadeUp}
         className="surface-card p-4"
       >
         <div className="flex items-center justify-between mb-3">
@@ -625,9 +604,7 @@ const Dashboard = () => {
             return (
               <motion.div
                 key={p.name}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 + i * 0.03 }}
+                variants={fadeUp}
                 className="surface-card p-2.5 flex flex-col items-center gap-1.5"
               >
                 <Icon size={16} style={{ color: p.color }} />
