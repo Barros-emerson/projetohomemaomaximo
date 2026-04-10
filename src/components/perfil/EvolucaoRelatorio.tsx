@@ -98,7 +98,7 @@ const EvolucaoRelatorio = () => {
     }))
     .filter((d) => !isNaN(d.valor)) : [];
 
-  const hasData = chartData.length >= 2;
+  const hasData = chartData.length >= 1;
   const lastTwo = chartData.slice(-2);
   const variacao =
     lastTwo.length === 2 && lastTwo[0].valor > 0
@@ -112,6 +112,20 @@ const EvolucaoRelatorio = () => {
           <div className="h-4 bg-secondary rounded w-1/2 mx-auto" />
           <div className="h-32 bg-secondary rounded" />
         </div>
+      </div>
+    );
+  }
+
+  if (!selectedMetric) {
+    return (
+      <div className="surface-card p-6 text-center">
+        <BarChart3 size={24} className="text-muted-foreground mx-auto mb-2" />
+        <p className="text-sm text-muted-foreground font-mono">
+          Nenhuma métrica registrada ainda.
+        </p>
+        <p className="text-[10px] text-muted-foreground/60 font-mono mt-1">
+          Atualize suas métricas no Perfil para ver a evolução
+        </p>
       </div>
     );
   }
