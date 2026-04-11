@@ -388,7 +388,10 @@ const Checklist = () => {
               )}
             </div>
           </div>
-          <span className="font-mono text-xs text-primary font-bold">{doneItems}/{totalItems}</span>
+          <span className="font-mono text-xs text-primary font-bold">
+            {doneItems}/{totalItems}
+            {skippedCount > 0 && <span className="text-muted-foreground font-normal ml-1">({skippedCount} pulado{skippedCount > 1 ? "s" : ""})</span>}
+          </span>
         </div>
         <div className="w-full bg-secondary rounded-full h-2 mt-3">
           <motion.div className="h-2 rounded-full"
@@ -422,23 +425,39 @@ const Checklist = () => {
           <AnimatePresence initial={false}>
             {adjustedItems.map((item, i) => {
               const isDone = checked.has(item.id);
+              const isItemSkipped = skipped.has(item.id);
               const hasRealTime = !!realTimes[item.id];
               const isAdjusted = item.adjustedTime !== null && item.deltaMinutes > 0;
               const canEditTime = !item.immutable && parseTime(item.time) !== null;
-              const isVisible = i === 0 || checked.has(adjustedItems[i - 1].id);
+              const isVisible = i === 0 || checked.has(adjustedItems[i - 1].id) || skipped.has(adjustedItems[i - 1].id);
               if (!isVisible) return null;
               return (
                 <motion.div key={item.id} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
-                  <SwipeableItem index={i} isDone={isDone} disabled={isDiaEspecial && isToday && !isDone}
-                    onSwipeRight={() => { if (!isDone) toggle(item.id); }}
-                    onSwipeLeft={() => { if (!isDone && canEditTime && isToday) openEdit(item); }}>
-                    <button onClick={() => toggle(item.id)}
-                      className="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all active:scale-90"
-                      style={isDone ? { background: "hsl(var(--primary))", borderColor: "hsl(var(--primary))" } : { borderColor: isDiaEspecial && isToday ? tipoConfig.color + "60" : "hsl(var(--muted-foreground) / 0.3)" }}>
-                      {isDone && <Check size={14} className="text-primary-foreground" />}
-                    </button>
+                  <SwipeableItem index={i} isDone={isDone || isItemSkipped} disabled={(isDiaEspecial && isToday && !isDone) || isItemSkipped}
+                    onSwipeRight={() => { if (!isDone && !isItemSkipped) toggle(item.id); }}
+                    onSwipeLeft={() => { if (!isDone && !isItemSkipped && canEditTime && isToday) openEdit(item); }}>
+                    
+                    {/* Checkbox / Skip indicator */}
+                    {isItemSkipped ? (
+                      <button onClick={() => handleSkip(item.id)}
+                        className="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all active:scale-90"
+                        style={{ background: "hsl(var(--muted))", borderColor: "hsl(var(--muted-foreground) / 0.2)" }}>
+                        <Ban size={12} className="text-muted-foreground" />
+                      </button>
+                    ) : (
+                      <button onClick={() => toggle(item.id)}
+                        className="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all active:scale-90"
+                        style={isDone ? { background: "hsl(var(--primary))", borderColor: "hsl(var(--primary))" } : { borderColor: isDiaEspecial && isToday ? tipoConfig.color + "60" : "hsl(var(--muted-foreground) / 0.3)" }}>
+                        {isDone && <Check size={14} className="text-primary-foreground" />}
+                      </button>
+                    )}
 
-                    {isDone ? (
+                    {isItemSkipped ? (
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className="font-mono text-xs text-muted-foreground/40 line-through truncate">{item.label}</span>
+                        <span className="text-[8px] font-mono font-bold text-muted-foreground bg-secondary px-1.5 py-0.5 rounded shrink-0">NÃO FIZ</span>
+                      </div>
+                    ) : isDone ? (
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="font-mono text-xs text-muted-foreground line-through truncate">{item.label}</span>
                         {hasRealTime && <span className="font-mono text-[10px] text-primary shrink-0">{realTimes[item.id]}</span>}
@@ -457,6 +476,13 @@ const Checklist = () => {
                             {isAdjusted && <span className="text-[9px] font-mono font-bold" style={{ color: "#FB923C" }}>+{item.deltaMinutes}min</span>}
                             {item.immutable && <span className="text-[8px] font-mono font-bold text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">IMÓVEL</span>}
                             {isDiaEspecial && isToday && <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded" style={{ color: tipoConfig.color, background: tipoConfig.bg }}>OPCIONAL</span>}
+                            {/* Skip button */}
+                            {isToday && !isDiaEspecial && (
+                              <button onClick={(e) => { e.stopPropagation(); setShowSkipConfirm(item.id); }}
+                                className="text-[8px] font-mono font-bold text-muted-foreground/50 hover:text-muted-foreground bg-secondary/50 hover:bg-secondary px-1.5 py-0.5 rounded transition-colors active:scale-90">
+                                NÃO FIZ
+                              </button>
+                            )}
                           </div>
                           <p className="font-mono text-[10px] text-muted-foreground leading-relaxed mt-0.5">{item.detail}</p>
                           {item.tags && item.tags.length > 0 && !isDiaEspecial && (
