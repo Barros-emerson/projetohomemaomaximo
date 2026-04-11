@@ -1,16 +1,18 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { Check, Clock, X, ChevronLeft, ChevronRight, Utensils, Droplets, AlertTriangle, Calendar } from "lucide-react";
+import { Check, Clock, X, ChevronLeft, ChevronRight, Utensils, Droplets, AlertTriangle, Calendar, Ban } from "lucide-react";
 import { rotinaSemanal, type RotinaItem } from "@/data/rotina-diaria";
 import { dietaSemanal } from "@/data/dieta-semanal";
 import { getLocalDateStr } from "@/lib/dateUtils";
 import {
   loadCheckedFromDB,
   toggleChecklistItem,
+  skipChecklistItem,
   updateChecklistTime,
   loadTipoDiaFromDB,
   saveTipoDia as saveTipoDiaDB,
+  type CheckedItemInfo,
 } from "@/hooks/useChecklistDB";
 
 const getTodayIndex = () => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; };
@@ -112,11 +114,13 @@ const Checklist = () => {
   const dateStr = getLocalDateStr();
   const [selectedDay, setSelectedDay] = useState(todayIdx);
   const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [realTimes, setRealTimes] = useState<Record<string, string>>({});
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editTimeValue, setEditTimeValue] = useState("");
   const [tipoDia, setTipoDia] = useState<TipoDia>("normal");
   const [showTipoModal, setShowTipoModal] = useState(false);
+  const [showSkipConfirm, setShowSkipConfirm] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const isToday = selectedDay === todayIdx;
   const tipoConfig = TIPOS_DIA.find((t) => t.id === tipoDia)!;
@@ -127,12 +131,18 @@ const Checklist = () => {
     setLoading(true);
     const map = await loadCheckedFromDB(dayIdx);
     const newChecked = new Set<string>();
+    const newSkipped = new Set<string>();
     const newTimes: Record<string, string> = {};
-    map.forEach((time, id) => {
-      newChecked.add(id);
-      if (time) newTimes[id] = time;
+    map.forEach((info, id) => {
+      if (info.status === "skipped") {
+        newSkipped.add(id);
+      } else {
+        newChecked.add(id);
+        if (info.horario_real) newTimes[id] = info.horario_real;
+      }
     });
     setChecked(newChecked);
+    setSkipped(newSkipped);
     setRealTimes(newTimes);
     setLoading(false);
   }, []);
