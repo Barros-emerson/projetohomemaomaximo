@@ -25,7 +25,11 @@ export default function ModoFoco() {
   // Load checked items from DB on mount
   useEffect(() => {
     loadCheckedFromDB(todayIdx).then((map) => {
-      setChecked(new Set(map.keys()));
+      const c = new Set<string>();
+      map.forEach((info, id) => {
+        c.add(id); // Both done and skipped count as "handled"
+      });
+      setChecked(c);
       setLoading(false);
     });
   }, [todayIdx]);

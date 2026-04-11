@@ -24,17 +24,26 @@ export default function Index() {
   const day = rotinaSemanal[todayIdx];
 
   const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadCheckedFromDB(todayIdx).then((map) => {
-      setChecked(new Set(map.keys()));
+      const c = new Set<string>();
+      const s = new Set<string>();
+      map.forEach((info, id) => {
+        if (info.status === "skipped") s.add(id);
+        else c.add(id);
+      });
+      setChecked(c);
+      setSkipped(s);
       setLoading(false);
     });
   }, [todayIdx]);
 
-  const totalItems = day.items.length;
-  const doneCount = day.items.filter((i) => checked.has(i.id)).length;
+  const applicableItems = day.items.filter((i) => !skipped.has(i.id));
+  const totalItems = applicableItems.length;
+  const doneCount = applicableItems.filter((i) => checked.has(i.id)).length;
   const pct = totalItems > 0 ? Math.round((doneCount / totalItems) * 100) : 0;
 
   const stagger = {
@@ -119,44 +128,38 @@ export default function Index() {
       >
         {day.items.map((item) => {
           const isDone = checked.has(item.id);
+          const isItemSkipped = skipped.has(item.id);
           return (
             <motion.div
               key={item.id}
               variants={fadeUp}
-              className="flex items-center gap-3 py-3 border-b border-secondary/60 last:border-b-0"
+              className={`flex items-center gap-3 py-3 border-b border-secondary/60 last:border-b-0 ${isItemSkipped ? "opacity-30" : ""}`}
             >
-              {/* Status dot */}
               <div
                 className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
-                  isDone ? "bg-primary" : "bg-secondary"
+                  isItemSkipped ? "bg-muted-foreground/30" : isDone ? "bg-primary" : "bg-secondary"
                 }`}
               />
-
-              {/* Time */}
               <span
                 className={`font-mono text-xs w-11 shrink-0 ${
-                  isDone
+                  isDone || isItemSkipped
                     ? "text-muted-foreground/40 line-through"
                     : "text-muted-foreground"
                 }`}
               >
                 {item.time}
               </span>
-
-              {/* Label */}
               <span
                 className={`text-sm font-medium flex-1 ${
-                  isDone
+                  isDone || isItemSkipped
                     ? "text-muted-foreground/40 line-through"
                     : "text-foreground"
                 }`}
               >
                 {item.label}
               </span>
-
-              {isDone && (
-                <span className="font-mono text-[10px] text-primary/60">✓</span>
-              )}
+              {isDone && <span className="font-mono text-[10px] text-primary/60">✓</span>}
+              {isItemSkipped && <span className="font-mono text-[10px] text-muted-foreground/40">—</span>}
             </motion.div>
           );
         })}
