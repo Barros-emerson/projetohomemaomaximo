@@ -82,6 +82,23 @@ interface ResumoOntem {
   devocionalFeito: boolean;
 }
 
+const getDevocionalOntem = (): boolean => {
+  try {
+    const saved = localStorage.getItem("ham-biblia-leituras");
+    if (!saved) return false;
+    const leituras = JSON.parse(saved);
+    const planoId = localStorage.getItem("ham-biblia-plano-ativo") || "salmos-proverbios";
+    const plano = leituras[planoId];
+    if (!plano || !Array.isArray(plano)) return false;
+    // Check if any reading was marked as done (we consider devocional done if at least one reading is completed)
+    const ontem = new Date();
+    ontem.setDate(ontem.getDate() - 1);
+    const ontemDay = ontem.getDate();
+    const leitura = plano.find((l: any) => l.dia === ontemDay);
+    return leitura?.concluido === true;
+  } catch { return false; }
+};
+
 const getResumoOntem = async (todayIdx: number): Promise<ResumoOntem | null> => {
   try {
     const ontem = new Date();
@@ -102,9 +119,10 @@ const getResumoOntem = async (todayIdx: number): Promise<ResumoOntem | null> => 
     const treinoFeito = (treinoRes.data?.length || 0) > 0;
     const sonoMin = sonoRes.data?.[0]?.duracao_minutos || 0;
     const aguaMl = aguaRes.data?.[0]?.quantidade_ml || 0;
+    const devocionalFeito = getDevocionalOntem();
 
-    if (checkedCount === 0 && !treinoFeito && sonoMin === 0) return null;
-    return { checklistPct, treinoFeito, sonoMin, aguaMl };
+    if (checkedCount === 0 && !treinoFeito && sonoMin === 0 && !devocionalFeito) return null;
+    return { checklistPct, treinoFeito, sonoMin, aguaMl, devocionalFeito };
   } catch {
     return null;
   }
