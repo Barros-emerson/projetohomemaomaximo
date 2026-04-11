@@ -568,6 +568,31 @@ const Checklist = () => {
         )}
       </AnimatePresence>
 
+      {/* Modal Skip Confirm */}
+      <AnimatePresence>
+        {showSkipConfirm && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-6" onClick={() => setShowSkipConfirm(null)}>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="surface-card p-5 border-glow w-full max-w-sm space-y-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-2">
+                <Ban size={18} className="text-muted-foreground" />
+                <p className="font-mono text-xs font-bold tracking-widest text-foreground">NÃO FIZ</p>
+              </div>
+              <p className="font-mono text-[11px] text-muted-foreground leading-relaxed">
+                Marcar "<span className="text-foreground font-bold">{day.items.find((i) => i.id === showSkipConfirm)?.label}</span>" como não realizado hoje? O item será removido do cálculo de progresso.
+              </p>
+              <div className="flex gap-2">
+                <button onClick={() => setShowSkipConfirm(null)}
+                  className="flex-1 py-2.5 rounded-lg border border-border font-mono text-xs text-muted-foreground active:scale-95">CANCELAR</button>
+                <button onClick={() => handleSkip(showSkipConfirm)}
+                  className="flex-1 py-2.5 rounded-lg bg-secondary text-foreground font-mono text-xs font-bold active:scale-95">CONFIRMAR</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Modal Tipo de Dia */}
       <AnimatePresence>
         {showTipoModal && <TipoDiaModal current={tipoDia} onSelect={handleSetTipo} onClose={() => setShowTipoModal(false)} />}
