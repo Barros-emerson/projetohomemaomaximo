@@ -342,6 +342,9 @@ const Dashboard = () => {
                   💧 {(resumoOntem.aguaMl / 1000).toFixed(1)}L
                 </span>
               )}
+              <span className="font-mono text-[11px]" style={{ color: resumoOntem.devocionalFeito ? "#4ADE80" : "#6B7280" }}>
+                {resumoOntem.devocionalFeito ? "📖 Devocional ✓" : "📖 Sem devocional"}
+              </span>
             </div>
           </div>
         </motion.div>
