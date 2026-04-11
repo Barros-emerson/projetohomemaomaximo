@@ -189,9 +189,29 @@ const Checklist = () => {
     });
   }, [day.items, realTimes, checked]);
 
-  const totalItems = day.items.length;
-  const doneItems = day.items.filter((i) => checked.has(i.id)).length;
+  const applicableItems = day.items.filter((i) => !skipped.has(i.id));
+  const totalItems = applicableItems.length;
+  const doneItems = applicableItems.filter((i) => checked.has(i.id)).length;
+  const skippedCount = day.items.filter((i) => skipped.has(i.id)).length;
   const pct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+
+  const handleSkip = async (id: string) => {
+    const wasSkipped = skipped.has(id);
+    // Optimistic
+    setSkipped((prev) => {
+      const next = new Set(prev);
+      if (wasSkipped) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    if (!wasSkipped) {
+      // If was checked, remove from checked
+      setChecked((prev) => { const n = new Set(prev); n.delete(id); return n; });
+      setRealTimes((rt) => { const c = { ...rt }; delete c[id]; return c; });
+    }
+    await skipChecklistItem(selectedDay, id, wasSkipped);
+    setShowSkipConfirm(null);
+  };
 
   const toggle = async (id: string) => {
     const wasChecked = checked.has(id);
