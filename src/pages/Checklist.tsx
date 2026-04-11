@@ -1,16 +1,18 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { Check, Clock, X, ChevronLeft, ChevronRight, Utensils, Droplets, AlertTriangle, Calendar } from "lucide-react";
+import { Check, Clock, X, ChevronLeft, ChevronRight, Utensils, Droplets, AlertTriangle, Calendar, Ban } from "lucide-react";
 import { rotinaSemanal, type RotinaItem } from "@/data/rotina-diaria";
 import { dietaSemanal } from "@/data/dieta-semanal";
 import { getLocalDateStr } from "@/lib/dateUtils";
 import {
   loadCheckedFromDB,
   toggleChecklistItem,
+  skipChecklistItem,
   updateChecklistTime,
   loadTipoDiaFromDB,
   saveTipoDia as saveTipoDiaDB,
+  type CheckedItemInfo,
 } from "@/hooks/useChecklistDB";
 
 const getTodayIndex = () => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; };
@@ -112,11 +114,13 @@ const Checklist = () => {
   const dateStr = getLocalDateStr();
   const [selectedDay, setSelectedDay] = useState(todayIdx);
   const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [realTimes, setRealTimes] = useState<Record<string, string>>({});
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editTimeValue, setEditTimeValue] = useState("");
   const [tipoDia, setTipoDia] = useState<TipoDia>("normal");
   const [showTipoModal, setShowTipoModal] = useState(false);
+  const [showSkipConfirm, setShowSkipConfirm] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const isToday = selectedDay === todayIdx;
   const tipoConfig = TIPOS_DIA.find((t) => t.id === tipoDia)!;
@@ -127,12 +131,18 @@ const Checklist = () => {
     setLoading(true);
     const map = await loadCheckedFromDB(dayIdx);
     const newChecked = new Set<string>();
+    const newSkipped = new Set<string>();
     const newTimes: Record<string, string> = {};
-    map.forEach((time, id) => {
-      newChecked.add(id);
-      if (time) newTimes[id] = time;
+    map.forEach((info, id) => {
+      if (info.status === "skipped") {
+        newSkipped.add(id);
+      } else {
+        newChecked.add(id);
+        if (info.horario_real) newTimes[id] = info.horario_real;
+      }
     });
     setChecked(newChecked);
+    setSkipped(newSkipped);
     setRealTimes(newTimes);
     setLoading(false);
   }, []);
@@ -179,9 +189,29 @@ const Checklist = () => {
     });
   }, [day.items, realTimes, checked]);
 
-  const totalItems = day.items.length;
-  const doneItems = day.items.filter((i) => checked.has(i.id)).length;
+  const applicableItems = day.items.filter((i) => !skipped.has(i.id));
+  const totalItems = applicableItems.length;
+  const doneItems = applicableItems.filter((i) => checked.has(i.id)).length;
+  const skippedCount = day.items.filter((i) => skipped.has(i.id)).length;
   const pct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+
+  const handleSkip = async (id: string) => {
+    const wasSkipped = skipped.has(id);
+    // Optimistic
+    setSkipped((prev) => {
+      const next = new Set(prev);
+      if (wasSkipped) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    if (!wasSkipped) {
+      // If was checked, remove from checked
+      setChecked((prev) => { const n = new Set(prev); n.delete(id); return n; });
+      setRealTimes((rt) => { const c = { ...rt }; delete c[id]; return c; });
+    }
+    await skipChecklistItem(selectedDay, id, wasSkipped);
+    setShowSkipConfirm(null);
+  };
 
   const toggle = async (id: string) => {
     const wasChecked = checked.has(id);
@@ -358,7 +388,10 @@ const Checklist = () => {
               )}
             </div>
           </div>
-          <span className="font-mono text-xs text-primary font-bold">{doneItems}/{totalItems}</span>
+          <span className="font-mono text-xs text-primary font-bold">
+            {doneItems}/{totalItems}
+            {skippedCount > 0 && <span className="text-muted-foreground font-normal ml-1">({skippedCount} pulado{skippedCount > 1 ? "s" : ""})</span>}
+          </span>
         </div>
         <div className="w-full bg-secondary rounded-full h-2 mt-3">
           <motion.div className="h-2 rounded-full"
@@ -392,23 +425,39 @@ const Checklist = () => {
           <AnimatePresence initial={false}>
             {adjustedItems.map((item, i) => {
               const isDone = checked.has(item.id);
+              const isItemSkipped = skipped.has(item.id);
               const hasRealTime = !!realTimes[item.id];
               const isAdjusted = item.adjustedTime !== null && item.deltaMinutes > 0;
               const canEditTime = !item.immutable && parseTime(item.time) !== null;
-              const isVisible = i === 0 || checked.has(adjustedItems[i - 1].id);
+              const isVisible = i === 0 || checked.has(adjustedItems[i - 1].id) || skipped.has(adjustedItems[i - 1].id);
               if (!isVisible) return null;
               return (
                 <motion.div key={item.id} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
-                  <SwipeableItem index={i} isDone={isDone} disabled={isDiaEspecial && isToday && !isDone}
-                    onSwipeRight={() => { if (!isDone) toggle(item.id); }}
-                    onSwipeLeft={() => { if (!isDone && canEditTime && isToday) openEdit(item); }}>
-                    <button onClick={() => toggle(item.id)}
-                      className="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all active:scale-90"
-                      style={isDone ? { background: "hsl(var(--primary))", borderColor: "hsl(var(--primary))" } : { borderColor: isDiaEspecial && isToday ? tipoConfig.color + "60" : "hsl(var(--muted-foreground) / 0.3)" }}>
-                      {isDone && <Check size={14} className="text-primary-foreground" />}
-                    </button>
+                  <SwipeableItem index={i} isDone={isDone || isItemSkipped} disabled={(isDiaEspecial && isToday && !isDone) || isItemSkipped}
+                    onSwipeRight={() => { if (!isDone && !isItemSkipped) toggle(item.id); }}
+                    onSwipeLeft={() => { if (!isDone && !isItemSkipped && canEditTime && isToday) openEdit(item); }}>
+                    
+                    {/* Checkbox / Skip indicator */}
+                    {isItemSkipped ? (
+                      <button onClick={() => handleSkip(item.id)}
+                        className="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all active:scale-90"
+                        style={{ background: "hsl(var(--muted))", borderColor: "hsl(var(--muted-foreground) / 0.2)" }}>
+                        <Ban size={12} className="text-muted-foreground" />
+                      </button>
+                    ) : (
+                      <button onClick={() => toggle(item.id)}
+                        className="w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all active:scale-90"
+                        style={isDone ? { background: "hsl(var(--primary))", borderColor: "hsl(var(--primary))" } : { borderColor: isDiaEspecial && isToday ? tipoConfig.color + "60" : "hsl(var(--muted-foreground) / 0.3)" }}>
+                        {isDone && <Check size={14} className="text-primary-foreground" />}
+                      </button>
+                    )}
 
-                    {isDone ? (
+                    {isItemSkipped ? (
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className="font-mono text-xs text-muted-foreground/40 line-through truncate">{item.label}</span>
+                        <span className="text-[8px] font-mono font-bold text-muted-foreground bg-secondary px-1.5 py-0.5 rounded shrink-0">NÃO FIZ</span>
+                      </div>
+                    ) : isDone ? (
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="font-mono text-xs text-muted-foreground line-through truncate">{item.label}</span>
                         {hasRealTime && <span className="font-mono text-[10px] text-primary shrink-0">{realTimes[item.id]}</span>}
@@ -427,6 +476,13 @@ const Checklist = () => {
                             {isAdjusted && <span className="text-[9px] font-mono font-bold" style={{ color: "#FB923C" }}>+{item.deltaMinutes}min</span>}
                             {item.immutable && <span className="text-[8px] font-mono font-bold text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">IMÓVEL</span>}
                             {isDiaEspecial && isToday && <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded" style={{ color: tipoConfig.color, background: tipoConfig.bg }}>OPCIONAL</span>}
+                            {/* Skip button */}
+                            {isToday && !isDiaEspecial && (
+                              <button onClick={(e) => { e.stopPropagation(); setShowSkipConfirm(item.id); }}
+                                className="text-[8px] font-mono font-bold text-muted-foreground/50 hover:text-muted-foreground bg-secondary/50 hover:bg-secondary px-1.5 py-0.5 rounded transition-colors active:scale-90">
+                                NÃO FIZ
+                              </button>
+                            )}
                           </div>
                           <p className="font-mono text-[10px] text-muted-foreground leading-relaxed mt-0.5">{item.detail}</p>
                           {item.tags && item.tags.length > 0 && !isDiaEspecial && (
@@ -506,6 +562,31 @@ const Checklist = () => {
                   className="flex-1 py-2.5 rounded-lg border border-border font-mono text-xs text-muted-foreground active:scale-95">LIMPAR</button>
                 <button onClick={saveEdit}
                   className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground font-mono text-xs font-bold active:scale-95">SALVAR</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Skip Confirm */}
+      <AnimatePresence>
+        {showSkipConfirm && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-6" onClick={() => setShowSkipConfirm(null)}>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="surface-card p-5 border-glow w-full max-w-sm space-y-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-2">
+                <Ban size={18} className="text-muted-foreground" />
+                <p className="font-mono text-xs font-bold tracking-widest text-foreground">NÃO FIZ</p>
+              </div>
+              <p className="font-mono text-[11px] text-muted-foreground leading-relaxed">
+                Marcar "<span className="text-foreground font-bold">{day.items.find((i) => i.id === showSkipConfirm)?.label}</span>" como não realizado hoje? O item será removido do cálculo de progresso.
+              </p>
+              <div className="flex gap-2">
+                <button onClick={() => setShowSkipConfirm(null)}
+                  className="flex-1 py-2.5 rounded-lg border border-border font-mono text-xs text-muted-foreground active:scale-95">CANCELAR</button>
+                <button onClick={() => handleSkip(showSkipConfirm)}
+                  className="flex-1 py-2.5 rounded-lg bg-secondary text-foreground font-mono text-xs font-bold active:scale-95">CONFIRMAR</button>
               </div>
             </motion.div>
           </motion.div>

@@ -44,8 +44,15 @@ const getPillarScores = (checklistPct: number, treinoPct: number, aguaMl: number
 const getChecklistPct = async (dayIdx: number): Promise<number> => {
   try {
     const map = await loadCheckedFromDB(dayIdx);
-    const totalItems = rotinaSemanal[dayIdx].items.length;
-    return totalItems > 0 ? Math.round((map.size / totalItems) * 100) : 0;
+    const allItems = rotinaSemanal[dayIdx].items;
+    let skippedCount = 0;
+    let doneCount = 0;
+    map.forEach((info) => {
+      if (info.status === "skipped") skippedCount++;
+      else doneCount++;
+    });
+    const applicable = allItems.length - skippedCount;
+    return applicable > 0 ? Math.round((doneCount / applicable) * 100) : 0;
   } catch { return 0; }
 };
 

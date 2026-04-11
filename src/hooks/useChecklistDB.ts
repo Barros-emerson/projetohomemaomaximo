@@ -2,17 +2,29 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getLocalDateStr } from "@/lib/dateUtils";
 
+// ─── TYPES ───────────────────────────────────────────────────────────────────
+
+export type ChecklistItemStatus = "done" | "skipped";
+
+export interface CheckedItemInfo {
+  horario_real: string | null;
+  status: ChecklistItemStatus;
+}
+
 // ─── CHECKLIST ───────────────────────────────────────────────────────────────
 
-export const loadCheckedFromDB = async (dayIdx: number, dateStr?: string): Promise<Map<string, string | null>> => {
+export const loadCheckedFromDB = async (dayIdx: number, dateStr?: string): Promise<Map<string, CheckedItemInfo>> => {
   const d = dateStr || getLocalDateStr();
   const { data } = await supabase
     .from("checklist_items")
-    .select("item_id, horario_real")
+    .select("item_id, horario_real, status")
     .eq("data", d)
     .eq("dia_semana", dayIdx);
-  const map = new Map<string, string | null>();
-  if (data) data.forEach((r) => map.set(r.item_id, r.horario_real));
+  const map = new Map<string, CheckedItemInfo>();
+  if (data) data.forEach((r: any) => map.set(r.item_id, { 
+    horario_real: r.horario_real, 
+    status: (r.status || "done") as ChecklistItemStatus 
+  }));
   return map;
 };
 
@@ -24,7 +36,6 @@ export const toggleChecklistItem = async (
 ) => {
   const dateStr = getLocalDateStr();
   if (isChecked) {
-    // Remove
     await supabase
       .from("checklist_items")
       .delete()
@@ -32,9 +43,31 @@ export const toggleChecklistItem = async (
       .eq("dia_semana", dayIdx)
       .eq("item_id", itemId);
   } else {
-    // Insert
     await supabase.from("checklist_items").upsert(
-      { data: dateStr, dia_semana: dayIdx, item_id: itemId, horario_real: horarioReal || null },
+      { data: dateStr, dia_semana: dayIdx, item_id: itemId, horario_real: horarioReal || null, status: "done" },
+      { onConflict: "data,dia_semana,item_id" }
+    );
+  }
+};
+
+export const skipChecklistItem = async (
+  dayIdx: number,
+  itemId: string,
+  isSkipped: boolean
+) => {
+  const dateStr = getLocalDateStr();
+  if (isSkipped) {
+    // Unmark skip — remove the row
+    await supabase
+      .from("checklist_items")
+      .delete()
+      .eq("data", dateStr)
+      .eq("dia_semana", dayIdx)
+      .eq("item_id", itemId);
+  } else {
+    // Mark as skipped
+    await supabase.from("checklist_items").upsert(
+      { data: dateStr, dia_semana: dayIdx, item_id: itemId, horario_real: null, status: "skipped" },
       { onConflict: "data,dia_semana,item_id" }
     );
   }
@@ -43,7 +76,6 @@ export const toggleChecklistItem = async (
 export const updateChecklistTime = async (dayIdx: number, itemId: string, time: string | null) => {
   const dateStr = getLocalDateStr();
   if (time === null) {
-    // Clear time only (keep item checked? Actually we delete)
     await supabase
       .from("checklist_items")
       .update({ horario_real: null })
@@ -52,7 +84,7 @@ export const updateChecklistTime = async (dayIdx: number, itemId: string, time: 
       .eq("item_id", itemId);
   } else {
     await supabase.from("checklist_items").upsert(
-      { data: dateStr, dia_semana: dayIdx, item_id: itemId, horario_real: time },
+      { data: dateStr, dia_semana: dayIdx, item_id: itemId, horario_real: time, status: "done" },
       { onConflict: "data,dia_semana,item_id" }
     );
   }
@@ -108,5 +140,5 @@ export const getChecklistPctFromDB = async (dayIdx: number): Promise<{ pct: numb
     .eq("data", d)
     .eq("dia_semana", dayIdx);
   const c = count || (data ? data.length : 0);
-  return { pct: 0, count: c }; // pct is calculated by caller with totalItems
+  return { pct: 0, count: c };
 };

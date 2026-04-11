@@ -43,6 +43,7 @@ export type Database = {
           horario_real: string | null
           id: string
           item_id: string
+          status: string
         }
         Insert: {
           created_at?: string
@@ -51,6 +52,7 @@ export type Database = {
           horario_real?: string | null
           id?: string
           item_id: string
+          status?: string
         }
         Update: {
           created_at?: string
@@ -59,6 +61,7 @@ export type Database = {
           horario_real?: string | null
           id?: string
           item_id?: string
+          status?: string
         }
         Relationships: []
       }
