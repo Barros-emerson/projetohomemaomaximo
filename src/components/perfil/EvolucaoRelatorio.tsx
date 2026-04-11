@@ -20,6 +20,13 @@ const CORES_CATEGORIA: Record<string, string[]> = {
   goals: ["hsl(38 92% 60%)", "hsl(215 75% 60%)"],
 };
 
+const CATEGORIA_LABELS: Record<string, string> = {
+  biometrics: "BIOMETRIA",
+  strength: "FORÇA",
+  hormones: "HORMONAL",
+  goals: "OBJETIVOS",
+};
+
 const getColor = (categoria: string, index: number) => {
   const cores = CORES_CATEGORIA[categoria] || CORES_CATEGORIA.biometrics;
   return cores[index % cores.length];
