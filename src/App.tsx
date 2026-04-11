@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppLayout } from "@/components/AppLayout";
+import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
 import Checklist from "@/pages/Checklist";
 import Treino from "@/pages/Treino";
@@ -29,8 +30,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<Index />} />
             <Route element={<AppLayout />}>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/rotina" element={<Checklist />} />
               <Route path="/treino" element={<Treino />} />
               <Route path="/sono" element={<Sono />} />
