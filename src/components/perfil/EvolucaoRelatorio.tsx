@@ -150,22 +150,40 @@ const EvolucaoRelatorio = () => {
         </h3>
       </div>
 
-      {/* Metric selector */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 px-1 scrollbar-hide">
-        {metricas.map((m) => (
-          <button
-            key={`${m.categoria}-${m.label}`}
-            onClick={() => setSelectedMetric(m)}
-            className={`shrink-0 px-3 py-1.5 rounded-lg font-mono text-[10px] font-bold tracking-wider transition-colors ${
-              selectedMetric?.label === m.label && selectedMetric?.categoria === m.categoria
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-muted-foreground"
-            }`}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
+      {/* Metric selector grouped by category */}
+      {(() => {
+        const grouped: Record<string, MetricOption[]> = {};
+        for (const m of metricas) {
+          if (!grouped[m.categoria]) grouped[m.categoria] = [];
+          grouped[m.categoria].push(m);
+        }
+        return (
+          <div className="space-y-2">
+            {Object.entries(grouped).map(([cat, items]) => (
+              <div key={cat}>
+                <p className="font-mono text-[9px] font-bold tracking-widest text-muted-foreground/60 px-1 mb-1">
+                  {CATEGORIA_LABELS[cat] || cat.toUpperCase()}
+                </p>
+                <div className="flex gap-1.5 overflow-x-auto pb-1 px-1 scrollbar-hide">
+                  {items.map((m) => (
+                    <button
+                      key={`${m.categoria}-${m.label}`}
+                      onClick={() => setSelectedMetric(m)}
+                      className={`shrink-0 px-3 py-1.5 rounded-lg font-mono text-[10px] font-bold tracking-wider transition-colors ${
+                        selectedMetric?.label === m.label && selectedMetric?.categoria === m.categoria
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-muted-foreground"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       <div className="surface-card p-4 border border-border">
         {!hasData ? (
