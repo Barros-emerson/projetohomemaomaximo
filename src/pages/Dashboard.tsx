@@ -79,6 +79,7 @@ interface ResumoOntem {
   treinoFeito: boolean;
   sonoMin: number;
   aguaMl: number;
+  devocionalFeito: boolean;
 }
 
 const getResumoOntem = async (todayIdx: number): Promise<ResumoOntem | null> => {
