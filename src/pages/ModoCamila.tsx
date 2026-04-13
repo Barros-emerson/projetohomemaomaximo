@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll } from "lucide-react";
+import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
 
