@@ -124,6 +124,13 @@ export default function ModoCamila() {
     load();
   }, [dataHoje]);
 
+  // Re-fetch when version changes
+  useEffect(() => {
+    if (showLeitor && textoBiblia.length > 0) {
+      buscarTextoBiblia();
+    }
+  }, [versaoBiblia]);
+
   const salvarDevocional = useCallback(async () => {
     setSalvando(true);
     try {
