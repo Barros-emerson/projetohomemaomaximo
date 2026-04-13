@@ -36,7 +36,7 @@ export default function ModoCamila() {
   const plano = planosDisponiveis[0];
   const passagemHoje = plano.leituras[(new Date().getDate() - 1) % plano.leituras.length];
 
-  const [abaAtiva, setAbaAtiva] = useState<"reflexao" | "oracao" | "mensagem">("reflexao");
+  const [abaAtiva, setAbaAtiva] = useState<"reflexao" | "oracao" | "mensagem" | "notas" | "tarefas">("reflexao");
   const [reflexao, setReflexao] = useState("");
   const [leituraFeita, setLeituraFeita] = useState(false);
   const [oracaoTab, setOracaoTab] = useState<"gratidao" | "pedidos" | "intercessao">("gratidao");
@@ -49,6 +49,17 @@ export default function ModoCamila() {
   const [oracoesEmerson, setOracoesEmerson] = useState<OracaoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReflexaoEmerson, setShowReflexaoEmerson] = useState(false);
+
+  // Notas
+  const [notas, setNotas] = useState<NotaItem[]>([]);
+  const [novaNota, setNovaNota] = useState({ titulo: "", conteudo: "" });
+  const [editandoNota, setEditandoNota] = useState<string | null>(null);
+  const [notaEditando, setNotaEditando] = useState({ titulo: "", conteudo: "" });
+  const coresNotas = ["#FB7185", "#A78BFA", "#34D399", "#FBBF24", "#60A5FA"];
+
+  // Tarefas
+  const [tarefas, setTarefas] = useState<TarefaItem[]>([]);
+  const [novaTarefa, setNovaTarefa] = useState("");
 
   useEffect(() => {
     const load = async () => {
