@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      agenda_encontros: {
+        Row: {
+          concluido: boolean
+          created_at: string
+          data_evento: string
+          descricao: string | null
+          id: string
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          concluido?: boolean
+          created_at?: string
+          data_evento: string
+          descricao?: string | null
+          id?: string
+          tipo?: string
+          titulo: string
+        }
+        Update: {
+          concluido?: boolean
+          created_at?: string
+          data_evento?: string
+          descricao?: string | null
+          id?: string
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       agua_registros: {
         Row: {
           created_at: string
@@ -203,6 +233,176 @@ export type Database = {
         }
         Relationships: []
       }
+      gratidao_mutua: {
+        Row: {
+          autor: string
+          created_at: string
+          data: string
+          id: string
+          texto: string
+        }
+        Insert: {
+          autor?: string
+          created_at?: string
+          data?: string
+          id?: string
+          texto: string
+        }
+        Update: {
+          autor?: string
+          created_at?: string
+          data?: string
+          id?: string
+          texto?: string
+        }
+        Relationships: []
+      }
+      habitos: {
+        Row: {
+          ativo: boolean
+          cor: string | null
+          created_at: string
+          icone: string | null
+          id: string
+          maior_streak: number
+          streak_atual: number
+          titulo: string
+        }
+        Insert: {
+          ativo?: boolean
+          cor?: string | null
+          created_at?: string
+          icone?: string | null
+          id?: string
+          maior_streak?: number
+          streak_atual?: number
+          titulo: string
+        }
+        Update: {
+          ativo?: boolean
+          cor?: string | null
+          created_at?: string
+          icone?: string | null
+          id?: string
+          maior_streak?: number
+          streak_atual?: number
+          titulo?: string
+        }
+        Relationships: []
+      }
+      habitos_checkins: {
+        Row: {
+          created_at: string
+          data: string
+          feito: boolean
+          habito_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          feito?: boolean
+          habito_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          feito?: boolean
+          habito_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habitos_checkins_habito_id_fkey"
+            columns: ["habito_id"]
+            isOneToOne: false
+            referencedRelation: "habitos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journaling: {
+        Row: {
+          aprendizado: string | null
+          created_at: string
+          data: string
+          id: string
+          plano_amanha: string | null
+          vitoria_1: string | null
+          vitoria_2: string | null
+          vitoria_3: string | null
+        }
+        Insert: {
+          aprendizado?: string | null
+          created_at?: string
+          data?: string
+          id?: string
+          plano_amanha?: string | null
+          vitoria_1?: string | null
+          vitoria_2?: string | null
+          vitoria_3?: string | null
+        }
+        Update: {
+          aprendizado?: string | null
+          created_at?: string
+          data?: string
+          id?: string
+          plano_amanha?: string | null
+          vitoria_1?: string | null
+          vitoria_2?: string | null
+          vitoria_3?: string | null
+        }
+        Relationships: []
+      }
+      metas: {
+        Row: {
+          categoria: string
+          concluida: boolean
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          descricao: string | null
+          id: string
+          tipo_periodo: string
+          titulo: string
+          unidade: string | null
+          updated_at: string
+          valor_alvo: number
+          valor_atual: number
+        }
+        Insert: {
+          categoria?: string
+          concluida?: boolean
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string | null
+          id?: string
+          tipo_periodo?: string
+          titulo: string
+          unidade?: string | null
+          updated_at?: string
+          valor_alvo?: number
+          valor_atual?: number
+        }
+        Update: {
+          categoria?: string
+          concluida?: boolean
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string | null
+          id?: string
+          tipo_periodo?: string
+          titulo?: string
+          unidade?: string | null
+          updated_at?: string
+          valor_alvo?: number
+          valor_atual?: number
+        }
+        Relationships: []
+      }
       oracoes: {
         Row: {
           conteudo: string
@@ -254,6 +454,42 @@ export type Database = {
           label?: string
           unidade?: string
           valor?: string
+        }
+        Relationships: []
+      }
+      score_diario: {
+        Row: {
+          created_at: string
+          data: string
+          id: string
+          score_agua: number
+          score_biblia: number
+          score_rotina: number
+          score_sono: number
+          score_total: number
+          score_treino: number
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          id?: string
+          score_agua?: number
+          score_biblia?: number
+          score_rotina?: number
+          score_sono?: number
+          score_total?: number
+          score_treino?: number
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          id?: string
+          score_agua?: number
+          score_biblia?: number
+          score_rotina?: number
+          score_sono?: number
+          score_total?: number
+          score_treino?: number
         }
         Relationships: []
       }
