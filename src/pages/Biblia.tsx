@@ -125,11 +125,22 @@ const Biblia = () => {
     saveAll(updated, newStreak);
   };
 
+  const salvarReflexaoPublica = async (texto: string) => {
+    if (!texto.trim()) return;
+    try {
+      await supabase.from("emerson_reflexao_publica").upsert(
+        { data: hoje, reflexao: texto },
+        { onConflict: "data" }
+      );
+    } catch (err) { console.error(err); }
+  };
+
   const salvarReflexao = () => {
     localStorage.setItem("ham-biblia-reflexao-hoje", reflexao);
     localStorage.setItem(`ham-biblia-reflexao-${hoje}`, reflexao);
     localStorage.setItem("ham-biblia-anotacoes-hoje", anotacoes);
     localStorage.setItem(`ham-biblia-anotacoes-${hoje}`, anotacoes);
+    salvarReflexaoPublica(reflexao);
     toast.success("Reflexão e anotações salvas!");
   };
 
