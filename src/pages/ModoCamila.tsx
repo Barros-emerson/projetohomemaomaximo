@@ -243,30 +243,30 @@ export default function ModoCamila() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-10">
+    <div className="min-h-screen bg-background pb-24">
 
       {/* Header */}
-      <div className="px-5 pt-8 pb-4 flex items-center justify-between">
-        <div>
+      <div className="px-4 sm:px-5 pt-6 sm:pt-8 pb-3 sm:pb-4 flex items-center justify-between">
+        <div className="min-w-0 flex-1">
           <p className="font-mono text-[9px] tracking-[0.2em] font-bold" style={{ color: ACCENT }}>MODO CAMILA</p>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xl font-bold text-foreground mt-1">
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-lg sm:text-xl font-bold text-foreground mt-0.5 sm:mt-1 truncate">
             {new Date().getHours() < 12 ? "Bom dia" : new Date().getHours() < 18 ? "Boa tarde" : "Boa noite"}, Amor 🍃
           </motion.p>
           <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
             {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={toggleTheme}
-            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
             style={{ border: `1px solid rgba(${ACCENT_RGB},0.3)`, background: `rgba(${ACCENT_RGB},0.05)` }}
           >
-            {theme === "dark" ? <Sun size={16} style={{ color: ACCENT }} /> : <Moon size={16} style={{ color: ACCENT }} />}
+            {theme === "dark" ? <Sun size={15} style={{ color: ACCENT }} /> : <Moon size={15} style={{ color: ACCENT }} />}
           </button>
-          <div className="flex flex-col items-center gap-1">
-            <Leaf size={20} style={{ color: ACCENT }} />
-            <span className="font-mono text-[9px] font-bold" style={{ color: ACCENT }}>
+          <div className="flex flex-col items-center gap-0.5">
+            <Leaf size={18} style={{ color: ACCENT }} />
+            <span className="font-mono text-[8px] font-bold" style={{ color: ACCENT }}>
               {leituraFeita ? "✓" : "—"}
             </span>
           </div>
@@ -274,46 +274,46 @@ export default function ModoCamila() {
       </div>
 
       {/* Versículo */}
-      <div className="px-5 mb-4">
-        <div className="flex items-center gap-1.5 mb-2">
+      <div className="px-4 sm:px-5 mb-3 sm:mb-4">
+        <div className="flex items-center gap-1.5 mb-1.5">
           <Sparkles size={12} className="text-violet-400" />
           <span className="font-mono text-[9px] tracking-widest text-violet-400">VERSÍCULO DA SEMANA</span>
         </div>
-        <p className="text-sm text-foreground/90 leading-relaxed italic">"{versiculo.texto}"</p>
+        <p className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed italic">"{versiculo.texto}"</p>
         <p className="text-[11px] text-violet-400 mt-1 font-medium">{versiculo.referencia}</p>
       </div>
 
       {/* Passagem + leitura integrada */}
-      <div className="px-5 mb-4">
-        <div className="flex items-center justify-between">
+      <div className="px-4 sm:px-5 mb-3 sm:mb-4">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <BookOpen size={16} style={{ color: ACCENT }} className="shrink-0" />
+            <BookOpen size={15} style={{ color: ACCENT }} className="shrink-0" />
             <div className="min-w-0">
               <p className="font-mono text-[9px] tracking-widest" style={{ color: ACCENT }}>LEITURA DO DIA</p>
-              <p className="text-sm font-medium text-foreground truncate">{passagemHoje.passagem}</p>
+              <p className="text-[13px] sm:text-sm font-medium text-foreground truncate">{passagemHoje.passagem}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0 ml-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={() => buscarTextoBiblia()}
               disabled={carregandoBiblia}
-              className="h-9 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-90 font-mono text-[9px] font-bold tracking-wider disabled:opacity-50"
+              className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-90 font-mono text-[9px] font-bold tracking-wider disabled:opacity-50"
               style={{ border: `1.5px solid rgba(${ACCENT_RGB},0.4)`, color: ACCENT }}
             >
               {carregandoBiblia ? (
                 <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-                  <BookOpen size={14} />
+                  <BookOpen size={13} />
                 </motion.div>
               ) : (
-                <><BookOpen size={14} /> LER</>
+                <><BookOpen size={13} /> LER</>
               )}
             </button>
             <button
               onClick={() => setLeituraFeita(!leituraFeita)}
-              className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
               style={leituraFeita ? { background: ACCENT } : { border: `2px solid rgba(${ACCENT_RGB},0.3)` }}
             >
-              {leituraFeita && <Check size={16} className="text-white" />}
+              {leituraFeita && <Check size={14} className="text-white" />}
             </button>
           </div>
         </div>
@@ -329,9 +329,9 @@ export default function ModoCamila() {
               transition={{ duration: 0.3 }}
               className="overflow-hidden"
             >
-              <div className="mt-3 rounded-2xl p-4 border" style={{ borderColor: `rgba(${ACCENT_RGB},0.2)`, background: `rgba(${ACCENT_RGB},0.05)` }}>
+              <div className="mt-3 rounded-2xl p-3 sm:p-4 border" style={{ borderColor: `rgba(${ACCENT_RGB},0.2)`, background: `rgba(${ACCENT_RGB},0.05)` }}>
                 {/* Header do leitor */}
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
                   <div className="flex items-center gap-2">
                     <select
                       value={versaoBiblia}
@@ -357,13 +357,13 @@ export default function ModoCamila() {
                 </div>
 
                 {/* Busca personalizada */}
-                <div className="flex gap-1.5 mb-3">
+                <div className="flex gap-1.5 mb-2 sm:mb-3">
                   <input
                     value={buscaPersonalizada}
                     onChange={(e) => setBuscaPersonalizada(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && buscarPassagemPersonalizada()}
-                    placeholder="Ex: João 3, Salmo 23, Romanos 8"
-                    className="flex-1 bg-transparent text-sm rounded-xl px-3 py-2 border placeholder:text-muted-foreground/50"
+                    placeholder="Ex: João 3, Salmo 23"
+                    className="flex-1 bg-transparent text-[13px] sm:text-sm rounded-xl px-2.5 sm:px-3 py-1.5 sm:py-2 border placeholder:text-muted-foreground/50"
                     style={{ borderColor: `rgba(${ACCENT_RGB},0.25)` }}
                   />
                   <button
@@ -433,32 +433,32 @@ export default function ModoCamila() {
       </div>
 
       {/* Abas principais */}
-      <div className="px-5 mb-4">
-        <div className="flex gap-1.5 flex-wrap">
+      <div className="px-4 sm:px-5 mb-3 sm:mb-4">
+        <div className="flex gap-1 sm:gap-1.5 flex-wrap">
           <Tab label="REFLEXÃO" icon={Scroll} active={abaAtiva === "reflexao"} onClick={() => setAbaAtiva("reflexao")} color={ACCENT} />
           <Tab label="ORAÇÃO" icon={HandHeart} active={abaAtiva === "oracao"} onClick={() => setAbaAtiva("oracao")} color="#A78BFA" />
           <Tab label="AMOR" icon={MessageCircleHeart} active={abaAtiva === "mensagem"} onClick={() => setAbaAtiva("mensagem")} color="#34D399" />
         </div>
-        <div className="flex gap-1.5 mt-1.5">
+        <div className="flex gap-1 sm:gap-1.5 mt-1 sm:mt-1.5">
           <Tab label="NOTAS" icon={StickyNote} active={abaAtiva === "notas"} onClick={() => setAbaAtiva("notas")} color="#FBBF24" />
           <Tab label="TAREFAS" icon={ListChecks} active={abaAtiva === "tarefas"} onClick={() => setAbaAtiva("tarefas")} color="#60A5FA" />
         </div>
       </div>
 
       {/* Conteúdo */}
-      <div className="px-5">
+      <div className="px-4 sm:px-5">
         <AnimatePresence mode="wait">
 
           {/* REFLEXÃO */}
           {abaAtiva === "reflexao" && (
             <motion.div key="reflexao" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
-              <div className="rounded-2xl p-4" style={{ border: `1px solid rgba(${ACCENT_RGB},0.2)`, background: `rgba(${ACCENT_RGB},0.04)` }}>
-                <p className="font-mono text-[9px] tracking-widest mb-2" style={{ color: ACCENT }}>O QUE DEUS FALOU COM VOCÊ HOJE?</p>
+              <div className="rounded-2xl p-3 sm:p-4" style={{ border: `1px solid rgba(${ACCENT_RGB},0.2)`, background: `rgba(${ACCENT_RGB},0.04)` }}>
+                <p className="font-mono text-[9px] tracking-widest mb-1.5 sm:mb-2" style={{ color: ACCENT }}>O QUE DEUS FALOU COM VOCÊ HOJE?</p>
                 <textarea
                   value={reflexao}
                   onChange={(e) => setReflexao(e.target.value)}
-                  placeholder="Escreva sua reflexão do dia... O que o Senhor colocou em seu coração ao ler a Palavra?"
-                  className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[120px] leading-relaxed"
+                  placeholder="Escreva sua reflexão do dia..."
+                  className="w-full bg-transparent font-mono text-[13px] sm:text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[100px] sm:min-h-[120px] leading-relaxed"
                 />
               </div>
 
@@ -498,12 +498,12 @@ export default function ModoCamila() {
                   </button>
                 ))}
               </div>
-              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(167,139,250,0.2)", background: "rgba(167,139,250,0.04)" }}>
+              <div className="rounded-2xl p-3 sm:p-4" style={{ border: "1px solid rgba(167,139,250,0.2)", background: "rgba(167,139,250,0.04)" }}>
                 <textarea
                   value={oracoes[oracaoTab]}
                   onChange={(e) => setOracoes((prev) => ({ ...prev, [oracaoTab]: e.target.value }))}
                   placeholder={oracaoTab === "gratidao" ? "Pelo que você agradece hoje?" : oracaoTab === "pedidos" ? "Seus pedidos ao Senhor..." : "Por quem você quer interceder?"}
-                  className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[100px] leading-relaxed"
+                  className="w-full bg-transparent font-mono text-[13px] sm:text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[80px] sm:min-h-[100px] leading-relaxed"
                 />
               </div>
               {oracoesEmerson.length > 0 && oracaoTab === "intercessao" && (
@@ -523,14 +523,14 @@ export default function ModoCamila() {
           {/* MENSAGEM DE AMOR */}
           {abaAtiva === "mensagem" && (
             <motion.div key="mensagem" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(52,211,153,0.2)", background: "rgba(52,211,153,0.04)" }}>
+              <div className="rounded-2xl p-3 sm:p-4" style={{ border: "1px solid rgba(52,211,153,0.2)", background: "rgba(52,211,153,0.04)" }}>
                 <p className="font-mono text-[9px] tracking-widest text-emerald-400 mb-0.5">MENSAGEM PARA O EMERSON</p>
-                <p className="font-mono text-[10px] text-muted-foreground mb-3">Aparece na rotina dele no horário que você escolher 💚</p>
+                <p className="font-mono text-[10px] text-muted-foreground mb-2 sm:mb-3">Aparece na rotina dele no horário que você escolher 💚</p>
                 <textarea
                   value={mensagem}
                   onChange={(e) => setMensagem(e.target.value)}
                   placeholder="Ex: Vai arrasar no treino hoje! Te amo muito 💪🙏"
-                  className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[80px] leading-relaxed"
+                  className="w-full bg-transparent font-mono text-[13px] sm:text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[70px] sm:min-h-[80px] leading-relaxed"
                 />
                 <div className="mt-3 pt-3 border-t border-border/50">
                   <p className="font-mono text-[9px] text-muted-foreground tracking-wider mb-2">APARECER NA ROTINA ÀS:</p>
@@ -556,8 +556,8 @@ export default function ModoCamila() {
           {abaAtiva === "notas" && (
             <motion.div key="notas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
               {/* Nova nota */}
-              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(251,191,36,0.2)", background: "rgba(251,191,36,0.04)" }}>
-                <p className="font-mono text-[9px] tracking-widest text-amber-400 mb-2">NOVA NOTA</p>
+              <div className="rounded-2xl p-3 sm:p-4" style={{ border: "1px solid rgba(251,191,36,0.2)", background: "rgba(251,191,36,0.04)" }}>
+                <p className="font-mono text-[9px] tracking-widest text-amber-400 mb-1.5 sm:mb-2">NOVA NOTA</p>
                 <input
                   value={novaNota.titulo}
                   onChange={(e) => setNovaNota(prev => ({ ...prev, titulo: e.target.value }))}
@@ -620,8 +620,8 @@ export default function ModoCamila() {
           {abaAtiva === "tarefas" && (
             <motion.div key="tarefas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
               {/* Nova tarefa */}
-              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(96,165,250,0.2)", background: "rgba(96,165,250,0.04)" }}>
-                <p className="font-mono text-[9px] tracking-widest text-blue-400 mb-2">NOVA TAREFA</p>
+              <div className="rounded-2xl p-3 sm:p-4" style={{ border: "1px solid rgba(96,165,250,0.2)", background: "rgba(96,165,250,0.04)" }}>
+                <p className="font-mono text-[9px] tracking-widest text-blue-400 mb-1.5 sm:mb-2">NOVA TAREFA</p>
                 <div className="flex gap-2 mb-2">
                   <input
                     value={novaTarefa}
@@ -719,18 +719,18 @@ export default function ModoCamila() {
 
       {/* Botão salvar — só para reflexão/oração/mensagem */}
       {(abaAtiva === "reflexao" || abaAtiva === "oracao" || abaAtiva === "mensagem") && (
-        <div className="px-5 pt-6">
+        <div className="px-4 sm:px-5 pt-4 sm:pt-6">
           <button
             onClick={abaAtiva === "mensagem" ? enviarMensagem : salvarDevocional}
             disabled={salvando}
-            className="w-full py-4 rounded-2xl font-mono text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-60"
+            className="w-full py-3 sm:py-4 rounded-2xl font-mono text-[13px] sm:text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-60"
             style={{
               background: salvo ? "#34D399" : abaAtiva === "mensagem" ? "#34D399" : ACCENT,
               color: "#fff",
               boxShadow: `0 8px 24px ${abaAtiva === "mensagem" ? "rgba(52,211,153,0.3)" : `rgba(${ACCENT_RGB},0.3)`}`,
             }}
           >
-            {salvo ? <><Check size={18} /> SALVO!</> : abaAtiva === "mensagem" ? <><Send size={18} /> ENVIAR MENSAGEM</> : <><Heart size={18} /> {salvando ? "SALVANDO..." : "SALVAR DEVOCIONAL"}</>}
+            {salvo ? <><Check size={16} /> SALVO!</> : abaAtiva === "mensagem" ? <><Send size={16} /> ENVIAR MENSAGEM</> : <><Heart size={16} /> {salvando ? "SALVANDO..." : "SALVAR DEVOCIONAL"}</>}
           </button>
         </div>
       )}
