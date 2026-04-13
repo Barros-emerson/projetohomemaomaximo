@@ -12,6 +12,8 @@ import {
   ClipboardList,
   History,
   Focus,
+  Target,
+  Flame,
 } from "lucide-react";
 
 const mainTabs = [
@@ -48,9 +50,11 @@ export const BottomNav = () => {
             >
               {[
                 { path: "/foco", icon: Focus, label: "FOCO", color: "text-primary", bg: "bg-primary/10 border-primary/20" },
-                { path: "/notas", icon: StickyNote, label: "NOTA", color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/20" },
-                { path: "/tarefas", icon: ClipboardList, label: "TAREFA", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
-                { path: "/historico", icon: History, label: "HISTÓRICO", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
+                { path: "/metas", icon: Target, label: "METAS", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
+                { path: "/habitos", icon: Flame, label: "HÁBITOS", color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/20" },
+                { path: "/notas", icon: StickyNote, label: "NOTA", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
+                { path: "/tarefas", icon: ClipboardList, label: "TAREFA", color: "text-purple-400", bg: "bg-purple-400/10 border-purple-400/20" },
+                { path: "/historico", icon: History, label: "HISTÓRICO", color: "text-rose-400", bg: "bg-rose-400/10 border-rose-400/20" },
               ].map((item) => (
                 <button
                   key={item.path}
