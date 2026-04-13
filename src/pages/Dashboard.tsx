@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getLocalDateStr } from "@/lib/dateUtils";
 import { useNavigate } from "react-router-dom";
+import JournalingModal from "@/components/JournalingModal";
 import {
   CheckSquare,
   Dumbbell,
@@ -172,6 +173,7 @@ const Dashboard = () => {
   // Tarefas da Camila para o Emerson
   const [tarefasCamila, setTarefasCamila] = useState<Array<{ id: string; titulo: string; concluida: boolean }>>([]);
   const META_AGUA = 3500;
+  const [journalingOpen, setJournalingOpen] = useState(false);
 
   const CICLO_AGUA = 2800;
   const aguaCicloAtual = aguaMl % CICLO_AGUA;
@@ -720,6 +722,29 @@ const Dashboard = () => {
           })}
         </div>
       </div>
+
+      {/* Journaling Noturno */}
+      {new Date().getHours() >= 18 && (
+        <motion.button
+          variants={fadeUp}
+          onClick={() => setJournalingOpen(true)}
+          className="w-full surface-card p-4 text-left active:scale-[0.98] transition-transform"
+          style={{ borderColor: "hsl(var(--primary) / 0.2)" }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.1)" }}>
+              <Moon size={18} className="text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="font-mono text-[10px] font-bold tracking-widest text-primary">JOURNALING NOTURNO</p>
+              <p className="text-[11px] text-muted-foreground">3 vitórias, aprendizado e plano</p>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </div>
+        </motion.button>
+      )}
+
+      <JournalingModal open={journalingOpen} onClose={() => setJournalingOpen(false)} />
     </motion.div>
   );
 };

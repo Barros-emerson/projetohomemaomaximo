@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X, Sun, Moon, Leaf, Search } from "lucide-react";
+import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X, Sun, Moon, Leaf, Search, CalendarHeart, HeartHandshake } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/components/ThemeProvider";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
@@ -42,7 +42,7 @@ export default function ModoCamila() {
   const plano = planosDisponiveis[0];
   const passagemHoje = plano.leituras[(new Date().getDate() - 1) % plano.leituras.length];
 
-  const [abaAtiva, setAbaAtiva] = useState<"reflexao" | "oracao" | "mensagem" | "notas" | "tarefas">("reflexao");
+  const [abaAtiva, setAbaAtiva] = useState<"reflexao" | "oracao" | "mensagem" | "notas" | "tarefas" | "gratidao" | "agenda">("reflexao");
   const [reflexao, setReflexao] = useState("");
   const [leituraFeita, setLeituraFeita] = useState(false);
   const [oracaoTab, setOracaoTab] = useState<"gratidao" | "pedidos" | "intercessao">("gratidao");
@@ -74,6 +74,16 @@ export default function ModoCamila() {
   const [tarefas, setTarefas] = useState<TarefaItem[]>([]);
   const [novaTarefa, setNovaTarefa] = useState("");
   const [novaTarefaParaQuem, setNovaTarefaParaQuem] = useState<"camila" | "emerson">("camila");
+
+  // Gratidão Mútua
+  const [gratidaoTexto, setGratidaoTexto] = useState("");
+  const [gratidaoEmerson, setGratidaoEmerson] = useState("");
+  const [gratidaoSalva, setGratidaoSalva] = useState(false);
+
+  // Agenda de Encontros
+  const [encontros, setEncontros] = useState<Array<{ id: string; titulo: string; descricao: string; data_evento: string; tipo: string; concluido: boolean }>>([]);
+  const [novoEncontro, setNovoEncontro] = useState({ titulo: "", descricao: "", data_evento: "", tipo: "date" });
+  const [criandoEncontro, setCriandoEncontro] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -117,6 +127,16 @@ export default function ModoCamila() {
           .select("*")
           .order("created_at", { ascending: false });
         if (tarefasData) setTarefas(tarefasData as TarefaItem[]);
+
+        // Gratidão Mútua
+        const { data: gratAmor } = await supabase.from("gratidao_mutua").select("texto").eq("data", dataHoje).eq("autor", "amor").limit(1);
+        if (gratAmor && gratAmor.length > 0) { setGratidaoTexto(gratAmor[0].texto); setGratidaoSalva(true); }
+        const { data: gratEm } = await supabase.from("gratidao_mutua").select("texto").eq("data", dataHoje).eq("autor", "emerson").limit(1);
+        if (gratEm && gratEm.length > 0) setGratidaoEmerson(gratEm[0].texto);
+
+        // Agenda de Encontros
+        const { data: encontrosData } = await supabase.from("agenda_encontros").select("*").order("data_evento", { ascending: true });
+        if (encontrosData) setEncontros(encontrosData);
       } catch (err) {
         console.error(err);
       } finally {
@@ -229,6 +249,41 @@ export default function ModoCamila() {
       await supabase.from("camila_tarefas").delete().eq("id", id);
       setTarefas(prev => prev.filter(t => t.id !== id));
     } catch (err) { console.error(err); }
+  }, []);
+
+  // Gratidão Mútua
+  const salvarGratidao = useCallback(async () => {
+    if (!gratidaoTexto.trim()) return;
+    try {
+      await supabase.from("gratidao_mutua").upsert({ data: dataHoje, autor: "amor", texto: gratidaoTexto.trim() }, { onConflict: "data,autor" });
+      setGratidaoSalva(true);
+      setSalvo(true);
+      setTimeout(() => setSalvo(false), 2000);
+    } catch (err) { console.error(err); }
+  }, [gratidaoTexto, dataHoje]);
+
+  // Agenda de Encontros
+  const criarEncontro = useCallback(async () => {
+    if (!novoEncontro.titulo.trim() || !novoEncontro.data_evento) return;
+    try {
+      const { data } = await supabase.from("agenda_encontros").insert({
+        titulo: novoEncontro.titulo.trim(), descricao: novoEncontro.descricao.trim(),
+        data_evento: novoEncontro.data_evento, tipo: novoEncontro.tipo
+      }).select().single();
+      if (data) setEncontros(prev => [...prev, data].sort((a, b) => a.data_evento.localeCompare(b.data_evento)));
+      setNovoEncontro({ titulo: "", descricao: "", data_evento: "", tipo: "date" });
+      setCriandoEncontro(false);
+    } catch (err) { console.error(err); }
+  }, [novoEncontro]);
+
+  const toggleEncontro = useCallback(async (id: string, concluido: boolean) => {
+    await supabase.from("agenda_encontros").update({ concluido: !concluido }).eq("id", id);
+    setEncontros(prev => prev.map(e => e.id === id ? { ...e, concluido: !concluido } : e));
+  }, []);
+
+  const deletarEncontro = useCallback(async (id: string) => {
+    await supabase.from("agenda_encontros").delete().eq("id", id);
+    setEncontros(prev => prev.filter(e => e.id !== id));
   }, []);
 
   if (loading) {
@@ -442,6 +497,10 @@ export default function ModoCamila() {
         <div className="flex gap-1 sm:gap-1.5 mt-1 sm:mt-1.5">
           <Tab label="NOTAS" icon={StickyNote} active={abaAtiva === "notas"} onClick={() => setAbaAtiva("notas")} color="#FBBF24" />
           <Tab label="TAREFAS" icon={ListChecks} active={abaAtiva === "tarefas"} onClick={() => setAbaAtiva("tarefas")} color="#60A5FA" />
+        </div>
+        <div className="flex gap-1 sm:gap-1.5 mt-1 sm:mt-1.5">
+          <Tab label="GRATIDÃO" icon={HeartHandshake} active={abaAtiva === "gratidao"} onClick={() => setAbaAtiva("gratidao")} color="#FB7185" />
+          <Tab label="AGENDA" icon={CalendarHeart} active={abaAtiva === "agenda"} onClick={() => setAbaAtiva("agenda")} color="#F97316" />
         </div>
       </div>
 
@@ -714,6 +773,108 @@ export default function ModoCamila() {
             </motion.div>
           )}
 
+          {/* GRATIDÃO MÚTUA */}
+          {abaAtiva === "gratidao" && (
+            <motion.div key="gratidao" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
+              <div className="rounded-2xl p-3 sm:p-4" style={{ border: "1px solid rgba(251,113,133,0.2)", background: "rgba(251,113,133,0.04)" }}>
+                <p className="font-mono text-[9px] tracking-widest mb-1.5" style={{ color: "#FB7185" }}>O QUE AGRADEÇO NO EMERSON HOJE 💕</p>
+                <textarea
+                  value={gratidaoTexto}
+                  onChange={(e) => setGratidaoTexto(e.target.value)}
+                  placeholder="Escreva algo que você agradece no Emerson hoje..."
+                  className="w-full bg-transparent font-mono text-[13px] sm:text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[80px] leading-relaxed"
+                />
+                <button onClick={salvarGratidao} className="mt-2 w-full py-2 rounded-xl font-mono text-[10px] font-bold tracking-widest active:scale-95 transition-all" style={{ background: "rgba(251,113,133,0.15)", color: "#FB7185", border: "1px solid rgba(251,113,133,0.25)" }}>
+                  {gratidaoSalva ? "✓ ATUALIZAR GRATIDÃO" : "💕 SALVAR GRATIDÃO"}
+                </button>
+              </div>
+
+              {gratidaoEmerson && (
+                <div className="rounded-2xl p-4" style={{ border: `1px solid rgba(${ACCENT_RGB},0.2)`, background: `rgba(${ACCENT_RGB},0.04)` }}>
+                  <p className="font-mono text-[9px] tracking-widest mb-2" style={{ color: ACCENT }}>💚 EMERSON AGRADECEU POR VOCÊ</p>
+                  <p className="font-mono text-sm text-foreground/80 leading-relaxed italic">"{gratidaoEmerson}"</p>
+                </div>
+              )}
+
+              {!gratidaoEmerson && (
+                <div className="rounded-2xl p-4 text-center" style={{ border: "1px dashed rgba(251,113,133,0.2)" }}>
+                  <p className="font-mono text-[10px] text-muted-foreground">Emerson ainda não escreveu a gratidão de hoje 💭</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* AGENDA DE ENCONTROS */}
+          {abaAtiva === "agenda" && (
+            <motion.div key="agenda" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
+              {/* Novo encontro */}
+              <div className="rounded-2xl p-3 sm:p-4" style={{ border: "1px solid rgba(249,115,22,0.2)", background: "rgba(249,115,22,0.04)" }}>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-mono text-[9px] tracking-widest" style={{ color: "#F97316" }}>NOVO ENCONTRO</p>
+                  <button onClick={() => setCriandoEncontro(!criandoEncontro)} className="text-muted-foreground hover:text-foreground"><Plus size={14} /></button>
+                </div>
+                {criandoEncontro && (
+                  <div className="space-y-2">
+                    <input value={novoEncontro.titulo} onChange={e => setNovoEncontro(p => ({ ...p, titulo: e.target.value }))} placeholder="Título..." className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none" />
+                    <input value={novoEncontro.descricao} onChange={e => setNovoEncontro(p => ({ ...p, descricao: e.target.value }))} placeholder="Descrição (opcional)..." className="w-full bg-transparent font-mono text-xs text-foreground/70 placeholder:text-muted-foreground/40 outline-none" />
+                    <input value={novoEncontro.data_evento} onChange={e => setNovoEncontro(p => ({ ...p, data_evento: e.target.value }))} type="date" className="w-full bg-secondary/50 rounded-lg px-3 py-2 font-mono text-xs text-foreground outline-none border border-border" />
+                    <div className="flex gap-1.5">
+                      {[{ id: "date", emoji: "🌹", label: "DATE" }, { id: "aniversario", emoji: "🎂", label: "ANIVERSÁRIO" }, { id: "especial", emoji: "✨", label: "ESPECIAL" }].map(t => (
+                        <button key={t.id} onClick={() => setNovoEncontro(p => ({ ...p, tipo: t.id }))}
+                          className="flex-1 py-1.5 rounded-lg font-mono text-[8px] font-bold tracking-wider transition-all active:scale-95"
+                          style={novoEncontro.tipo === t.id ? { background: "rgba(249,115,22,0.15)", color: "#F97316", border: "1px solid rgba(249,115,22,0.3)" } : { color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}
+                        >{t.emoji} {t.label}</button>
+                      ))}
+                    </div>
+                    <button onClick={criarEncontro} className="w-full py-2 rounded-xl font-mono text-[10px] font-bold tracking-widest active:scale-95 transition-all" style={{ background: "rgba(249,115,22,0.15)", color: "#F97316", border: "1px solid rgba(249,115,22,0.25)" }}>
+                      📅 CRIAR ENCONTRO
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Lista */}
+              {encontros.filter(e => !e.concluido).map(e => {
+                const emoji = e.tipo === "date" ? "🌹" : e.tipo === "aniversario" ? "🎂" : "✨";
+                const diasAte = Math.ceil((new Date(e.data_evento + "T12:00:00").getTime() - Date.now()) / 86400000);
+                return (
+                  <div key={e.id} className="rounded-xl p-3 flex items-center gap-3" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--secondary) / 0.3)" }}>
+                    <button onClick={() => toggleEncontro(e.id, e.concluido)} className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 active:scale-90" style={{ border: "2px solid rgba(249,115,22,0.3)" }}>
+                      <span className="text-sm">{emoji}</span>
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-mono text-sm font-bold text-foreground truncate">{e.titulo}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="font-mono text-[9px] text-muted-foreground">{new Date(e.data_evento + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                        {diasAte >= 0 && <span className="font-mono text-[8px] font-bold" style={{ color: diasAte <= 7 ? "#FB7185" : "#F97316" }}>{diasAte === 0 ? "HOJE!" : `em ${diasAte} dia${diasAte > 1 ? "s" : ""}`}</span>}
+                      </div>
+                    </div>
+                    <button onClick={() => deletarEncontro(e.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors"><Trash2 size={12} /></button>
+                  </div>
+                );
+              })}
+
+              {encontros.filter(e => e.concluido).length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="font-mono text-[9px] tracking-widest text-muted-foreground">CONCLUÍDOS</p>
+                  {encontros.filter(e => e.concluido).map(e => (
+                    <div key={e.id} className="rounded-xl p-3 flex items-center gap-3 opacity-50" style={{ border: "1px solid hsl(var(--border))" }}>
+                      <button onClick={() => toggleEncontro(e.id, e.concluido)} className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "#F97316" }}><Check size={12} className="text-white" /></button>
+                      <span className="font-mono text-sm text-foreground line-through flex-1">{e.titulo}</span>
+                      <button onClick={() => deletarEncontro(e.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors"><Trash2 size={12} /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {encontros.length === 0 && !criandoEncontro && (
+                <div className="rounded-2xl p-4 text-center" style={{ border: "1px dashed rgba(249,115,22,0.2)" }}>
+                  <p className="font-mono text-[10px] text-muted-foreground">Nenhum encontro agendado. Planeje momentos especiais! 🌹</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
         </AnimatePresence>
       </div>
 
@@ -736,7 +897,7 @@ export default function ModoCamila() {
       )}
 
       <p className="font-mono text-[9px] text-muted-foreground/40 text-center mt-4 pb-4">
-        Projeto Alfa 1000 · Modo Camila 🍃
+        Projeto Alfa 1000 · Modo Amor 🍃
       </p>
     </div>
   );
