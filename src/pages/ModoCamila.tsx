@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X, Sun, Moon, Leaf, Search } from "lucide-react";
+import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X, Sun, Moon, Leaf, Search, CalendarHeart, HeartHandshake } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/components/ThemeProvider";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
@@ -42,7 +42,7 @@ export default function ModoCamila() {
   const plano = planosDisponiveis[0];
   const passagemHoje = plano.leituras[(new Date().getDate() - 1) % plano.leituras.length];
 
-  const [abaAtiva, setAbaAtiva] = useState<"reflexao" | "oracao" | "mensagem" | "notas" | "tarefas">("reflexao");
+  const [abaAtiva, setAbaAtiva] = useState<"reflexao" | "oracao" | "mensagem" | "notas" | "tarefas" | "gratidao" | "agenda">("reflexao");
   const [reflexao, setReflexao] = useState("");
   const [leituraFeita, setLeituraFeita] = useState(false);
   const [oracaoTab, setOracaoTab] = useState<"gratidao" | "pedidos" | "intercessao">("gratidao");
