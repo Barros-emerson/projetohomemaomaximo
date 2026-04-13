@@ -431,13 +431,13 @@ const Biblia = () => {
       }
     }
 
-    // Fallback: open WhatsApp link
+    // Fallback: open WhatsApp directly with phone number pre-filled
     const numero = contatoParaEnviar.numero.replace(/\D/g, "");
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(previewMsg)}`;
+    const url = `https://api.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(previewMsg)}`;
     window.open(url, "_blank");
     cleanupMp3Preview();
     setShowPreviewModal(false);
-    toast.success("WhatsApp aberto! Confirme o envio 💛");
+    toast.success("WhatsApp aberto direto na conversa! Só confirmar o envio 💛");
   };
 
   const cleanupMp3Preview = () => {
