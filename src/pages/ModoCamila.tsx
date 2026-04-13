@@ -127,6 +127,16 @@ export default function ModoCamila() {
           .select("*")
           .order("created_at", { ascending: false });
         if (tarefasData) setTarefas(tarefasData as TarefaItem[]);
+
+        // Gratidão Mútua
+        const { data: gratAmor } = await supabase.from("gratidao_mutua").select("texto").eq("data", dataHoje).eq("autor", "amor").limit(1);
+        if (gratAmor && gratAmor.length > 0) { setGratidaoTexto(gratAmor[0].texto); setGratidaoSalva(true); }
+        const { data: gratEm } = await supabase.from("gratidao_mutua").select("texto").eq("data", dataHoje).eq("autor", "emerson").limit(1);
+        if (gratEm && gratEm.length > 0) setGratidaoEmerson(gratEm[0].texto);
+
+        // Agenda de Encontros
+        const { data: encontrosData } = await supabase.from("agenda_encontros").select("*").order("data_evento", { ascending: true });
+        if (encontrosData) setEncontros(encontrosData);
       } catch (err) {
         console.error(err);
       } finally {
