@@ -214,7 +214,7 @@ export default function ModoCamila() {
         <div>
           <p className="font-mono text-[9px] tracking-[0.2em] font-bold" style={{ color: ACCENT }}>MODO CAMILA</p>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xl font-bold text-foreground mt-1">
-            Bom dia, Amor 🍃
+            {new Date().getHours() < 12 ? "Bom dia" : new Date().getHours() < 18 ? "Boa tarde" : "Boa noite"}, Amor 🍃
           </motion.p>
           <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
             {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}
