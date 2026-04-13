@@ -145,11 +145,13 @@ export default function ModoCamila() {
     } catch (err) { console.error(err); }
     finally { setSalvando(false); }
   }, [dataHoje, reflexao, leituraFeita, oracoes]);
-  const buscarTextoBiblia = useCallback(async () => {
+  const buscarTextoBiblia = useCallback(async (passagemCustom?: string) => {
+    const passagem = passagemCustom || passagemHoje.passagem;
     setCarregandoBiblia(true);
+    setPassagemAtual(passagem);
     try {
       const { data, error } = await supabase.functions.invoke("buscar-biblia", {
-        body: { passagem: passagemHoje.passagem, versao: versaoBiblia },
+        body: { passagem, versao: versaoBiblia },
       });
       if (error) throw error;
       setTextoBiblia(data.chapters || []);
@@ -161,6 +163,11 @@ export default function ModoCamila() {
       setCarregandoBiblia(false);
     }
   }, [passagemHoje.passagem, versaoBiblia]);
+
+  const buscarPassagemPersonalizada = useCallback(() => {
+    if (!buscaPersonalizada.trim()) return;
+    buscarTextoBiblia(buscaPersonalizada.trim());
+  }, [buscaPersonalizada, buscarTextoBiblia]);
   const enviarMensagem = useCallback(async () => {
     if (!mensagem.trim()) return;
     setSalvando(true);
