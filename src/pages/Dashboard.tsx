@@ -211,6 +211,13 @@ const Dashboard = () => {
     setAguaAnim(true);
     setTimeout(() => setAguaAnim(false), 400);
   }, []);
+
+  const concluirTarefaCamila = useCallback(async (id: string) => {
+    try {
+      await supabase.from("camila_tarefas").update({ concluida: true }).eq("id", id);
+      setTarefasCamila(prev => prev.filter(t => t.id !== id));
+    } catch (err) { console.error(err); }
+  }, []);
   
   useEffect(() => {
     const update = async () => {
