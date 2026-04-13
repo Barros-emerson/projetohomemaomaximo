@@ -55,6 +55,11 @@ export default function ModoCamila() {
   const [oracoesEmerson, setOracoesEmerson] = useState<OracaoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReflexaoEmerson, setShowReflexaoEmerson] = useState(false);
+  const [showLeitor, setShowLeitor] = useState(false);
+  const [textoBiblia, setTextoBiblia] = useState<{ book: string; chapter: number; text: string }[]>([]);
+  const [carregandoBiblia, setCarregandoBiblia] = useState(false);
+  const [versaoBiblia, setVersaoBiblia] = useState(() => localStorage.getItem("camila-versao-biblia") || "NTLH");
+  const leitorRef = useRef<HTMLDivElement>(null);
 
   // Notas
   const [notas, setNotas] = useState<NotaItem[]>([]);
