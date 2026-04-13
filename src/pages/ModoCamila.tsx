@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll } from "lucide-react";
+import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
 
@@ -12,6 +12,8 @@ const getWeekOfYear = () =>
   Math.ceil(((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7);
 
 interface OracaoItem { id: string; tipo: string; conteudo: string; data: string; }
+interface NotaItem { id: string; titulo: string; conteudo: string; cor: string; created_at: string; }
+interface TarefaItem { id: string; titulo: string; concluida: boolean; criado_por: string; created_at: string; }
 
 const Tab = ({ label, icon: Icon, active, onClick, color }: { label: string; icon: any; active: boolean; onClick: () => void; color: string }) => (
   <button
@@ -34,7 +36,7 @@ export default function ModoCamila() {
   const plano = planosDisponiveis[0];
   const passagemHoje = plano.leituras[(new Date().getDate() - 1) % plano.leituras.length];
 
-  const [abaAtiva, setAbaAtiva] = useState<"reflexao" | "oracao" | "mensagem">("reflexao");
+  const [abaAtiva, setAbaAtiva] = useState<"reflexao" | "oracao" | "mensagem" | "notas" | "tarefas">("reflexao");
   const [reflexao, setReflexao] = useState("");
   const [leituraFeita, setLeituraFeita] = useState(false);
   const [oracaoTab, setOracaoTab] = useState<"gratidao" | "pedidos" | "intercessao">("gratidao");
@@ -47,6 +49,17 @@ export default function ModoCamila() {
   const [oracoesEmerson, setOracoesEmerson] = useState<OracaoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReflexaoEmerson, setShowReflexaoEmerson] = useState(false);
+
+  // Notas
+  const [notas, setNotas] = useState<NotaItem[]>([]);
+  const [novaNota, setNovaNota] = useState({ titulo: "", conteudo: "" });
+  const [editandoNota, setEditandoNota] = useState<string | null>(null);
+  const [notaEditando, setNotaEditando] = useState({ titulo: "", conteudo: "" });
+  const coresNotas = ["#FB7185", "#A78BFA", "#34D399", "#FBBF24", "#60A5FA"];
+
+  // Tarefas
+  const [tarefas, setTarefas] = useState<TarefaItem[]>([]);
+  const [novaTarefa, setNovaTarefa] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -76,6 +89,20 @@ export default function ModoCamila() {
           .order("created_at", { ascending: false })
           .limit(5);
         if (pedidos) setOracoesEmerson(pedidos as OracaoItem[]);
+
+        // Notas
+        const { data: notasData } = await supabase
+          .from("camila_notas")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (notasData) setNotas(notasData as NotaItem[]);
+
+        // Tarefas
+        const { data: tarefasData } = await supabase
+          .from("camila_tarefas")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (tarefasData) setTarefas(tarefasData as TarefaItem[]);
       } catch (err) {
         console.error(err);
       } finally {
@@ -109,6 +136,57 @@ export default function ModoCamila() {
     } catch (err) { console.error(err); }
     finally { setSalvando(false); }
   }, [dataHoje, mensagem, horarioMensagem]);
+
+  // NOTAS CRUD
+  const criarNota = useCallback(async () => {
+    if (!novaNota.titulo.trim() && !novaNota.conteudo.trim()) return;
+    try {
+      const cor = coresNotas[Math.floor(Math.random() * coresNotas.length)];
+      const { data } = await supabase.from("camila_notas").insert({ titulo: novaNota.titulo.trim(), conteudo: novaNota.conteudo.trim(), cor }).select().single();
+      if (data) setNotas(prev => [data as NotaItem, ...prev]);
+      setNovaNota({ titulo: "", conteudo: "" });
+    } catch (err) { console.error(err); }
+  }, [novaNota]);
+
+  const salvarNotaEditada = useCallback(async () => {
+    if (!editandoNota) return;
+    try {
+      await supabase.from("camila_notas").update({ titulo: notaEditando.titulo, conteudo: notaEditando.conteudo }).eq("id", editandoNota);
+      setNotas(prev => prev.map(n => n.id === editandoNota ? { ...n, titulo: notaEditando.titulo, conteudo: notaEditando.conteudo } : n));
+      setEditandoNota(null);
+    } catch (err) { console.error(err); }
+  }, [editandoNota, notaEditando]);
+
+  const deletarNota = useCallback(async (id: string) => {
+    try {
+      await supabase.from("camila_notas").delete().eq("id", id);
+      setNotas(prev => prev.filter(n => n.id !== id));
+    } catch (err) { console.error(err); }
+  }, []);
+
+  // TAREFAS CRUD
+  const criarTarefa = useCallback(async () => {
+    if (!novaTarefa.trim()) return;
+    try {
+      const { data } = await supabase.from("camila_tarefas").insert({ titulo: novaTarefa.trim(), criado_por: "camila" }).select().single();
+      if (data) setTarefas(prev => [data as TarefaItem, ...prev]);
+      setNovaTarefa("");
+    } catch (err) { console.error(err); }
+  }, [novaTarefa]);
+
+  const toggleTarefa = useCallback(async (id: string, concluida: boolean) => {
+    try {
+      await supabase.from("camila_tarefas").update({ concluida: !concluida }).eq("id", id);
+      setTarefas(prev => prev.map(t => t.id === id ? { ...t, concluida: !concluida } : t));
+    } catch (err) { console.error(err); }
+  }, []);
+
+  const deletarTarefa = useCallback(async (id: string) => {
+    try {
+      await supabase.from("camila_tarefas").delete().eq("id", id);
+      setTarefas(prev => prev.filter(t => t.id !== id));
+    } catch (err) { console.error(err); }
+  }, []);
 
   if (loading) {
     return (
@@ -176,10 +254,14 @@ export default function ModoCamila() {
 
       {/* Abas principais */}
       <div className="px-5 mb-4">
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 flex-wrap">
           <Tab label="REFLEXÃO" icon={Scroll} active={abaAtiva === "reflexao"} onClick={() => setAbaAtiva("reflexao")} color="#FB7185" />
           <Tab label="ORAÇÃO" icon={HandHeart} active={abaAtiva === "oracao"} onClick={() => setAbaAtiva("oracao")} color="#A78BFA" />
           <Tab label="AMOR" icon={MessageCircleHeart} active={abaAtiva === "mensagem"} onClick={() => setAbaAtiva("mensagem")} color="#34D399" />
+        </div>
+        <div className="flex gap-1.5 mt-1.5">
+          <Tab label="NOTAS" icon={StickyNote} active={abaAtiva === "notas"} onClick={() => setAbaAtiva("notas")} color="#FBBF24" />
+          <Tab label="TAREFAS" icon={ListChecks} active={abaAtiva === "tarefas"} onClick={() => setAbaAtiva("tarefas")} color="#60A5FA" />
         </div>
       </div>
 
@@ -290,27 +372,168 @@ export default function ModoCamila() {
             </motion.div>
           )}
 
+          {/* NOTAS */}
+          {abaAtiva === "notas" && (
+            <motion.div key="notas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
+              {/* Nova nota */}
+              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(251,191,36,0.2)", background: "rgba(251,191,36,0.04)" }}>
+                <p className="font-mono text-[9px] tracking-widest text-amber-400 mb-2">NOVA NOTA</p>
+                <input
+                  value={novaNota.titulo}
+                  onChange={(e) => setNovaNota(prev => ({ ...prev, titulo: e.target.value }))}
+                  placeholder="Título..."
+                  className="w-full bg-transparent font-mono text-sm font-bold text-foreground placeholder:text-muted-foreground/40 outline-none mb-2"
+                />
+                <textarea
+                  value={novaNota.conteudo}
+                  onChange={(e) => setNovaNota(prev => ({ ...prev, conteudo: e.target.value }))}
+                  placeholder="Escreva sua nota..."
+                  className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[60px] leading-relaxed"
+                />
+                <button
+                  onClick={criarNota}
+                  className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[10px] font-bold tracking-wider transition-all active:scale-95"
+                  style={{ background: "rgba(251,191,36,0.2)", color: "#FBBF24" }}
+                >
+                  <Plus size={12} /> SALVAR NOTA
+                </button>
+              </div>
+
+              {/* Lista de notas */}
+              {notas.map(n => (
+                <div key={n.id} className="rounded-2xl p-4 relative" style={{ border: `1px solid ${n.cor}30`, background: `${n.cor}08` }}>
+                  {editandoNota === n.id ? (
+                    <>
+                      <input value={notaEditando.titulo} onChange={(e) => setNotaEditando(prev => ({ ...prev, titulo: e.target.value }))} className="w-full bg-transparent font-mono text-sm font-bold text-foreground outline-none mb-1" />
+                      <textarea value={notaEditando.conteudo} onChange={(e) => setNotaEditando(prev => ({ ...prev, conteudo: e.target.value }))} className="w-full bg-transparent font-mono text-xs text-foreground/80 outline-none resize-none min-h-[40px] leading-relaxed" />
+                      <div className="flex gap-2 mt-2">
+                        <button onClick={salvarNotaEditada} className="font-mono text-[9px] font-bold px-2 py-1 rounded-lg" style={{ background: `${n.cor}20`, color: n.cor }}>SALVAR</button>
+                        <button onClick={() => setEditandoNota(null)} className="font-mono text-[9px] text-muted-foreground">CANCELAR</button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => { setEditandoNota(n.id); setNotaEditando({ titulo: n.titulo, conteudo: n.conteudo }); }}
+                        className="w-full text-left"
+                      >
+                        {n.titulo && <p className="font-mono text-sm font-bold text-foreground mb-1">{n.titulo}</p>}
+                        <p className="font-mono text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap">{n.conteudo}</p>
+                      </button>
+                      <button onClick={() => deletarNota(n.id)} className="absolute top-3 right-3 text-muted-foreground/40 hover:text-destructive transition-colors">
+                        <Trash2 size={12} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              ))}
+
+              {notas.length === 0 && (
+                <div className="rounded-2xl p-4 text-center" style={{ border: "1px dashed rgba(251,191,36,0.2)" }}>
+                  <p className="font-mono text-[10px] text-muted-foreground">Nenhuma nota ainda. Crie a primeira! ✍️</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* TAREFAS */}
+          {abaAtiva === "tarefas" && (
+            <motion.div key="tarefas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
+              {/* Nova tarefa */}
+              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(96,165,250,0.2)", background: "rgba(96,165,250,0.04)" }}>
+                <p className="font-mono text-[9px] tracking-widest text-blue-400 mb-2">NOVA TAREFA</p>
+                <div className="flex gap-2">
+                  <input
+                    value={novaTarefa}
+                    onChange={(e) => setNovaTarefa(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && criarTarefa()}
+                    placeholder="Ex: Comprar leite..."
+                    className="flex-1 bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none"
+                  />
+                  <button
+                    onClick={criarTarefa}
+                    className="px-3 py-1.5 rounded-lg transition-all active:scale-95"
+                    style={{ background: "rgba(96,165,250,0.2)", color: "#60A5FA" }}
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Lista de tarefas */}
+              {tarefas.filter(t => !t.concluida).length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="font-mono text-[9px] tracking-widest text-blue-400">PENDENTES</p>
+                  {tarefas.filter(t => !t.concluida).map(t => (
+                    <div key={t.id} className="flex items-center gap-3 rounded-xl p-3" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--secondary) / 0.3)" }}>
+                      <button
+                        onClick={() => toggleTarefa(t.id, t.concluida)}
+                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all active:scale-90"
+                        style={{ border: "2px solid rgba(96,165,250,0.3)" }}
+                      />
+                      <span className="font-mono text-sm text-foreground flex-1">{t.titulo}</span>
+                      <span className="font-mono text-[8px] text-muted-foreground/50">{t.criado_por === "camila" ? "🌸" : "💪"}</span>
+                      <button onClick={() => deletarTarefa(t.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors">
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {tarefas.filter(t => t.concluida).length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="font-mono text-[9px] tracking-widest text-muted-foreground">CONCLUÍDAS</p>
+                  {tarefas.filter(t => t.concluida).map(t => (
+                    <div key={t.id} className="flex items-center gap-3 rounded-xl p-3 opacity-50" style={{ border: "1px solid hsl(var(--border))" }}>
+                      <button
+                        onClick={() => toggleTarefa(t.id, t.concluida)}
+                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ background: "#60A5FA" }}
+                      >
+                        <Check size={12} className="text-white" />
+                      </button>
+                      <span className="font-mono text-sm text-foreground line-through flex-1">{t.titulo}</span>
+                      <button onClick={() => deletarTarefa(t.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors">
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {tarefas.length === 0 && (
+                <div className="rounded-2xl p-4 text-center" style={{ border: "1px dashed rgba(96,165,250,0.2)" }}>
+                  <p className="font-mono text-[10px] text-muted-foreground">Nenhuma tarefa ainda. Adicione acima! ✅</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
         </AnimatePresence>
       </div>
 
-      {/* Botão salvar */}
-      <div className="px-5 pt-6">
-        <button
-          onClick={abaAtiva === "mensagem" ? enviarMensagem : salvarDevocional}
-          disabled={salvando}
-          className="w-full py-4 rounded-2xl font-mono text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-60"
-          style={{
-            background: salvo ? "#34D399" : abaAtiva === "mensagem" ? "#34D399" : "#FB7185",
-            color: "#fff",
-            boxShadow: `0 8px 24px ${abaAtiva === "mensagem" ? "rgba(52,211,153,0.3)" : "rgba(251,113,133,0.3)"}`,
-          }}
-        >
-          {salvo ? <><Check size={18} /> SALVO!</> : abaAtiva === "mensagem" ? <><Send size={18} /> ENVIAR MENSAGEM</> : <><Heart size={18} /> {salvando ? "SALVANDO..." : "SALVAR DEVOCIONAL"}</>}
-        </button>
-        <p className="font-mono text-[9px] text-muted-foreground/40 text-center mt-3">
-          Projeto Alfa 1000 · Modo Camila 🌸
-        </p>
-      </div>
+      {/* Botão salvar — só para reflexão/oração/mensagem */}
+      {(abaAtiva === "reflexao" || abaAtiva === "oracao" || abaAtiva === "mensagem") && (
+        <div className="px-5 pt-6">
+          <button
+            onClick={abaAtiva === "mensagem" ? enviarMensagem : salvarDevocional}
+            disabled={salvando}
+            className="w-full py-4 rounded-2xl font-mono text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-60"
+            style={{
+              background: salvo ? "#34D399" : abaAtiva === "mensagem" ? "#34D399" : "#FB7185",
+              color: "#fff",
+              boxShadow: `0 8px 24px ${abaAtiva === "mensagem" ? "rgba(52,211,153,0.3)" : "rgba(251,113,133,0.3)"}`,
+            }}
+          >
+            {salvo ? <><Check size={18} /> SALVO!</> : abaAtiva === "mensagem" ? <><Send size={18} /> ENVIAR MENSAGEM</> : <><Heart size={18} /> {salvando ? "SALVANDO..." : "SALVAR DEVOCIONAL"}</>}
+          </button>
+        </div>
+      )}
+
+      <p className="font-mono text-[9px] text-muted-foreground/40 text-center mt-4 pb-4">
+        Projeto Alfa 1000 · Modo Camila 🌸
+      </p>
     </div>
   );
 }

@@ -98,6 +98,57 @@ export type Database = {
         }
         Relationships: []
       }
+      camila_notas: {
+        Row: {
+          conteudo: string | null
+          cor: string | null
+          created_at: string | null
+          id: string
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          conteudo?: string | null
+          cor?: string | null
+          created_at?: string | null
+          id?: string
+          titulo?: string
+          updated_at?: string | null
+        }
+        Update: {
+          conteudo?: string | null
+          cor?: string | null
+          created_at?: string | null
+          id?: string
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      camila_tarefas: {
+        Row: {
+          concluida: boolean | null
+          created_at: string | null
+          criado_por: string
+          id: string
+          titulo: string
+        }
+        Insert: {
+          concluida?: boolean | null
+          created_at?: string | null
+          criado_por?: string
+          id?: string
+          titulo: string
+        }
+        Update: {
+          concluida?: boolean | null
+          created_at?: string | null
+          criado_por?: string
+          id?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       checklist_items: {
         Row: {
           created_at: string
