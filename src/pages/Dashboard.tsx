@@ -189,6 +189,15 @@ const Dashboard = () => {
       setChecklistPct(clPct);
       setAguaMl(agua);
       setTipoDia(tipo as TipoDia);
+
+      // Tarefas da Camila para o Emerson
+      const { data: tarefasData } = await supabase
+        .from("camila_tarefas")
+        .select("id, titulo, concluida")
+        .eq("para_quem", "emerson")
+        .eq("concluida", false)
+        .order("created_at", { ascending: false });
+      if (tarefasData) setTarefasCamila(tarefasData);
     };
     loadData();
   }, []);
