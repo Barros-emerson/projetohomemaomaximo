@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X, Sun, Moon } from "lucide-react";
+import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X, Sun, Moon, Leaf } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/components/ThemeProvider";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
@@ -11,6 +11,10 @@ const hoje = () => {
 };
 const getWeekOfYear = () =>
   Math.ceil(((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7);
+
+// Cor principal: Sage / Verde menta delicado
+const ACCENT = "#86BBBD";
+const ACCENT_RGB = "134,187,189";
 
 interface OracaoItem { id: string; tipo: string; conteudo: string; data: string; }
 interface NotaItem { id: string; titulo: string; conteudo: string; cor: string; created_at: string; }
@@ -57,7 +61,7 @@ export default function ModoCamila() {
   const [novaNota, setNovaNota] = useState({ titulo: "", conteudo: "" });
   const [editandoNota, setEditandoNota] = useState<string | null>(null);
   const [notaEditando, setNotaEditando] = useState({ titulo: "", conteudo: "" });
-  const coresNotas = ["#FB7185", "#A78BFA", "#34D399", "#FBBF24", "#60A5FA"];
+  const coresNotas = [ACCENT, "#A78BFA", "#34D399", "#FBBF24", "#60A5FA"];
 
   // Tarefas
   const [tarefas, setTarefas] = useState<TarefaItem[]>([]);
@@ -195,7 +199,7 @@ export default function ModoCamila() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Flame size={28} className="text-pink-400 animate-pulse" />
+          <Leaf size={28} style={{ color: ACCENT }} className="animate-pulse" />
           <p className="font-mono text-xs text-muted-foreground">Carregando...</p>
         </div>
       </div>
@@ -208,9 +212,9 @@ export default function ModoCamila() {
       {/* Header */}
       <div className="px-5 pt-8 pb-4 flex items-center justify-between">
         <div>
-          <p className="font-mono text-[9px] tracking-[0.2em] text-pink-400 font-bold">MODO CAMILA</p>
+          <p className="font-mono text-[9px] tracking-[0.2em] font-bold" style={{ color: ACCENT }}>MODO CAMILA</p>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xl font-bold text-foreground mt-1">
-            Bom dia, Amor 🌸
+            Bom dia, Amor 🍃
           </motion.p>
           <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
             {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}
@@ -220,13 +224,13 @@ export default function ModoCamila() {
           <button
             onClick={toggleTheme}
             className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
-            style={{ border: "1px solid rgba(244,114,182,0.3)", background: "rgba(244,114,182,0.05)" }}
+            style={{ border: `1px solid rgba(${ACCENT_RGB},0.3)`, background: `rgba(${ACCENT_RGB},0.05)` }}
           >
-            {theme === "dark" ? <Sun size={16} className="text-pink-400" /> : <Moon size={16} className="text-pink-400" />}
+            {theme === "dark" ? <Sun size={16} style={{ color: ACCENT }} /> : <Moon size={16} style={{ color: ACCENT }} />}
           </button>
           <div className="flex flex-col items-center gap-1">
-            <Heart size={20} className="text-pink-400" />
-            <span className="font-mono text-[9px] font-bold text-pink-400">
+            <Leaf size={20} style={{ color: ACCENT }} />
+            <span className="font-mono text-[9px] font-bold" style={{ color: ACCENT }}>
               {leituraFeita ? "✓" : "—"}
             </span>
           </div>
@@ -247,16 +251,16 @@ export default function ModoCamila() {
       <div className="px-5 mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BookOpen size={16} className="text-pink-400" />
+            <BookOpen size={16} style={{ color: ACCENT }} />
             <div>
-              <p className="font-mono text-[9px] tracking-widest text-pink-400">LEITURA DO DIA</p>
+              <p className="font-mono text-[9px] tracking-widest" style={{ color: ACCENT }}>LEITURA DO DIA</p>
               <p className="text-sm font-medium text-foreground">{passagemHoje.passagem}</p>
             </div>
           </div>
           <button
             onClick={() => setLeituraFeita(!leituraFeita)}
             className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90 shrink-0 ml-3"
-            style={leituraFeita ? { background: "#FB7185" } : { border: "2px solid rgba(244,114,182,0.3)" }}
+            style={leituraFeita ? { background: ACCENT } : { border: `2px solid rgba(${ACCENT_RGB},0.3)` }}
           >
             {leituraFeita && <Check size={16} className="text-white" />}
           </button>
@@ -267,7 +271,7 @@ export default function ModoCamila() {
       {/* Abas principais */}
       <div className="px-5 mb-4">
         <div className="flex gap-1.5 flex-wrap">
-          <Tab label="REFLEXÃO" icon={Scroll} active={abaAtiva === "reflexao"} onClick={() => setAbaAtiva("reflexao")} color="#FB7185" />
+          <Tab label="REFLEXÃO" icon={Scroll} active={abaAtiva === "reflexao"} onClick={() => setAbaAtiva("reflexao")} color={ACCENT} />
           <Tab label="ORAÇÃO" icon={HandHeart} active={abaAtiva === "oracao"} onClick={() => setAbaAtiva("oracao")} color="#A78BFA" />
           <Tab label="AMOR" icon={MessageCircleHeart} active={abaAtiva === "mensagem"} onClick={() => setAbaAtiva("mensagem")} color="#34D399" />
         </div>
@@ -284,8 +288,8 @@ export default function ModoCamila() {
           {/* REFLEXÃO */}
           {abaAtiva === "reflexao" && (
             <motion.div key="reflexao" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
-              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(251,113,133,0.2)", background: "rgba(251,113,133,0.04)" }}>
-                <p className="font-mono text-[9px] tracking-widest text-pink-400 mb-2">O QUE DEUS FALOU COM VOCÊ HOJE?</p>
+              <div className="rounded-2xl p-4" style={{ border: `1px solid rgba(${ACCENT_RGB},0.2)`, background: `rgba(${ACCENT_RGB},0.04)` }}>
+                <p className="font-mono text-[9px] tracking-widest mb-2" style={{ color: ACCENT }}>O QUE DEUS FALOU COM VOCÊ HOJE?</p>
                 <textarea
                   value={reflexao}
                   onChange={(e) => setReflexao(e.target.value)}
@@ -295,11 +299,11 @@ export default function ModoCamila() {
               </div>
 
               {reflexaoEmerson ? (
-                <button onClick={() => setShowReflexaoEmerson(!showReflexaoEmerson)} className="w-full text-left rounded-2xl p-4 transition-all active:scale-[0.98]" style={{ background: "rgba(251,113,133,0.05)", border: "1px solid rgba(251,113,133,0.15)" }}>
+                <button onClick={() => setShowReflexaoEmerson(!showReflexaoEmerson)} className="w-full text-left rounded-2xl p-4 transition-all active:scale-[0.98]" style={{ background: `rgba(${ACCENT_RGB},0.05)`, border: `1px solid rgba(${ACCENT_RGB},0.15)` }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Heart size={14} style={{ color: "#FB7185" }} />
-                      <span className="font-mono text-[9px] tracking-widest" style={{ color: "#FB7185" }}>REFLEXÃO DO EMERSON HOJE</span>
+                      <Heart size={14} style={{ color: ACCENT }} />
+                      <span className="font-mono text-[9px] tracking-widest" style={{ color: ACCENT }}>REFLEXÃO DO EMERSON HOJE</span>
                     </div>
                     <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 ${showReflexaoEmerson ? "rotate-180" : ""}`} />
                   </div>
@@ -312,7 +316,7 @@ export default function ModoCamila() {
                   </AnimatePresence>
                 </button>
               ) : (
-                <div className="rounded-2xl p-4 text-center" style={{ border: "1px dashed rgba(251,113,133,0.2)" }}>
+                <div className="rounded-2xl p-4 text-center" style={{ border: `1px dashed rgba(${ACCENT_RGB},0.2)` }}>
                   <p className="font-mono text-[10px] text-muted-foreground">Emerson ainda não registrou a reflexão de hoje</p>
                 </div>
               )}
@@ -339,13 +343,13 @@ export default function ModoCamila() {
                 />
               </div>
               {oracoesEmerson.length > 0 && oracaoTab === "intercessao" && (
-                <div className="rounded-2xl p-4 space-y-2" style={{ border: "1px solid rgba(251,113,133,0.15)", background: "rgba(251,113,133,0.04)" }}>
+                <div className="rounded-2xl p-4 space-y-2" style={{ border: `1px solid rgba(${ACCENT_RGB},0.15)`, background: `rgba(${ACCENT_RGB},0.04)` }}>
                   <div className="flex items-center gap-1.5 mb-2">
-                    <Shield size={12} style={{ color: "#FB7185" }} />
-                    <p className="font-mono text-[9px] tracking-widest" style={{ color: "#FB7185" }}>PEDIDOS DO EMERSON</p>
+                    <Shield size={12} style={{ color: ACCENT }} />
+                    <p className="font-mono text-[9px] tracking-widest" style={{ color: ACCENT }}>PEDIDOS DO EMERSON</p>
                   </div>
                   {oracoesEmerson.map((o) => (
-                    <p key={o.id} className="font-mono text-xs text-foreground/80 leading-relaxed border-l-2 pl-3" style={{ borderColor: "rgba(251,113,133,0.4)" }}>{o.conteudo}</p>
+                    <p key={o.id} className="font-mono text-xs text-foreground/80 leading-relaxed border-l-2 pl-3" style={{ borderColor: `rgba(${ACCENT_RGB},0.4)` }}>{o.conteudo}</p>
                   ))}
                 </div>
               )}
@@ -475,11 +479,11 @@ export default function ModoCamila() {
                     onClick={() => setNovaTarefaParaQuem("camila")}
                     className="flex-1 py-1.5 rounded-lg font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95"
                     style={novaTarefaParaQuem === "camila"
-                      ? { background: "rgba(251,113,133,0.2)", color: "#FB7185", border: "1px solid rgba(251,113,133,0.3)" }
+                      ? { background: `rgba(${ACCENT_RGB},0.2)`, color: ACCENT, border: `1px solid rgba(${ACCENT_RGB},0.3)` }
                       : { color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }
                     }
                   >
-                    🌸 SÓ MINHA
+                    🍃 SÓ MINHA
                   </button>
                   <button
                     onClick={() => setNovaTarefaParaQuem("emerson")}
@@ -506,8 +510,8 @@ export default function ModoCamila() {
                         style={{ border: "2px solid rgba(96,165,250,0.3)" }}
                       />
                       <span className="font-mono text-sm text-foreground flex-1">{t.titulo}</span>
-                      <span className="font-mono text-[8px] px-1.5 py-0.5 rounded-full" style={t.para_quem === "emerson" ? { background: "rgba(96,165,250,0.15)", color: "#60A5FA" } : { background: "rgba(251,113,133,0.15)", color: "#FB7185" }}>
-                        {t.para_quem === "emerson" ? "💪 EMERSON" : "🌸 MINHA"}
+                      <span className="font-mono text-[8px] px-1.5 py-0.5 rounded-full" style={t.para_quem === "emerson" ? { background: "rgba(96,165,250,0.15)", color: "#60A5FA" } : { background: `rgba(${ACCENT_RGB},0.15)`, color: ACCENT }}>
+                        {t.para_quem === "emerson" ? "💪 EMERSON" : "🍃 MINHA"}
                       </span>
                       <button onClick={() => deletarTarefa(t.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors">
                         <Trash2 size={12} />
@@ -557,9 +561,9 @@ export default function ModoCamila() {
             disabled={salvando}
             className="w-full py-4 rounded-2xl font-mono text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-60"
             style={{
-              background: salvo ? "#34D399" : abaAtiva === "mensagem" ? "#34D399" : "#FB7185",
+              background: salvo ? "#34D399" : abaAtiva === "mensagem" ? "#34D399" : ACCENT,
               color: "#fff",
-              boxShadow: `0 8px 24px ${abaAtiva === "mensagem" ? "rgba(52,211,153,0.3)" : "rgba(251,113,133,0.3)"}`,
+              boxShadow: `0 8px 24px ${abaAtiva === "mensagem" ? "rgba(52,211,153,0.3)" : `rgba(${ACCENT_RGB},0.3)`}`,
             }}
           >
             {salvo ? <><Check size={18} /> SALVO!</> : abaAtiva === "mensagem" ? <><Send size={18} /> ENVIAR MENSAGEM</> : <><Heart size={18} /> {salvando ? "SALVANDO..." : "SALVAR DEVOCIONAL"}</>}
@@ -568,7 +572,7 @@ export default function ModoCamila() {
       )}
 
       <p className="font-mono text-[9px] text-muted-foreground/40 text-center mt-4 pb-4">
-        Projeto Alfa 1000 · Modo Camila 🌸
+        Projeto Alfa 1000 · Modo Camila 🍃
       </p>
     </div>
   );
