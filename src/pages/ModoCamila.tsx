@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X, Sun, Moon, Leaf } from "lucide-react";
+import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X, Sun, Moon, Leaf, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/components/ThemeProvider";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
@@ -59,6 +59,8 @@ export default function ModoCamila() {
   const [textoBiblia, setTextoBiblia] = useState<{ book: string; chapter: number; text: string }[]>([]);
   const [carregandoBiblia, setCarregandoBiblia] = useState(false);
   const [versaoBiblia, setVersaoBiblia] = useState(() => localStorage.getItem("camila-versao-biblia") || "NTLH");
+  const [buscaPersonalizada, setBuscaPersonalizada] = useState("");
+  const [passagemAtual, setPassagemAtual] = useState("");
   const leitorRef = useRef<HTMLDivElement>(null);
 
   // Notas
@@ -143,11 +145,13 @@ export default function ModoCamila() {
     } catch (err) { console.error(err); }
     finally { setSalvando(false); }
   }, [dataHoje, reflexao, leituraFeita, oracoes]);
-  const buscarTextoBiblia = useCallback(async () => {
+  const buscarTextoBiblia = useCallback(async (passagemCustom?: string) => {
+    const passagem = passagemCustom || passagemHoje.passagem;
     setCarregandoBiblia(true);
+    setPassagemAtual(passagem);
     try {
       const { data, error } = await supabase.functions.invoke("buscar-biblia", {
-        body: { passagem: passagemHoje.passagem, versao: versaoBiblia },
+        body: { passagem, versao: versaoBiblia },
       });
       if (error) throw error;
       setTextoBiblia(data.chapters || []);
@@ -159,6 +163,11 @@ export default function ModoCamila() {
       setCarregandoBiblia(false);
     }
   }, [passagemHoje.passagem, versaoBiblia]);
+
+  const buscarPassagemPersonalizada = useCallback(() => {
+    if (!buscaPersonalizada.trim()) return;
+    buscarTextoBiblia(buscaPersonalizada.trim());
+  }, [buscaPersonalizada, buscarTextoBiblia]);
   const enviarMensagem = useCallback(async () => {
     if (!mensagem.trim()) return;
     setSalvando(true);
@@ -286,7 +295,7 @@ export default function ModoCamila() {
           </div>
           <div className="flex items-center gap-2 shrink-0 ml-3">
             <button
-              onClick={buscarTextoBiblia}
+              onClick={() => buscarTextoBiblia()}
               disabled={carregandoBiblia}
               className="h-9 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-90 font-mono text-[9px] font-bold tracking-wider disabled:opacity-50"
               style={{ border: `1.5px solid rgba(${ACCENT_RGB},0.4)`, color: ACCENT }}
@@ -347,7 +356,33 @@ export default function ModoCamila() {
                   </button>
                 </div>
 
-                {/* Texto bíblico */}
+                {/* Busca personalizada */}
+                <div className="flex gap-1.5 mb-3">
+                  <input
+                    value={buscaPersonalizada}
+                    onChange={(e) => setBuscaPersonalizada(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && buscarPassagemPersonalizada()}
+                    placeholder="Ex: João 3, Salmo 23, Romanos 8"
+                    className="flex-1 bg-transparent text-sm rounded-xl px-3 py-2 border placeholder:text-muted-foreground/50"
+                    style={{ borderColor: `rgba(${ACCENT_RGB},0.25)` }}
+                  />
+                  <button
+                    onClick={buscarPassagemPersonalizada}
+                    disabled={carregandoBiblia || !buscaPersonalizada.trim()}
+                    className="px-3 rounded-xl font-mono text-[9px] font-bold tracking-wider transition-all active:scale-90 disabled:opacity-40"
+                    style={{ background: ACCENT, color: "#fff" }}
+                  >
+                    {carregandoBiblia ? "..." : "BUSCAR"}
+                  </button>
+                </div>
+
+                {passagemAtual && (
+                  <p className="font-mono text-[10px] tracking-wider mb-2 text-muted-foreground">
+                    Lendo: <span style={{ color: ACCENT }} className="font-bold">{passagemAtual}</span>
+                  </p>
+                )}
+
+
                 <div className="max-h-[50vh] overflow-y-auto pr-1 space-y-4 scrollbar-thin">
                   {textoBiblia.map((ch, i) => (
                     <div key={i}>
