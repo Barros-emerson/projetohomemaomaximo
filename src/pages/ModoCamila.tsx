@@ -620,8 +620,8 @@ export default function ModoCamila() {
           {abaAtiva === "tarefas" && (
             <motion.div key="tarefas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
               {/* Nova tarefa */}
-              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(96,165,250,0.2)", background: "rgba(96,165,250,0.04)" }}>
-                <p className="font-mono text-[9px] tracking-widest text-blue-400 mb-2">NOVA TAREFA</p>
+              <div className="rounded-2xl p-3 sm:p-4" style={{ border: "1px solid rgba(96,165,250,0.2)", background: "rgba(96,165,250,0.04)" }}>
+                <p className="font-mono text-[9px] tracking-widest text-blue-400 mb-1.5 sm:mb-2">NOVA TAREFA</p>
                 <div className="flex gap-2 mb-2">
                   <input
                     value={novaTarefa}
