@@ -340,6 +340,28 @@ const Dashboard = () => {
         </motion.div>
       )}
 
+      {/* Notificação Camila */}
+      {tarefasCamila.length > 0 && (
+        <motion.div
+          variants={fadeUp}
+          onClick={() => {
+            const el = document.getElementById("camila-tarefas-card");
+            el?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }}
+          className="flex items-center gap-2.5 px-3 py-2 rounded-xl cursor-pointer active:scale-[0.98] transition-transform"
+          style={{ background: "rgba(251,113,133,0.08)", border: "1px solid rgba(251,113,133,0.15)" }}
+        >
+          <span className="text-sm">🌸</span>
+          <span className="font-mono text-[11px] font-medium flex-1" style={{ color: "#FB7185" }}>
+            Camila deixou {tarefasCamila.length} tarefa{tarefasCamila.length > 1 ? "s" : ""} pra você
+          </span>
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: "#FB7185" }} />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: "#FB7185" }} />
+          </span>
+        </motion.div>
+      )}
+
       {/* Card Ontem */}
       {resumoOntem && (
         <motion.div
