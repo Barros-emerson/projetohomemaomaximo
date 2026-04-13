@@ -31,7 +31,7 @@ const Tab = ({ label, icon: Icon, active, onClick, color }: { label: string; ico
 );
 
 export default function ModoCamila() {
-  const { theme, setTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const dataHoje = hoje();
   const semana = getWeekOfYear();
   const versiculo = versiculosMemorizacao[(semana - 1) % versiculosMemorizacao.length];
