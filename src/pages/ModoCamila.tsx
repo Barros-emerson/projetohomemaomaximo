@@ -243,30 +243,30 @@ export default function ModoCamila() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-10">
+    <div className="min-h-screen bg-background pb-24">
 
       {/* Header */}
-      <div className="px-5 pt-8 pb-4 flex items-center justify-between">
-        <div>
+      <div className="px-4 sm:px-5 pt-6 sm:pt-8 pb-3 sm:pb-4 flex items-center justify-between">
+        <div className="min-w-0 flex-1">
           <p className="font-mono text-[9px] tracking-[0.2em] font-bold" style={{ color: ACCENT }}>MODO CAMILA</p>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xl font-bold text-foreground mt-1">
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-lg sm:text-xl font-bold text-foreground mt-0.5 sm:mt-1 truncate">
             {new Date().getHours() < 12 ? "Bom dia" : new Date().getHours() < 18 ? "Boa tarde" : "Boa noite"}, Amor 🍃
           </motion.p>
           <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
             {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={toggleTheme}
-            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
             style={{ border: `1px solid rgba(${ACCENT_RGB},0.3)`, background: `rgba(${ACCENT_RGB},0.05)` }}
           >
-            {theme === "dark" ? <Sun size={16} style={{ color: ACCENT }} /> : <Moon size={16} style={{ color: ACCENT }} />}
+            {theme === "dark" ? <Sun size={15} style={{ color: ACCENT }} /> : <Moon size={15} style={{ color: ACCENT }} />}
           </button>
-          <div className="flex flex-col items-center gap-1">
-            <Leaf size={20} style={{ color: ACCENT }} />
-            <span className="font-mono text-[9px] font-bold" style={{ color: ACCENT }}>
+          <div className="flex flex-col items-center gap-0.5">
+            <Leaf size={18} style={{ color: ACCENT }} />
+            <span className="font-mono text-[8px] font-bold" style={{ color: ACCENT }}>
               {leituraFeita ? "✓" : "—"}
             </span>
           </div>
@@ -274,12 +274,12 @@ export default function ModoCamila() {
       </div>
 
       {/* Versículo */}
-      <div className="px-5 mb-4">
-        <div className="flex items-center gap-1.5 mb-2">
+      <div className="px-4 sm:px-5 mb-3 sm:mb-4">
+        <div className="flex items-center gap-1.5 mb-1.5">
           <Sparkles size={12} className="text-violet-400" />
           <span className="font-mono text-[9px] tracking-widest text-violet-400">VERSÍCULO DA SEMANA</span>
         </div>
-        <p className="text-sm text-foreground/90 leading-relaxed italic">"{versiculo.texto}"</p>
+        <p className="text-[13px] sm:text-sm text-foreground/90 leading-relaxed italic">"{versiculo.texto}"</p>
         <p className="text-[11px] text-violet-400 mt-1 font-medium">{versiculo.referencia}</p>
       </div>
 
