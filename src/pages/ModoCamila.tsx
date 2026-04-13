@@ -12,6 +12,8 @@ const getWeekOfYear = () =>
   Math.ceil(((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7);
 
 interface OracaoItem { id: string; tipo: string; conteudo: string; data: string; }
+interface NotaItem { id: string; titulo: string; conteudo: string; cor: string; created_at: string; }
+interface TarefaItem { id: string; titulo: string; concluida: boolean; criado_por: string; created_at: string; }
 
 const Tab = ({ label, icon: Icon, active, onClick, color }: { label: string; icon: any; active: boolean; onClick: () => void; color: string }) => (
   <button
