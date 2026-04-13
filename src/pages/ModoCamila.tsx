@@ -89,6 +89,20 @@ export default function ModoCamila() {
           .order("created_at", { ascending: false })
           .limit(5);
         if (pedidos) setOracoesEmerson(pedidos as OracaoItem[]);
+
+        // Notas
+        const { data: notasData } = await supabase
+          .from("camila_notas")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (notasData) setNotas(notasData as NotaItem[]);
+
+        // Tarefas
+        const { data: tarefasData } = await supabase
+          .from("camila_tarefas")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (tarefasData) setTarefas(tarefasData as TarefaItem[]);
       } catch (err) {
         console.error(err);
       } finally {
