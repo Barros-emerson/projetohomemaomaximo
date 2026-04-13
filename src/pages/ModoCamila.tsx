@@ -897,7 +897,7 @@ export default function ModoCamila() {
       )}
 
       <p className="font-mono text-[9px] text-muted-foreground/40 text-center mt-4 pb-4">
-        Projeto Alfa 1000 · Modo Camila 🍃
+        Projeto Alfa 1000 · Modo Amor 🍃
       </p>
     </div>
   );
