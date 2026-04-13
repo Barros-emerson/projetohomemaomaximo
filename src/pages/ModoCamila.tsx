@@ -75,6 +75,16 @@ export default function ModoCamila() {
   const [novaTarefa, setNovaTarefa] = useState("");
   const [novaTarefaParaQuem, setNovaTarefaParaQuem] = useState<"camila" | "emerson">("camila");
 
+  // Gratidão Mútua
+  const [gratidaoTexto, setGratidaoTexto] = useState("");
+  const [gratidaoEmerson, setGratidaoEmerson] = useState("");
+  const [gratidaoSalva, setGratidaoSalva] = useState(false);
+
+  // Agenda de Encontros
+  const [encontros, setEncontros] = useState<Array<{ id: string; titulo: string; descricao: string; data_evento: string; tipo: string; concluido: boolean }>>([]);
+  const [novoEncontro, setNovoEncontro] = useState({ titulo: "", descricao: "", data_evento: "", tipo: "date" });
+  const [criandoEncontro, setCriandoEncontro] = useState(false);
+
   useEffect(() => {
     const load = async () => {
       try {
