@@ -169,11 +169,11 @@ export default function ModoCamila() {
   const criarTarefa = useCallback(async () => {
     if (!novaTarefa.trim()) return;
     try {
-      const { data } = await supabase.from("camila_tarefas").insert({ titulo: novaTarefa.trim(), criado_por: "camila" }).select().single();
+      const { data } = await supabase.from("camila_tarefas").insert({ titulo: novaTarefa.trim(), criado_por: "camila", para_quem: novaTarefaParaQuem }).select().single();
       if (data) setTarefas(prev => [data as TarefaItem, ...prev]);
       setNovaTarefa("");
     } catch (err) { console.error(err); }
-  }, [novaTarefa]);
+  }, [novaTarefa, novaTarefaParaQuem]);
 
   const toggleTarefa = useCallback(async (id: string, concluida: boolean) => {
     try {
