@@ -13,7 +13,7 @@ const getWeekOfYear = () =>
 
 interface OracaoItem { id: string; tipo: string; conteudo: string; data: string; }
 interface NotaItem { id: string; titulo: string; conteudo: string; cor: string; created_at: string; }
-interface TarefaItem { id: string; titulo: string; concluida: boolean; criado_por: string; created_at: string; }
+interface TarefaItem { id: string; titulo: string; concluida: boolean; criado_por: string; para_quem: string; created_at: string; }
 
 const Tab = ({ label, icon: Icon, active, onClick, color }: { label: string; icon: any; active: boolean; onClick: () => void; color: string }) => (
   <button
@@ -60,6 +60,7 @@ export default function ModoCamila() {
   // Tarefas
   const [tarefas, setTarefas] = useState<TarefaItem[]>([]);
   const [novaTarefa, setNovaTarefa] = useState("");
+  const [novaTarefaParaQuem, setNovaTarefaParaQuem] = useState<"camila" | "emerson">("camila");
 
   useEffect(() => {
     const load = async () => {
