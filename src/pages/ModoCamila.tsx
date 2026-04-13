@@ -372,27 +372,168 @@ export default function ModoCamila() {
             </motion.div>
           )}
 
+          {/* NOTAS */}
+          {abaAtiva === "notas" && (
+            <motion.div key="notas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
+              {/* Nova nota */}
+              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(251,191,36,0.2)", background: "rgba(251,191,36,0.04)" }}>
+                <p className="font-mono text-[9px] tracking-widest text-amber-400 mb-2">NOVA NOTA</p>
+                <input
+                  value={novaNota.titulo}
+                  onChange={(e) => setNovaNota(prev => ({ ...prev, titulo: e.target.value }))}
+                  placeholder="Título..."
+                  className="w-full bg-transparent font-mono text-sm font-bold text-foreground placeholder:text-muted-foreground/40 outline-none mb-2"
+                />
+                <textarea
+                  value={novaNota.conteudo}
+                  onChange={(e) => setNovaNota(prev => ({ ...prev, conteudo: e.target.value }))}
+                  placeholder="Escreva sua nota..."
+                  className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[60px] leading-relaxed"
+                />
+                <button
+                  onClick={criarNota}
+                  className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[10px] font-bold tracking-wider transition-all active:scale-95"
+                  style={{ background: "rgba(251,191,36,0.2)", color: "#FBBF24" }}
+                >
+                  <Plus size={12} /> SALVAR NOTA
+                </button>
+              </div>
+
+              {/* Lista de notas */}
+              {notas.map(n => (
+                <div key={n.id} className="rounded-2xl p-4 relative" style={{ border: `1px solid ${n.cor}30`, background: `${n.cor}08` }}>
+                  {editandoNota === n.id ? (
+                    <>
+                      <input value={notaEditando.titulo} onChange={(e) => setNotaEditando(prev => ({ ...prev, titulo: e.target.value }))} className="w-full bg-transparent font-mono text-sm font-bold text-foreground outline-none mb-1" />
+                      <textarea value={notaEditando.conteudo} onChange={(e) => setNotaEditando(prev => ({ ...prev, conteudo: e.target.value }))} className="w-full bg-transparent font-mono text-xs text-foreground/80 outline-none resize-none min-h-[40px] leading-relaxed" />
+                      <div className="flex gap-2 mt-2">
+                        <button onClick={salvarNotaEditada} className="font-mono text-[9px] font-bold px-2 py-1 rounded-lg" style={{ background: `${n.cor}20`, color: n.cor }}>SALVAR</button>
+                        <button onClick={() => setEditandoNota(null)} className="font-mono text-[9px] text-muted-foreground">CANCELAR</button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => { setEditandoNota(n.id); setNotaEditando({ titulo: n.titulo, conteudo: n.conteudo }); }}
+                        className="w-full text-left"
+                      >
+                        {n.titulo && <p className="font-mono text-sm font-bold text-foreground mb-1">{n.titulo}</p>}
+                        <p className="font-mono text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap">{n.conteudo}</p>
+                      </button>
+                      <button onClick={() => deletarNota(n.id)} className="absolute top-3 right-3 text-muted-foreground/40 hover:text-destructive transition-colors">
+                        <Trash2 size={12} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              ))}
+
+              {notas.length === 0 && (
+                <div className="rounded-2xl p-4 text-center" style={{ border: "1px dashed rgba(251,191,36,0.2)" }}>
+                  <p className="font-mono text-[10px] text-muted-foreground">Nenhuma nota ainda. Crie a primeira! ✍️</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* TAREFAS */}
+          {abaAtiva === "tarefas" && (
+            <motion.div key="tarefas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
+              {/* Nova tarefa */}
+              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(96,165,250,0.2)", background: "rgba(96,165,250,0.04)" }}>
+                <p className="font-mono text-[9px] tracking-widest text-blue-400 mb-2">NOVA TAREFA</p>
+                <div className="flex gap-2">
+                  <input
+                    value={novaTarefa}
+                    onChange={(e) => setNovaTarefa(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && criarTarefa()}
+                    placeholder="Ex: Comprar leite..."
+                    className="flex-1 bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none"
+                  />
+                  <button
+                    onClick={criarTarefa}
+                    className="px-3 py-1.5 rounded-lg transition-all active:scale-95"
+                    style={{ background: "rgba(96,165,250,0.2)", color: "#60A5FA" }}
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Lista de tarefas */}
+              {tarefas.filter(t => !t.concluida).length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="font-mono text-[9px] tracking-widest text-blue-400">PENDENTES</p>
+                  {tarefas.filter(t => !t.concluida).map(t => (
+                    <div key={t.id} className="flex items-center gap-3 rounded-xl p-3" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--secondary) / 0.3)" }}>
+                      <button
+                        onClick={() => toggleTarefa(t.id, t.concluida)}
+                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all active:scale-90"
+                        style={{ border: "2px solid rgba(96,165,250,0.3)" }}
+                      />
+                      <span className="font-mono text-sm text-foreground flex-1">{t.titulo}</span>
+                      <span className="font-mono text-[8px] text-muted-foreground/50">{t.criado_por === "camila" ? "🌸" : "💪"}</span>
+                      <button onClick={() => deletarTarefa(t.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors">
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {tarefas.filter(t => t.concluida).length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="font-mono text-[9px] tracking-widest text-muted-foreground">CONCLUÍDAS</p>
+                  {tarefas.filter(t => t.concluida).map(t => (
+                    <div key={t.id} className="flex items-center gap-3 rounded-xl p-3 opacity-50" style={{ border: "1px solid hsl(var(--border))" }}>
+                      <button
+                        onClick={() => toggleTarefa(t.id, t.concluida)}
+                        className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ background: "#60A5FA" }}
+                      >
+                        <Check size={12} className="text-white" />
+                      </button>
+                      <span className="font-mono text-sm text-foreground line-through flex-1">{t.titulo}</span>
+                      <button onClick={() => deletarTarefa(t.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors">
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {tarefas.length === 0 && (
+                <div className="rounded-2xl p-4 text-center" style={{ border: "1px dashed rgba(96,165,250,0.2)" }}>
+                  <p className="font-mono text-[10px] text-muted-foreground">Nenhuma tarefa ainda. Adicione acima! ✅</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
         </AnimatePresence>
       </div>
 
-      {/* Botão salvar */}
-      <div className="px-5 pt-6">
-        <button
-          onClick={abaAtiva === "mensagem" ? enviarMensagem : salvarDevocional}
-          disabled={salvando}
-          className="w-full py-4 rounded-2xl font-mono text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-60"
-          style={{
-            background: salvo ? "#34D399" : abaAtiva === "mensagem" ? "#34D399" : "#FB7185",
-            color: "#fff",
-            boxShadow: `0 8px 24px ${abaAtiva === "mensagem" ? "rgba(52,211,153,0.3)" : "rgba(251,113,133,0.3)"}`,
-          }}
-        >
-          {salvo ? <><Check size={18} /> SALVO!</> : abaAtiva === "mensagem" ? <><Send size={18} /> ENVIAR MENSAGEM</> : <><Heart size={18} /> {salvando ? "SALVANDO..." : "SALVAR DEVOCIONAL"}</>}
-        </button>
-        <p className="font-mono text-[9px] text-muted-foreground/40 text-center mt-3">
-          Projeto Alfa 1000 · Modo Camila 🌸
-        </p>
-      </div>
+      {/* Botão salvar — só para reflexão/oração/mensagem */}
+      {(abaAtiva === "reflexao" || abaAtiva === "oracao" || abaAtiva === "mensagem") && (
+        <div className="px-5 pt-6">
+          <button
+            onClick={abaAtiva === "mensagem" ? enviarMensagem : salvarDevocional}
+            disabled={salvando}
+            className="w-full py-4 rounded-2xl font-mono text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-60"
+            style={{
+              background: salvo ? "#34D399" : abaAtiva === "mensagem" ? "#34D399" : "#FB7185",
+              color: "#fff",
+              boxShadow: `0 8px 24px ${abaAtiva === "mensagem" ? "rgba(52,211,153,0.3)" : "rgba(251,113,133,0.3)"}`,
+            }}
+          >
+            {salvo ? <><Check size={18} /> SALVO!</> : abaAtiva === "mensagem" ? <><Send size={18} /> ENVIAR MENSAGEM</> : <><Heart size={18} /> {salvando ? "SALVANDO..." : "SALVAR DEVOCIONAL"}</>}
+          </button>
+        </div>
+      )}
+
+      <p className="font-mono text-[9px] text-muted-foreground/40 text-center mt-4 pb-4">
+        Projeto Alfa 1000 · Modo Camila 🌸
+      </p>
     </div>
   );
 }
