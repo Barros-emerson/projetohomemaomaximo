@@ -498,6 +498,10 @@ export default function ModoCamila() {
           <Tab label="NOTAS" icon={StickyNote} active={abaAtiva === "notas"} onClick={() => setAbaAtiva("notas")} color="#FBBF24" />
           <Tab label="TAREFAS" icon={ListChecks} active={abaAtiva === "tarefas"} onClick={() => setAbaAtiva("tarefas")} color="#60A5FA" />
         </div>
+        <div className="flex gap-1 sm:gap-1.5 mt-1 sm:mt-1.5">
+          <Tab label="GRATIDÃO" icon={HeartHandshake} active={abaAtiva === "gratidao"} onClick={() => setAbaAtiva("gratidao")} color="#FB7185" />
+          <Tab label="AGENDA" icon={CalendarHeart} active={abaAtiva === "agenda"} onClick={() => setAbaAtiva("agenda")} color="#F97316" />
+        </div>
       </div>
 
       {/* Conteúdo */}
