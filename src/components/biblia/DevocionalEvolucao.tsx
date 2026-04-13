@@ -267,35 +267,6 @@ const DevocionalEvolucao = () => {
         </div>
       </div>
 
-      {/* 28-day heatmap */}
-      <div>
-        <p className="text-[10px] font-mono text-muted-foreground tracking-widest mb-2">ÚLTIMAS 4 SEMANAS</p>
-        <div className="space-y-1.5">
-          {heatmapWeeks.map((week, wi) => (
-            <div key={wi} className="flex gap-1.5">
-              {week.map((day, di) => (
-                <div
-                  key={di}
-                  className={`flex-1 h-6 rounded ${getScoreColor(day.score)} transition-colors`}
-                  title={`${day.date}: ${day.score}/3`}
-                />
-              ))}
-            </div>
-          ))}
-          <div className="flex justify-between px-0.5">
-            {WEEKDAYS.map(d => (
-              <span key={d} className="text-[8px] text-muted-foreground/50 font-mono flex-1 text-center">{d}</span>
-            ))}
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-1.5 mt-2">
-          <span className="text-[8px] text-muted-foreground font-mono">0</span>
-          {[0, 1, 2, 3].map(s => (
-            <div key={s} className={`w-3 h-3 rounded ${getScoreColor(s)}`} />
-          ))}
-          <span className="text-[8px] text-muted-foreground font-mono">3</span>
-        </div>
-      </div>
     </motion.div>
   );
 };
