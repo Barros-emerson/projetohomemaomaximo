@@ -284,16 +284,16 @@ export default function ModoCamila() {
       </div>
 
       {/* Passagem + leitura integrada */}
-      <div className="px-5 mb-4">
-        <div className="flex items-center justify-between">
+      <div className="px-4 sm:px-5 mb-3 sm:mb-4">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <BookOpen size={16} style={{ color: ACCENT }} className="shrink-0" />
+            <BookOpen size={15} style={{ color: ACCENT }} className="shrink-0" />
             <div className="min-w-0">
               <p className="font-mono text-[9px] tracking-widest" style={{ color: ACCENT }}>LEITURA DO DIA</p>
-              <p className="text-sm font-medium text-foreground truncate">{passagemHoje.passagem}</p>
+              <p className="text-[13px] sm:text-sm font-medium text-foreground truncate">{passagemHoje.passagem}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0 ml-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={() => buscarTextoBiblia()}
               disabled={carregandoBiblia}
