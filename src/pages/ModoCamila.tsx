@@ -329,9 +329,9 @@ export default function ModoCamila() {
               transition={{ duration: 0.3 }}
               className="overflow-hidden"
             >
-              <div className="mt-3 rounded-2xl p-4 border" style={{ borderColor: `rgba(${ACCENT_RGB},0.2)`, background: `rgba(${ACCENT_RGB},0.05)` }}>
+              <div className="mt-3 rounded-2xl p-3 sm:p-4 border" style={{ borderColor: `rgba(${ACCENT_RGB},0.2)`, background: `rgba(${ACCENT_RGB},0.05)` }}>
                 {/* Header do leitor */}
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
                   <div className="flex items-center gap-2">
                     <select
                       value={versaoBiblia}
