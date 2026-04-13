@@ -18,6 +18,7 @@ import Notas from "@/pages/Notas";
 import Historico from "@/pages/Historico";
 import Performance from "@/pages/Performance";
 import ModoFoco from "@/pages/ModoFoco";
+import ModoCamila from "@/pages/ModoCamila";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
