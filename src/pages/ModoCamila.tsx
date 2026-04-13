@@ -137,6 +137,57 @@ export default function ModoCamila() {
     finally { setSalvando(false); }
   }, [dataHoje, mensagem, horarioMensagem]);
 
+  // NOTAS CRUD
+  const criarNota = useCallback(async () => {
+    if (!novaNota.titulo.trim() && !novaNota.conteudo.trim()) return;
+    try {
+      const cor = coresNotas[Math.floor(Math.random() * coresNotas.length)];
+      const { data } = await supabase.from("camila_notas").insert({ titulo: novaNota.titulo.trim(), conteudo: novaNota.conteudo.trim(), cor }).select().single();
+      if (data) setNotas(prev => [data as NotaItem, ...prev]);
+      setNovaNota({ titulo: "", conteudo: "" });
+    } catch (err) { console.error(err); }
+  }, [novaNota]);
+
+  const salvarNotaEditada = useCallback(async () => {
+    if (!editandoNota) return;
+    try {
+      await supabase.from("camila_notas").update({ titulo: notaEditando.titulo, conteudo: notaEditando.conteudo }).eq("id", editandoNota);
+      setNotas(prev => prev.map(n => n.id === editandoNota ? { ...n, titulo: notaEditando.titulo, conteudo: notaEditando.conteudo } : n));
+      setEditandoNota(null);
+    } catch (err) { console.error(err); }
+  }, [editandoNota, notaEditando]);
+
+  const deletarNota = useCallback(async (id: string) => {
+    try {
+      await supabase.from("camila_notas").delete().eq("id", id);
+      setNotas(prev => prev.filter(n => n.id !== id));
+    } catch (err) { console.error(err); }
+  }, []);
+
+  // TAREFAS CRUD
+  const criarTarefa = useCallback(async () => {
+    if (!novaTarefa.trim()) return;
+    try {
+      const { data } = await supabase.from("camila_tarefas").insert({ titulo: novaTarefa.trim(), criado_por: "camila" }).select().single();
+      if (data) setTarefas(prev => [data as TarefaItem, ...prev]);
+      setNovaTarefa("");
+    } catch (err) { console.error(err); }
+  }, [novaTarefa]);
+
+  const toggleTarefa = useCallback(async (id: string, concluida: boolean) => {
+    try {
+      await supabase.from("camila_tarefas").update({ concluida: !concluida }).eq("id", id);
+      setTarefas(prev => prev.map(t => t.id === id ? { ...t, concluida: !concluida } : t));
+    } catch (err) { console.error(err); }
+  }, []);
+
+  const deletarTarefa = useCallback(async (id: string) => {
+    try {
+      await supabase.from("camila_tarefas").delete().eq("id", id);
+      setTarefas(prev => prev.filter(t => t.id !== id));
+    } catch (err) { console.error(err); }
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
