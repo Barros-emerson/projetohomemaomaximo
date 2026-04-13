@@ -571,6 +571,29 @@ const Dashboard = () => {
         </div>
       </motion.button>
 
+      {/* Tarefas da Camila */}
+      {tarefasCamila.length > 0 && (
+        <motion.div variants={fadeUp} className="surface-card p-4" style={{ borderColor: "rgba(251,113,133,0.2)" }}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-base">🌸</span>
+            <span className="font-mono text-[10px] font-bold tracking-widest" style={{ color: "#FB7185" }}>CAMILA PEDIU</span>
+            <span className="font-mono text-[9px] text-muted-foreground ml-auto">{tarefasCamila.length} pendente{tarefasCamila.length > 1 ? "s" : ""}</span>
+          </div>
+          <div className="space-y-1.5">
+            {tarefasCamila.map(t => (
+              <div key={t.id} className="flex items-center gap-3 rounded-xl p-2.5" style={{ background: "rgba(251,113,133,0.04)", border: "1px solid rgba(251,113,133,0.1)" }}>
+                <button
+                  onClick={() => concluirTarefaCamila(t.id)}
+                  className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all active:scale-90"
+                  style={{ border: "2px solid rgba(251,113,133,0.3)" }}
+                />
+                <span className="font-mono text-sm text-foreground flex-1">{t.titulo}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       {/* Training card */}
       <motion.button
         variants={fadeUp}
