@@ -251,6 +251,41 @@ export default function ModoCamila() {
     } catch (err) { console.error(err); }
   }, []);
 
+  // Gratidão Mútua
+  const salvarGratidao = useCallback(async () => {
+    if (!gratidaoTexto.trim()) return;
+    try {
+      await supabase.from("gratidao_mutua").upsert({ data: dataHoje, autor: "amor", texto: gratidaoTexto.trim() }, { onConflict: "data,autor" });
+      setGratidaoSalva(true);
+      setSalvo(true);
+      setTimeout(() => setSalvo(false), 2000);
+    } catch (err) { console.error(err); }
+  }, [gratidaoTexto, dataHoje]);
+
+  // Agenda de Encontros
+  const criarEncontro = useCallback(async () => {
+    if (!novoEncontro.titulo.trim() || !novoEncontro.data_evento) return;
+    try {
+      const { data } = await supabase.from("agenda_encontros").insert({
+        titulo: novoEncontro.titulo.trim(), descricao: novoEncontro.descricao.trim(),
+        data_evento: novoEncontro.data_evento, tipo: novoEncontro.tipo
+      }).select().single();
+      if (data) setEncontros(prev => [...prev, data].sort((a, b) => a.data_evento.localeCompare(b.data_evento)));
+      setNovoEncontro({ titulo: "", descricao: "", data_evento: "", tipo: "date" });
+      setCriandoEncontro(false);
+    } catch (err) { console.error(err); }
+  }, [novoEncontro]);
+
+  const toggleEncontro = useCallback(async (id: string, concluido: boolean) => {
+    await supabase.from("agenda_encontros").update({ concluido: !concluido }).eq("id", id);
+    setEncontros(prev => prev.map(e => e.id === id ? { ...e, concluido: !concluido } : e));
+  }, []);
+
+  const deletarEncontro = useCallback(async (id: string) => {
+    await supabase.from("agenda_encontros").delete().eq("id", id);
+    setEncontros(prev => prev.filter(e => e.id !== id));
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
