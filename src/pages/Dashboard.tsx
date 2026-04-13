@@ -168,6 +168,9 @@ const Dashboard = () => {
   const [fraseAtual, setFraseAtual] = useState(() => getFraseHoje());
   const [fraseKey, setFraseKey] = useState(0);
   const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Tarefas da Camila para o Emerson
+  const [tarefasCamila, setTarefasCamila] = useState<Array<{ id: string; titulo: string; concluida: boolean }>>([]);
   const META_AGUA = 3500;
 
   const CICLO_AGUA = 2800;
