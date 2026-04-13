@@ -935,7 +935,7 @@ const Biblia = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-base">🌸</span>
-              <span className="font-mono text-[10px] font-bold tracking-widest" style={{ color: "#FB7185" }}>CAMILA HOJE</span>
+              <span className="font-mono text-[10px] font-bold tracking-widest" style={{ color: "#FB7185" }}>AMOR HOJE</span>
             </div>
             <div className="flex items-center gap-2">
               {leituraCamilaFeita && (
@@ -976,7 +976,7 @@ const Biblia = () => {
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-mono text-[10px] font-bold tracking-wider transition-all active:scale-95"
           style={{ background: "rgba(251,113,133,0.1)", border: "1px solid rgba(251,113,133,0.2)", color: "#FB7185" }}
         >
-          🌸 Abrir Modo Camila
+          🌸 Abrir Modo Amor
         </button>
       </div>
 
