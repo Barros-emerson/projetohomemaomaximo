@@ -573,11 +573,18 @@ const Dashboard = () => {
 
       {/* Tarefas da Camila */}
       {tarefasCamila.length > 0 && (
-        <motion.div variants={fadeUp} className="surface-card p-4" style={{ borderColor: "rgba(251,113,133,0.2)" }}>
+        <motion.div variants={fadeUp} className="surface-card p-4 relative overflow-hidden" style={{ borderColor: "rgba(251,113,133,0.2)" }}>
+          <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: "linear-gradient(90deg, #FB7185, #F9A8D4, #FB7185)" }} />
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">🌸</span>
             <span className="font-mono text-[10px] font-bold tracking-widest" style={{ color: "#FB7185" }}>CAMILA PEDIU</span>
-            <span className="font-mono text-[9px] text-muted-foreground ml-auto">{tarefasCamila.length} pendente{tarefasCamila.length > 1 ? "s" : ""}</span>
+            <span className="ml-auto flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: "#FB7185" }} />
+                <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: "#FB7185" }} />
+              </span>
+              <span className="font-mono text-[9px] font-bold" style={{ color: "#FB7185" }}>{tarefasCamila.length}</span>
+            </span>
           </div>
           <div className="space-y-1.5">
             {tarefasCamila.map(t => (
