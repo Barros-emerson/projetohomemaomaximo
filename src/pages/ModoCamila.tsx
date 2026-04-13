@@ -523,14 +523,14 @@ export default function ModoCamila() {
           {/* MENSAGEM DE AMOR */}
           {abaAtiva === "mensagem" && (
             <motion.div key="mensagem" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(52,211,153,0.2)", background: "rgba(52,211,153,0.04)" }}>
+              <div className="rounded-2xl p-3 sm:p-4" style={{ border: "1px solid rgba(52,211,153,0.2)", background: "rgba(52,211,153,0.04)" }}>
                 <p className="font-mono text-[9px] tracking-widest text-emerald-400 mb-0.5">MENSAGEM PARA O EMERSON</p>
-                <p className="font-mono text-[10px] text-muted-foreground mb-3">Aparece na rotina dele no horário que você escolher 💚</p>
+                <p className="font-mono text-[10px] text-muted-foreground mb-2 sm:mb-3">Aparece na rotina dele no horário que você escolher 💚</p>
                 <textarea
                   value={mensagem}
                   onChange={(e) => setMensagem(e.target.value)}
                   placeholder="Ex: Vai arrasar no treino hoje! Te amo muito 💪🙏"
-                  className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[80px] leading-relaxed"
+                  className="w-full bg-transparent font-mono text-[13px] sm:text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[70px] sm:min-h-[80px] leading-relaxed"
                 />
                 <div className="mt-3 pt-3 border-t border-border/50">
                   <p className="font-mono text-[9px] text-muted-foreground tracking-wider mb-2">APARECER NA ROTINA ÀS:</p>
