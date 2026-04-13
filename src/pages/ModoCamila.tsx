@@ -59,6 +59,8 @@ export default function ModoCamila() {
   const [textoBiblia, setTextoBiblia] = useState<{ book: string; chapter: number; text: string }[]>([]);
   const [carregandoBiblia, setCarregandoBiblia] = useState(false);
   const [versaoBiblia, setVersaoBiblia] = useState(() => localStorage.getItem("camila-versao-biblia") || "NTLH");
+  const [buscaPersonalizada, setBuscaPersonalizada] = useState("");
+  const [passagemAtual, setPassagemAtual] = useState("");
   const leitorRef = useRef<HTMLDivElement>(null);
 
   // Notas
