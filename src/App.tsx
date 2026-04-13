@@ -46,6 +46,7 @@ const App = () => (
               <Route path="/performance" element={<Performance />} />
             </Route>
             <Route path="/foco" element={<ModoFoco />} />
+            <Route path="/camila" element={<ModoCamila />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
