@@ -297,23 +297,23 @@ export default function ModoCamila() {
             <button
               onClick={() => buscarTextoBiblia()}
               disabled={carregandoBiblia}
-              className="h-9 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-90 font-mono text-[9px] font-bold tracking-wider disabled:opacity-50"
+              className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-90 font-mono text-[9px] font-bold tracking-wider disabled:opacity-50"
               style={{ border: `1.5px solid rgba(${ACCENT_RGB},0.4)`, color: ACCENT }}
             >
               {carregandoBiblia ? (
                 <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-                  <BookOpen size={14} />
+                  <BookOpen size={13} />
                 </motion.div>
               ) : (
-                <><BookOpen size={14} /> LER</>
+                <><BookOpen size={13} /> LER</>
               )}
             </button>
             <button
               onClick={() => setLeituraFeita(!leituraFeita)}
-              className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
               style={leituraFeita ? { background: ACCENT } : { border: `2px solid rgba(${ACCENT_RGB},0.3)` }}
             >
-              {leituraFeita && <Check size={16} className="text-white" />}
+              {leituraFeita && <Check size={14} className="text-white" />}
             </button>
           </div>
         </div>
