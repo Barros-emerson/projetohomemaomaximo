@@ -356,7 +356,33 @@ export default function ModoCamila() {
                   </button>
                 </div>
 
-                {/* Texto bíblico */}
+                {/* Busca personalizada */}
+                <div className="flex gap-1.5 mb-3">
+                  <input
+                    value={buscaPersonalizada}
+                    onChange={(e) => setBuscaPersonalizada(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && buscarPassagemPersonalizada()}
+                    placeholder="Ex: João 3, Salmo 23, Romanos 8"
+                    className="flex-1 bg-transparent text-sm rounded-xl px-3 py-2 border placeholder:text-muted-foreground/50"
+                    style={{ borderColor: `rgba(${ACCENT_RGB},0.25)` }}
+                  />
+                  <button
+                    onClick={buscarPassagemPersonalizada}
+                    disabled={carregandoBiblia || !buscaPersonalizada.trim()}
+                    className="px-3 rounded-xl font-mono text-[9px] font-bold tracking-wider transition-all active:scale-90 disabled:opacity-40"
+                    style={{ background: ACCENT, color: "#fff" }}
+                  >
+                    {carregandoBiblia ? "..." : "BUSCAR"}
+                  </button>
+                </div>
+
+                {passagemAtual && (
+                  <p className="font-mono text-[10px] tracking-wider mb-2 text-muted-foreground">
+                    Lendo: <span style={{ color: ACCENT }} className="font-bold">{passagemAtual}</span>
+                  </p>
+                )}
+
+
                 <div className="max-h-[50vh] overflow-y-auto pr-1 space-y-4 scrollbar-thin">
                   {textoBiblia.map((ch, i) => (
                     <div key={i}>
