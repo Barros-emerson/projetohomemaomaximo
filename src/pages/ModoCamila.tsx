@@ -295,7 +295,7 @@ export default function ModoCamila() {
           </div>
           <div className="flex items-center gap-2 shrink-0 ml-3">
             <button
-              onClick={buscarTextoBiblia}
+              onClick={() => buscarTextoBiblia()}
               disabled={carregandoBiblia}
               className="h-9 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-90 font-mono text-[9px] font-bold tracking-wider disabled:opacity-50"
               style={{ border: `1.5px solid rgba(${ACCENT_RGB},0.4)`, color: ACCENT }}
