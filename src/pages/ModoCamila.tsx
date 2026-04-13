@@ -152,8 +152,7 @@ export default function ModoCamila() {
       setCarregandoBiblia(false);
     }
   }, [passagemHoje.passagem, versaoBiblia]);
-
-
+  const enviarMensagem = useCallback(async () => {
     if (!mensagem.trim()) return;
     setSalvando(true);
     try {
