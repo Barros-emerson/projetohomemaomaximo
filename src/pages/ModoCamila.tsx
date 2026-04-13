@@ -452,13 +452,13 @@ export default function ModoCamila() {
           {/* REFLEXÃO */}
           {abaAtiva === "reflexao" && (
             <motion.div key="reflexao" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
-              <div className="rounded-2xl p-4" style={{ border: `1px solid rgba(${ACCENT_RGB},0.2)`, background: `rgba(${ACCENT_RGB},0.04)` }}>
-                <p className="font-mono text-[9px] tracking-widest mb-2" style={{ color: ACCENT }}>O QUE DEUS FALOU COM VOCÊ HOJE?</p>
+              <div className="rounded-2xl p-3 sm:p-4" style={{ border: `1px solid rgba(${ACCENT_RGB},0.2)`, background: `rgba(${ACCENT_RGB},0.04)` }}>
+                <p className="font-mono text-[9px] tracking-widest mb-1.5 sm:mb-2" style={{ color: ACCENT }}>O QUE DEUS FALOU COM VOCÊ HOJE?</p>
                 <textarea
                   value={reflexao}
                   onChange={(e) => setReflexao(e.target.value)}
-                  placeholder="Escreva sua reflexão do dia... O que o Senhor colocou em seu coração ao ler a Palavra?"
-                  className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[120px] leading-relaxed"
+                  placeholder="Escreva sua reflexão do dia..."
+                  className="w-full bg-transparent font-mono text-[13px] sm:text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[100px] sm:min-h-[120px] leading-relaxed"
                 />
               </div>
 
