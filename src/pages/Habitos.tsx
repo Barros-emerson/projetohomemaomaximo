@@ -207,10 +207,12 @@ export default function Habitos() {
               <button onClick={() => deletar(h.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors shrink-0"><Trash2 size={12} /></button>
             </div>
             {/* Mini heatmap 7 dias */}
-            <div className="flex gap-1 mt-2 justify-end">
+            <div className="flex gap-1.5 mt-2 justify-end items-center">
               {last7.map(day => (
                 <div key={day} className="flex flex-col items-center gap-0.5">
-                  <div className="w-5 h-5 rounded-md transition-all" style={isChecked(h.id, day) ? { background: h.cor } : { background: "hsl(var(--secondary))" }} />
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    {isChecked(h.id, day) ? <Check size={14} style={{ color: h.cor }} /> : <span className="text-muted-foreground/20 text-[10px]">·</span>}
+                  </div>
                   <span className="text-[7px] text-muted-foreground font-mono">
                     {new Date(day + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "narrow" })}
                   </span>
