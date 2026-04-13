@@ -173,6 +173,32 @@ const Biblia = () => {
 
   useEffect(() => { carregarOracoes(); }, [carregarOracoes]);
 
+  // Load Camila data
+  useEffect(() => {
+    const loadCamila = async () => {
+      try {
+        const { data } = await supabase
+          .from("camila_devocional")
+          .select("reflexao, leitura_feita, oracao_gratidao, oracao_pedidos, oracao_intercessao")
+          .eq("data", hoje)
+          .limit(1);
+        if (data && data.length > 0) {
+          setReflexaoCamila(data[0].reflexao || "");
+          setLeituraCamilaFeita(data[0].leitura_feita || false);
+          setOracoesCamila({ gratidao: data[0].oracao_gratidao || "", pedidos: data[0].oracao_pedidos || "", intercessao: data[0].oracao_intercessao || "" });
+        }
+        const { data: msgData } = await supabase
+          .from("camila_mensagens")
+          .select("texto")
+          .eq("data", hoje)
+          .eq("lida", false)
+          .limit(1);
+        if (msgData && msgData.length > 0) setMensagemCamila(msgData[0].texto);
+      } catch (err) { console.error(err); }
+    };
+    loadCamila();
+  }, [hoje]);
+
   const isYesterday = (dateStr: string) => {
     if (!dateStr) return false;
     const d = new Date(dateStr);
