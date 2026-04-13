@@ -18,6 +18,7 @@ import Notas from "@/pages/Notas";
 import Historico from "@/pages/Historico";
 import Performance from "@/pages/Performance";
 import ModoFoco from "@/pages/ModoFoco";
+import ModoCamila from "@/pages/ModoCamila";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/performance" element={<Performance />} />
             </Route>
             <Route path="/foco" element={<ModoFoco />} />
+            <Route path="/camila" element={<ModoCamila />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

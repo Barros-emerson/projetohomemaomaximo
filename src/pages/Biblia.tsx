@@ -85,6 +85,12 @@ const Biblia = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
+  // Modo Camila — reflexão e orações dela
+  const [reflexaoCamila, setReflexaoCamila] = useState("");
+  const [leituraCamilaFeita, setLeituraCamilaFeita] = useState(false);
+  const [mensagemCamila, setMensagemCamila] = useState("");
+  const [oracoesCamila, setOracoesCamila] = useState<{ pedidos: string; gratidao: string; intercessao: string }>({ pedidos: "", gratidao: "", intercessao: "" });
+
   const planoAtual = planosDisponiveis.find(p => p.id === planoId)!;
   const leiturasPlano = leituras[planoId] || planoAtual.leituras;
 
@@ -119,11 +125,22 @@ const Biblia = () => {
     saveAll(updated, newStreak);
   };
 
+  const salvarReflexaoPublica = async (texto: string) => {
+    if (!texto.trim()) return;
+    try {
+      await supabase.from("emerson_reflexao_publica").upsert(
+        { data: hoje, reflexao: texto },
+        { onConflict: "data" }
+      );
+    } catch (err) { console.error(err); }
+  };
+
   const salvarReflexao = () => {
     localStorage.setItem("ham-biblia-reflexao-hoje", reflexao);
     localStorage.setItem(`ham-biblia-reflexao-${hoje}`, reflexao);
     localStorage.setItem("ham-biblia-anotacoes-hoje", anotacoes);
     localStorage.setItem(`ham-biblia-anotacoes-${hoje}`, anotacoes);
+    salvarReflexaoPublica(reflexao);
     toast.success("Reflexão e anotações salvas!");
   };
 
@@ -166,6 +183,32 @@ const Biblia = () => {
   }, []);
 
   useEffect(() => { carregarOracoes(); }, [carregarOracoes]);
+
+  // Load Camila data
+  useEffect(() => {
+    const loadCamila = async () => {
+      try {
+        const { data } = await supabase
+          .from("camila_devocional")
+          .select("reflexao, leitura_feita, oracao_gratidao, oracao_pedidos, oracao_intercessao")
+          .eq("data", hoje)
+          .limit(1);
+        if (data && data.length > 0) {
+          setReflexaoCamila(data[0].reflexao || "");
+          setLeituraCamilaFeita(data[0].leitura_feita || false);
+          setOracoesCamila({ gratidao: data[0].oracao_gratidao || "", pedidos: data[0].oracao_pedidos || "", intercessao: data[0].oracao_intercessao || "" });
+        }
+        const { data: msgData } = await supabase
+          .from("camila_mensagens")
+          .select("texto")
+          .eq("data", hoje)
+          .eq("lida", false)
+          .limit(1);
+        if (msgData && msgData.length > 0) setMensagemCamila(msgData[0].texto);
+      } catch (err) { console.error(err); }
+    };
+    loadCamila();
+  }, [hoje]);
 
   const isYesterday = (dateStr: string) => {
     if (!dateStr) return false;
@@ -880,6 +923,62 @@ const Biblia = () => {
 
       {/* Evolução e validação do devocional */}
       <DevocionalEvolucao />
+
+      {/* Card Camila — reflexão e status */}
+      {(reflexaoCamila || leituraCamilaFeita || mensagemCamila) && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl p-4 space-y-3"
+          style={{ background: "rgba(244,114,182,0.06)", border: "1px solid rgba(244,114,182,0.2)" }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-base">🌸</span>
+              <span className="font-mono text-[10px] font-bold tracking-widest" style={{ color: "#FB7185" }}>CAMILA HOJE</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {leituraCamilaFeita && (
+                <span className="font-mono text-[9px] px-2 py-0.5 rounded-full font-bold" style={{ background: "rgba(244,114,182,0.15)", color: "#FB7185" }}>
+                  ✓ Leitura feita
+                </span>
+              )}
+            </div>
+          </div>
+
+          {mensagemCamila ? (
+            <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.2)" }}>
+              <p className="font-mono text-[9px] text-emerald-400 tracking-widest mb-1">MENSAGEM PARA VOCÊ</p>
+              <p className="font-mono text-sm text-foreground leading-relaxed">💚 {mensagemCamila}</p>
+            </div>
+          ) : null}
+
+          {reflexaoCamila ? (
+            <div>
+              <p className="font-mono text-[9px] text-muted-foreground tracking-widest mb-1.5">REFLEXÃO DELA</p>
+              <p className="font-mono text-sm text-foreground/80 leading-relaxed italic">"{reflexaoCamila}"</p>
+            </div>
+          ) : null}
+
+          {oracoesCamila.pedidos ? (
+            <div className="border-t border-border/40 pt-3">
+              <p className="font-mono text-[9px] text-muted-foreground tracking-widest mb-1.5">ELA PEDIU ORAÇÃO POR</p>
+              <p className="font-mono text-xs text-foreground/70 leading-relaxed">{oracoesCamila.pedidos}</p>
+            </div>
+          ) : null}
+        </motion.div>
+      )}
+
+      {/* Botão Modo Camila */}
+      <div className="flex justify-center">
+        <button
+          onClick={() => window.open("/camila", "_blank")}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-mono text-[10px] font-bold tracking-wider transition-all active:scale-95"
+          style={{ background: "rgba(251,113,133,0.1)", border: "1px solid rgba(251,113,133,0.2)", color: "#FB7185" }}
+        >
+          🌸 Abrir Modo Camila
+        </button>
+      </div>
 
       {/* Seção de oração */}
       <motion.div

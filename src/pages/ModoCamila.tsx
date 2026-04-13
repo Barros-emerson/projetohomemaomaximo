@@ -1,0 +1,316 @@
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
+
+const hoje = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+const getWeekOfYear = () =>
+  Math.ceil(((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7);
+
+interface OracaoItem { id: string; tipo: string; conteudo: string; data: string; }
+
+const Tab = ({ label, icon: Icon, active, onClick, color }: { label: string; icon: any; active: boolean; onClick: () => void; color: string }) => (
+  <button
+    onClick={onClick}
+    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95"
+    style={active
+      ? { background: `${color}20`, color, border: `1px solid ${color}40` }
+      : { color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }
+    }
+  >
+    <Icon size={14} />
+    {label}
+  </button>
+);
+
+export default function ModoCamila() {
+  const dataHoje = hoje();
+  const semana = getWeekOfYear();
+  const versiculo = versiculosMemorizacao[(semana - 1) % versiculosMemorizacao.length];
+  const plano = planosDisponiveis[0];
+  const passagemHoje = plano.leituras[(new Date().getDate() - 1) % plano.leituras.length];
+
+  const [abaAtiva, setAbaAtiva] = useState<"reflexao" | "oracao" | "mensagem">("reflexao");
+  const [reflexao, setReflexao] = useState("");
+  const [leituraFeita, setLeituraFeita] = useState(false);
+  const [oracaoTab, setOracaoTab] = useState<"gratidao" | "pedidos" | "intercessao">("gratidao");
+  const [oracoes, setOracoes] = useState({ gratidao: "", pedidos: "", intercessao: "" });
+  const [mensagem, setMensagem] = useState("");
+  const [horarioMensagem, setHorarioMensagem] = useState("06:55");
+  const [salvando, setSalvando] = useState(false);
+  const [salvo, setSalvo] = useState(false);
+  const [reflexaoEmerson, setReflexaoEmerson] = useState("");
+  const [oracoesEmerson, setOracoesEmerson] = useState<OracaoItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showReflexaoEmerson, setShowReflexaoEmerson] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data: devocional } = await supabase
+          .from("camila_devocional")
+          .select("reflexao, leitura_feita, oracao_gratidao, oracao_pedidos, oracao_intercessao")
+          .eq("data", dataHoje)
+          .limit(1);
+        if (devocional && devocional.length > 0) {
+          const d = devocional[0];
+          setReflexao(d.reflexao || "");
+          setLeituraFeita(d.leitura_feita || false);
+          setOracoes({ gratidao: d.oracao_gratidao || "", pedidos: d.oracao_pedidos || "", intercessao: d.oracao_intercessao || "" });
+        }
+        const { data: emersonRef } = await supabase
+          .from("emerson_reflexao_publica")
+          .select("reflexao")
+          .eq("data", dataHoje)
+          .limit(1);
+        if (emersonRef && emersonRef.length > 0) setReflexaoEmerson(emersonRef[0].reflexao || "");
+
+        const { data: pedidos } = await supabase
+          .from("oracoes")
+          .select("id, tipo, conteudo, data")
+          .eq("tipo", "pedidos")
+          .order("created_at", { ascending: false })
+          .limit(5);
+        if (pedidos) setOracoesEmerson(pedidos as OracaoItem[]);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [dataHoje]);
+
+  const salvarDevocional = useCallback(async () => {
+    setSalvando(true);
+    try {
+      await supabase.from("camila_devocional").upsert(
+        { data: dataHoje, reflexao, leitura_feita: leituraFeita, oracao_gratidao: oracoes.gratidao, oracao_pedidos: oracoes.pedidos, oracao_intercessao: oracoes.intercessao },
+        { onConflict: "data" }
+      );
+      setSalvo(true);
+      setTimeout(() => setSalvo(false), 2000);
+    } catch (err) { console.error(err); }
+    finally { setSalvando(false); }
+  }, [dataHoje, reflexao, leituraFeita, oracoes]);
+
+  const enviarMensagem = useCallback(async () => {
+    if (!mensagem.trim()) return;
+    setSalvando(true);
+    try {
+      await supabase.from("camila_mensagens").insert({ data: dataHoje, texto: mensagem.trim(), horario_rotina: horarioMensagem, lida: false });
+      setMensagem("");
+      setSalvo(true);
+      setTimeout(() => setSalvo(false), 2000);
+    } catch (err) { console.error(err); }
+    finally { setSalvando(false); }
+  }, [dataHoje, mensagem, horarioMensagem]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Flame size={28} className="text-pink-400 animate-pulse" />
+          <p className="font-mono text-xs text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background pb-10">
+
+      {/* Header */}
+      <div className="px-5 pt-8 pb-4 flex items-center justify-between">
+        <div>
+          <p className="font-mono text-[9px] tracking-[0.2em] text-pink-400 font-bold">MODO CAMILA</p>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xl font-bold text-foreground mt-1">
+            Bom dia, Amor 🌸
+          </motion.p>
+          <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
+            {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}
+          </p>
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          <Heart size={20} className="text-pink-400" />
+          <span className="font-mono text-[9px] font-bold text-pink-400">
+            {leituraFeita ? "✓" : "—"}
+          </span>
+        </div>
+      </div>
+
+      {/* Versículo */}
+      <div className="px-5 mb-4">
+        <div className="flex items-center gap-1.5 mb-2">
+          <Sparkles size={12} className="text-violet-400" />
+          <span className="font-mono text-[9px] tracking-widest text-violet-400">VERSÍCULO DA SEMANA</span>
+        </div>
+        <p className="text-sm text-foreground/90 leading-relaxed italic">"{versiculo.texto}"</p>
+        <p className="text-[11px] text-violet-400 mt-1 font-medium">{versiculo.referencia}</p>
+      </div>
+
+      {/* Passagem + check leitura */}
+      <div className="px-5 mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BookOpen size={16} className="text-pink-400" />
+            <div>
+              <p className="font-mono text-[9px] tracking-widest text-pink-400">LEITURA DO DIA</p>
+              <p className="text-sm font-medium text-foreground">{passagemHoje.passagem}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setLeituraFeita(!leituraFeita)}
+            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90 shrink-0 ml-3"
+            style={leituraFeita ? { background: "#FB7185" } : { border: "2px solid rgba(244,114,182,0.3)" }}
+          >
+            {leituraFeita && <Check size={16} className="text-white" />}
+          </button>
+        </div>
+        {!leituraFeita && <p className="text-[10px] text-muted-foreground mt-1.5 ml-7">Toque no círculo após ler 📖</p>}
+      </div>
+
+      {/* Abas principais */}
+      <div className="px-5 mb-4">
+        <div className="flex gap-1.5">
+          <Tab label="REFLEXÃO" icon={Scroll} active={abaAtiva === "reflexao"} onClick={() => setAbaAtiva("reflexao")} color="#FB7185" />
+          <Tab label="ORAÇÃO" icon={HandHeart} active={abaAtiva === "oracao"} onClick={() => setAbaAtiva("oracao")} color="#A78BFA" />
+          <Tab label="AMOR" icon={MessageCircleHeart} active={abaAtiva === "mensagem"} onClick={() => setAbaAtiva("mensagem")} color="#34D399" />
+        </div>
+      </div>
+
+      {/* Conteúdo */}
+      <div className="px-5">
+        <AnimatePresence mode="wait">
+
+          {/* REFLEXÃO */}
+          {abaAtiva === "reflexao" && (
+            <motion.div key="reflexao" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
+              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(251,113,133,0.2)", background: "rgba(251,113,133,0.04)" }}>
+                <p className="font-mono text-[9px] tracking-widest text-pink-400 mb-2">O QUE DEUS FALOU COM VOCÊ HOJE?</p>
+                <textarea
+                  value={reflexao}
+                  onChange={(e) => setReflexao(e.target.value)}
+                  placeholder="Escreva sua reflexão do dia... O que o Senhor colocou em seu coração ao ler a Palavra?"
+                  className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[120px] leading-relaxed"
+                />
+              </div>
+
+              {reflexaoEmerson ? (
+                <button onClick={() => setShowReflexaoEmerson(!showReflexaoEmerson)} className="w-full text-left rounded-2xl p-4 transition-all active:scale-[0.98]" style={{ background: "rgba(251,113,133,0.05)", border: "1px solid rgba(251,113,133,0.15)" }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Heart size={14} style={{ color: "#FB7185" }} />
+                      <span className="font-mono text-[9px] tracking-widest" style={{ color: "#FB7185" }}>REFLEXÃO DO EMERSON HOJE</span>
+                    </div>
+                    <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 ${showReflexaoEmerson ? "rotate-180" : ""}`} />
+                  </div>
+                  <AnimatePresence>
+                    {showReflexaoEmerson && (
+                      <motion.p initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="font-mono text-sm text-foreground/80 mt-3 leading-relaxed italic overflow-hidden">
+                        "{reflexaoEmerson}"
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </button>
+              ) : (
+                <div className="rounded-2xl p-4 text-center" style={{ border: "1px dashed rgba(251,113,133,0.2)" }}>
+                  <p className="font-mono text-[10px] text-muted-foreground">Emerson ainda não registrou a reflexão de hoje</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* ORAÇÃO */}
+          {abaAtiva === "oracao" && (
+            <motion.div key="oracao" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
+              <div className="flex gap-1.5">
+                {(["gratidao", "pedidos", "intercessao"] as const).map((tab) => (
+                  <button key={tab} onClick={() => setOracaoTab(tab)} className="flex-1 py-2 rounded-xl font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95"
+                    style={oracaoTab === tab ? { background: "rgba(167,139,250,0.2)", color: "#A78BFA", border: "1px solid rgba(167,139,250,0.3)" } : { color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}>
+                    {tab === "gratidao" ? "GRATIDÃO" : tab === "pedidos" ? "PEDIDOS" : "INTERCESSÃO"}
+                  </button>
+                ))}
+              </div>
+              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(167,139,250,0.2)", background: "rgba(167,139,250,0.04)" }}>
+                <textarea
+                  value={oracoes[oracaoTab]}
+                  onChange={(e) => setOracoes((prev) => ({ ...prev, [oracaoTab]: e.target.value }))}
+                  placeholder={oracaoTab === "gratidao" ? "Pelo que você agradece hoje?" : oracaoTab === "pedidos" ? "Seus pedidos ao Senhor..." : "Por quem você quer interceder?"}
+                  className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[100px] leading-relaxed"
+                />
+              </div>
+              {oracoesEmerson.length > 0 && oracaoTab === "intercessao" && (
+                <div className="rounded-2xl p-4 space-y-2" style={{ border: "1px solid rgba(251,113,133,0.15)", background: "rgba(251,113,133,0.04)" }}>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Shield size={12} style={{ color: "#FB7185" }} />
+                    <p className="font-mono text-[9px] tracking-widest" style={{ color: "#FB7185" }}>PEDIDOS DO EMERSON</p>
+                  </div>
+                  {oracoesEmerson.map((o) => (
+                    <p key={o.id} className="font-mono text-xs text-foreground/80 leading-relaxed border-l-2 pl-3" style={{ borderColor: "rgba(251,113,133,0.4)" }}>{o.conteudo}</p>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* MENSAGEM DE AMOR */}
+          {abaAtiva === "mensagem" && (
+            <motion.div key="mensagem" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(52,211,153,0.2)", background: "rgba(52,211,153,0.04)" }}>
+                <p className="font-mono text-[9px] tracking-widest text-emerald-400 mb-0.5">MENSAGEM PARA O EMERSON</p>
+                <p className="font-mono text-[10px] text-muted-foreground mb-3">Aparece na rotina dele no horário que você escolher 💚</p>
+                <textarea
+                  value={mensagem}
+                  onChange={(e) => setMensagem(e.target.value)}
+                  placeholder="Ex: Vai arrasar no treino hoje! Te amo muito 💪🙏"
+                  className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[80px] leading-relaxed"
+                />
+                <div className="mt-3 pt-3 border-t border-border/50">
+                  <p className="font-mono text-[9px] text-muted-foreground tracking-wider mb-2">APARECER NA ROTINA ÀS:</p>
+                  <select
+                    value={horarioMensagem}
+                    onChange={(e) => setHorarioMensagem(e.target.value)}
+                    className="w-full bg-secondary border border-border rounded-xl px-3 py-2.5 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
+                  >
+                    <option value="05:20">05:20 — Acordar</option>
+                    <option value="06:00">06:00 — Café + mochilas</option>
+                    <option value="06:55">06:55 — Treino 💪</option>
+                    <option value="08:20">08:20 — Sol pós-treino</option>
+                    <option value="12:30">12:30 — Almoço</option>
+                    <option value="19:00">19:00 — Jiu-Jitsu</option>
+                    <option value="22:00">22:00 — Desacelerar</option>
+                  </select>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+        </AnimatePresence>
+      </div>
+
+      {/* Botão salvar */}
+      <div className="px-5 pt-6">
+        <button
+          onClick={abaAtiva === "mensagem" ? enviarMensagem : salvarDevocional}
+          disabled={salvando}
+          className="w-full py-4 rounded-2xl font-mono text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-60"
+          style={{
+            background: salvo ? "#34D399" : abaAtiva === "mensagem" ? "#34D399" : "#FB7185",
+            color: "#fff",
+            boxShadow: `0 8px 24px ${abaAtiva === "mensagem" ? "rgba(52,211,153,0.3)" : "rgba(251,113,133,0.3)"}`,
+          }}
+        >
+          {salvo ? <><Check size={18} /> SALVO!</> : abaAtiva === "mensagem" ? <><Send size={18} /> ENVIAR MENSAGEM</> : <><Heart size={18} /> {salvando ? "SALVANDO..." : "SALVAR DEVOCIONAL"}</>}
+        </button>
+        <p className="font-mono text-[9px] text-muted-foreground/40 text-center mt-3">
+          Projeto Alfa 1000 · Modo Camila 🌸
+        </p>
+      </div>
+    </div>
+  );
+}

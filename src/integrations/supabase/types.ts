@@ -35,6 +35,69 @@ export type Database = {
         }
         Relationships: []
       }
+      camila_devocional: {
+        Row: {
+          created_at: string | null
+          data: string
+          id: string
+          leitura_feita: boolean | null
+          oracao_gratidao: string | null
+          oracao_intercessao: string | null
+          oracao_pedidos: string | null
+          reflexao: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data: string
+          id?: string
+          leitura_feita?: boolean | null
+          oracao_gratidao?: string | null
+          oracao_intercessao?: string | null
+          oracao_pedidos?: string | null
+          reflexao?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: string
+          id?: string
+          leitura_feita?: boolean | null
+          oracao_gratidao?: string | null
+          oracao_intercessao?: string | null
+          oracao_pedidos?: string | null
+          reflexao?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      camila_mensagens: {
+        Row: {
+          created_at: string | null
+          data: string
+          horario_rotina: string
+          id: string
+          lida: boolean | null
+          texto: string
+        }
+        Insert: {
+          created_at?: string | null
+          data: string
+          horario_rotina?: string
+          id?: string
+          lida?: boolean | null
+          texto: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: string
+          horario_rotina?: string
+          id?: string
+          lida?: boolean | null
+          texto?: string
+        }
+        Relationships: []
+      }
       checklist_items: {
         Row: {
           created_at: string
@@ -62,6 +125,27 @@ export type Database = {
           id?: string
           item_id?: string
           status?: string
+        }
+        Relationships: []
+      }
+      emerson_reflexao_publica: {
+        Row: {
+          data: string
+          id: string
+          reflexao: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          data: string
+          id?: string
+          reflexao?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          data?: string
+          id?: string
+          reflexao?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
