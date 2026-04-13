@@ -1,0 +1,1 @@
+ALTER TABLE public.camila_tarefas ADD COLUMN para_quem TEXT NOT NULL DEFAULT 'camila';

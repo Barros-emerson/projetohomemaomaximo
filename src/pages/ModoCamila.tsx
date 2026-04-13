@@ -13,7 +13,7 @@ const getWeekOfYear = () =>
 
 interface OracaoItem { id: string; tipo: string; conteudo: string; data: string; }
 interface NotaItem { id: string; titulo: string; conteudo: string; cor: string; created_at: string; }
-interface TarefaItem { id: string; titulo: string; concluida: boolean; criado_por: string; created_at: string; }
+interface TarefaItem { id: string; titulo: string; concluida: boolean; criado_por: string; para_quem: string; created_at: string; }
 
 const Tab = ({ label, icon: Icon, active, onClick, color }: { label: string; icon: any; active: boolean; onClick: () => void; color: string }) => (
   <button
@@ -60,6 +60,7 @@ export default function ModoCamila() {
   // Tarefas
   const [tarefas, setTarefas] = useState<TarefaItem[]>([]);
   const [novaTarefa, setNovaTarefa] = useState("");
+  const [novaTarefaParaQuem, setNovaTarefaParaQuem] = useState<"camila" | "emerson">("camila");
 
   useEffect(() => {
     const load = async () => {
@@ -168,11 +169,11 @@ export default function ModoCamila() {
   const criarTarefa = useCallback(async () => {
     if (!novaTarefa.trim()) return;
     try {
-      const { data } = await supabase.from("camila_tarefas").insert({ titulo: novaTarefa.trim(), criado_por: "camila" }).select().single();
+      const { data } = await supabase.from("camila_tarefas").insert({ titulo: novaTarefa.trim(), criado_por: "camila", para_quem: novaTarefaParaQuem }).select().single();
       if (data) setTarefas(prev => [data as TarefaItem, ...prev]);
       setNovaTarefa("");
     } catch (err) { console.error(err); }
-  }, [novaTarefa]);
+  }, [novaTarefa, novaTarefaParaQuem]);
 
   const toggleTarefa = useCallback(async (id: string, concluida: boolean) => {
     try {
@@ -442,7 +443,7 @@ export default function ModoCamila() {
               {/* Nova tarefa */}
               <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(96,165,250,0.2)", background: "rgba(96,165,250,0.04)" }}>
                 <p className="font-mono text-[9px] tracking-widest text-blue-400 mb-2">NOVA TAREFA</p>
-                <div className="flex gap-2">
+                <div className="flex gap-2 mb-2">
                   <input
                     value={novaTarefa}
                     onChange={(e) => setNovaTarefa(e.target.value)}
@@ -456,6 +457,28 @@ export default function ModoCamila() {
                     style={{ background: "rgba(96,165,250,0.2)", color: "#60A5FA" }}
                   >
                     <Plus size={14} />
+                  </button>
+                </div>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => setNovaTarefaParaQuem("camila")}
+                    className="flex-1 py-1.5 rounded-lg font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95"
+                    style={novaTarefaParaQuem === "camila"
+                      ? { background: "rgba(251,113,133,0.2)", color: "#FB7185", border: "1px solid rgba(251,113,133,0.3)" }
+                      : { color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }
+                    }
+                  >
+                    🌸 SÓ MINHA
+                  </button>
+                  <button
+                    onClick={() => setNovaTarefaParaQuem("emerson")}
+                    className="flex-1 py-1.5 rounded-lg font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95"
+                    style={novaTarefaParaQuem === "emerson"
+                      ? { background: "rgba(96,165,250,0.2)", color: "#60A5FA", border: "1px solid rgba(96,165,250,0.3)" }
+                      : { color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }
+                    }
+                  >
+                    💪 P/ EMERSON
                   </button>
                 </div>
               </div>
@@ -472,7 +495,9 @@ export default function ModoCamila() {
                         style={{ border: "2px solid rgba(96,165,250,0.3)" }}
                       />
                       <span className="font-mono text-sm text-foreground flex-1">{t.titulo}</span>
-                      <span className="font-mono text-[8px] text-muted-foreground/50">{t.criado_por === "camila" ? "🌸" : "💪"}</span>
+                      <span className="font-mono text-[8px] px-1.5 py-0.5 rounded-full" style={t.para_quem === "emerson" ? { background: "rgba(96,165,250,0.15)", color: "#60A5FA" } : { background: "rgba(251,113,133,0.15)", color: "#FB7185" }}>
+                        {t.para_quem === "emerson" ? "💪 EMERSON" : "🌸 MINHA"}
+                      </span>
                       <button onClick={() => deletarTarefa(t.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors">
                         <Trash2 size={12} />
                       </button>
