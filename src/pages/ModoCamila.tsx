@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X } from "lucide-react";
+import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X, Sun, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTheme } from "@/components/ThemeProvider";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
 
 const hoje = () => {
@@ -30,6 +31,7 @@ const Tab = ({ label, icon: Icon, active, onClick, color }: { label: string; ico
 );
 
 export default function ModoCamila() {
+  const { theme, toggleTheme } = useTheme();
   const dataHoje = hoje();
   const semana = getWeekOfYear();
   const versiculo = versiculosMemorizacao[(semana - 1) % versiculosMemorizacao.length];
@@ -214,11 +216,20 @@ export default function ModoCamila() {
             {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}
           </p>
         </div>
-        <div className="flex flex-col items-center gap-1">
-          <Heart size={20} className="text-pink-400" />
-          <span className="font-mono text-[9px] font-bold text-pink-400">
-            {leituraFeita ? "✓" : "—"}
-          </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleTheme}
+            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
+            style={{ border: "1px solid rgba(244,114,182,0.3)", background: "rgba(244,114,182,0.05)" }}
+          >
+            {theme === "dark" ? <Sun size={16} className="text-pink-400" /> : <Moon size={16} className="text-pink-400" />}
+          </button>
+          <div className="flex flex-col items-center gap-1">
+            <Heart size={20} className="text-pink-400" />
+            <span className="font-mono text-[9px] font-bold text-pink-400">
+              {leituraFeita ? "✓" : "—"}
+            </span>
+          </div>
         </div>
       </div>
 
