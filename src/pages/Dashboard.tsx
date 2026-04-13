@@ -173,6 +173,7 @@ const Dashboard = () => {
   // Tarefas da Camila para o Emerson
   const [tarefasCamila, setTarefasCamila] = useState<Array<{ id: string; titulo: string; concluida: boolean }>>([]);
   const META_AGUA = 3500;
+  const [journalingOpen, setJournalingOpen] = useState(false);
 
   const CICLO_AGUA = 2800;
   const aguaCicloAtual = aguaMl % CICLO_AGUA;
