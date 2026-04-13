@@ -595,7 +595,7 @@ const Dashboard = () => {
 
       {/* Tarefas da Camila */}
       {tarefasCamila.length > 0 && (
-        <motion.div variants={fadeUp} className="surface-card p-4 relative overflow-hidden" style={{ borderColor: "rgba(251,113,133,0.2)" }}>
+        <motion.div id="camila-tarefas-card" variants={fadeUp} className="surface-card p-4 relative overflow-hidden" style={{ borderColor: "rgba(251,113,133,0.2)" }}>
           <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: "linear-gradient(90deg, #FB7185, #F9A8D4, #FB7185)" }} />
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">🌸</span>
