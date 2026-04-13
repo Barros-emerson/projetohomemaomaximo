@@ -248,7 +248,7 @@ export default function ModoCamila() {
       {/* Header */}
       <div className="px-4 sm:px-5 pt-6 sm:pt-8 pb-3 sm:pb-4 flex items-center justify-between">
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-[9px] tracking-[0.2em] font-bold" style={{ color: ACCENT }}>MODO CAMILA</p>
+          <p className="font-mono text-[9px] tracking-[0.2em] font-bold" style={{ color: ACCENT }}>MODO AMOR</p>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-lg sm:text-xl font-bold text-foreground mt-0.5 sm:mt-1 truncate">
             {new Date().getHours() < 12 ? "Bom dia" : new Date().getHours() < 18 ? "Boa tarde" : "Boa noite"}, Amor 🍃
           </motion.p>
