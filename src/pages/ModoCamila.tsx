@@ -136,8 +136,24 @@ export default function ModoCamila() {
     } catch (err) { console.error(err); }
     finally { setSalvando(false); }
   }, [dataHoje, reflexao, leituraFeita, oracoes]);
+  const buscarTextoBiblia = useCallback(async () => {
+    setCarregandoBiblia(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("buscar-biblia", {
+        body: { passagem: passagemHoje.passagem, versao: versaoBiblia },
+      });
+      if (error) throw error;
+      setTextoBiblia(data.chapters || []);
+      setShowLeitor(true);
+      setTimeout(() => leitorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
+    } catch (err) {
+      console.error("Erro ao buscar texto:", err);
+    } finally {
+      setCarregandoBiblia(false);
+    }
+  }, [passagemHoje.passagem, versaoBiblia]);
 
-  const enviarMensagem = useCallback(async () => {
+
     if (!mensagem.trim()) return;
     setSalvando(true);
     try {
