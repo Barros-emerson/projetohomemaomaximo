@@ -443,7 +443,7 @@ export default function ModoCamila() {
               {/* Nova tarefa */}
               <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(96,165,250,0.2)", background: "rgba(96,165,250,0.04)" }}>
                 <p className="font-mono text-[9px] tracking-widest text-blue-400 mb-2">NOVA TAREFA</p>
-                <div className="flex gap-2">
+                <div className="flex gap-2 mb-2">
                   <input
                     value={novaTarefa}
                     onChange={(e) => setNovaTarefa(e.target.value)}
@@ -457,6 +457,28 @@ export default function ModoCamila() {
                     style={{ background: "rgba(96,165,250,0.2)", color: "#60A5FA" }}
                   >
                     <Plus size={14} />
+                  </button>
+                </div>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => setNovaTarefaParaQuem("camila")}
+                    className="flex-1 py-1.5 rounded-lg font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95"
+                    style={novaTarefaParaQuem === "camila"
+                      ? { background: "rgba(251,113,133,0.2)", color: "#FB7185", border: "1px solid rgba(251,113,133,0.3)" }
+                      : { color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }
+                    }
+                  >
+                    🌸 SÓ MINHA
+                  </button>
+                  <button
+                    onClick={() => setNovaTarefaParaQuem("emerson")}
+                    className="flex-1 py-1.5 rounded-lg font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95"
+                    style={novaTarefaParaQuem === "emerson"
+                      ? { background: "rgba(96,165,250,0.2)", color: "#60A5FA", border: "1px solid rgba(96,165,250,0.3)" }
+                      : { color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }
+                    }
+                  >
+                    💪 P/ EMERSON
                   </button>
                 </div>
               </div>
