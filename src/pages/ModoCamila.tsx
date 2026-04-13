@@ -498,12 +498,12 @@ export default function ModoCamila() {
                   </button>
                 ))}
               </div>
-              <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(167,139,250,0.2)", background: "rgba(167,139,250,0.04)" }}>
+              <div className="rounded-2xl p-3 sm:p-4" style={{ border: "1px solid rgba(167,139,250,0.2)", background: "rgba(167,139,250,0.04)" }}>
                 <textarea
                   value={oracoes[oracaoTab]}
                   onChange={(e) => setOracoes((prev) => ({ ...prev, [oracaoTab]: e.target.value }))}
                   placeholder={oracaoTab === "gratidao" ? "Pelo que você agradece hoje?" : oracaoTab === "pedidos" ? "Seus pedidos ao Senhor..." : "Por quem você quer interceder?"}
-                  className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[100px] leading-relaxed"
+                  className="w-full bg-transparent font-mono text-[13px] sm:text-sm text-foreground placeholder:text-muted-foreground/40 outline-none resize-none min-h-[80px] sm:min-h-[100px] leading-relaxed"
                 />
               </div>
               {oracoesEmerson.length > 0 && oracaoTab === "intercessao" && (
