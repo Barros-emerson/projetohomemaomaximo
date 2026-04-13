@@ -254,10 +254,14 @@ export default function ModoCamila() {
 
       {/* Abas principais */}
       <div className="px-5 mb-4">
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 flex-wrap">
           <Tab label="REFLEXÃO" icon={Scroll} active={abaAtiva === "reflexao"} onClick={() => setAbaAtiva("reflexao")} color="#FB7185" />
           <Tab label="ORAÇÃO" icon={HandHeart} active={abaAtiva === "oracao"} onClick={() => setAbaAtiva("oracao")} color="#A78BFA" />
           <Tab label="AMOR" icon={MessageCircleHeart} active={abaAtiva === "mensagem"} onClick={() => setAbaAtiva("mensagem")} color="#34D399" />
+        </div>
+        <div className="flex gap-1.5 mt-1.5">
+          <Tab label="NOTAS" icon={StickyNote} active={abaAtiva === "notas"} onClick={() => setAbaAtiva("notas")} color="#FBBF24" />
+          <Tab label="TAREFAS" icon={ListChecks} active={abaAtiva === "tarefas"} onClick={() => setAbaAtiva("tarefas")} color="#60A5FA" />
         </div>
       </div>
 
