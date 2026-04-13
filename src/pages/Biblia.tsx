@@ -85,6 +85,12 @@ const Biblia = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
+  // Modo Camila — reflexão e orações dela
+  const [reflexaoCamila, setReflexaoCamila] = useState("");
+  const [leituraCamilaFeita, setLeituraCamilaFeita] = useState(false);
+  const [mensagemCamila, setMensagemCamila] = useState("");
+  const [oracoesCamila, setOracoesCamila] = useState<{ pedidos: string; gratidao: string; intercessao: string }>({ pedidos: "", gratidao: "", intercessao: "" });
+
   const planoAtual = planosDisponiveis.find(p => p.id === planoId)!;
   const leiturasPlano = leituras[planoId] || planoAtual.leituras;
 
