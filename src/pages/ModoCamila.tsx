@@ -357,13 +357,13 @@ export default function ModoCamila() {
                 </div>
 
                 {/* Busca personalizada */}
-                <div className="flex gap-1.5 mb-3">
+                <div className="flex gap-1.5 mb-2 sm:mb-3">
                   <input
                     value={buscaPersonalizada}
                     onChange={(e) => setBuscaPersonalizada(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && buscarPassagemPersonalizada()}
-                    placeholder="Ex: João 3, Salmo 23, Romanos 8"
-                    className="flex-1 bg-transparent text-sm rounded-xl px-3 py-2 border placeholder:text-muted-foreground/50"
+                    placeholder="Ex: João 3, Salmo 23"
+                    className="flex-1 bg-transparent text-[13px] sm:text-sm rounded-xl px-2.5 sm:px-3 py-1.5 sm:py-2 border placeholder:text-muted-foreground/50"
                     style={{ borderColor: `rgba(${ACCENT_RGB},0.25)` }}
                   />
                   <button
