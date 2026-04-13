@@ -495,7 +495,9 @@ export default function ModoCamila() {
                         style={{ border: "2px solid rgba(96,165,250,0.3)" }}
                       />
                       <span className="font-mono text-sm text-foreground flex-1">{t.titulo}</span>
-                      <span className="font-mono text-[8px] text-muted-foreground/50">{t.criado_por === "camila" ? "🌸" : "💪"}</span>
+                      <span className="font-mono text-[8px] px-1.5 py-0.5 rounded-full" style={t.para_quem === "emerson" ? { background: "rgba(96,165,250,0.15)", color: "#60A5FA" } : { background: "rgba(251,113,133,0.15)", color: "#FB7185" }}>
+                        {t.para_quem === "emerson" ? "💪 EMERSON" : "🌸 MINHA"}
+                      </span>
                       <button onClick={() => deletarTarefa(t.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors">
                         <Trash2 size={12} />
                       </button>
