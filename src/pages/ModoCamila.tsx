@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X, Sun, Moon, Leaf } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +55,11 @@ export default function ModoCamila() {
   const [oracoesEmerson, setOracoesEmerson] = useState<OracaoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReflexaoEmerson, setShowReflexaoEmerson] = useState(false);
+  const [showLeitor, setShowLeitor] = useState(false);
+  const [textoBiblia, setTextoBiblia] = useState<{ book: string; chapter: number; text: string }[]>([]);
+  const [carregandoBiblia, setCarregandoBiblia] = useState(false);
+  const [versaoBiblia, setVersaoBiblia] = useState(() => localStorage.getItem("camila-versao-biblia") || "NTLH");
+  const leitorRef = useRef<HTMLDivElement>(null);
 
   // Notas
   const [notas, setNotas] = useState<NotaItem[]>([]);
@@ -119,6 +124,13 @@ export default function ModoCamila() {
     load();
   }, [dataHoje]);
 
+  // Re-fetch when version changes
+  useEffect(() => {
+    if (showLeitor && textoBiblia.length > 0) {
+      buscarTextoBiblia();
+    }
+  }, [versaoBiblia]);
+
   const salvarDevocional = useCallback(async () => {
     setSalvando(true);
     try {
@@ -131,7 +143,22 @@ export default function ModoCamila() {
     } catch (err) { console.error(err); }
     finally { setSalvando(false); }
   }, [dataHoje, reflexao, leituraFeita, oracoes]);
-
+  const buscarTextoBiblia = useCallback(async () => {
+    setCarregandoBiblia(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("buscar-biblia", {
+        body: { passagem: passagemHoje.passagem, versao: versaoBiblia },
+      });
+      if (error) throw error;
+      setTextoBiblia(data.chapters || []);
+      setShowLeitor(true);
+      setTimeout(() => leitorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
+    } catch (err) {
+      console.error("Erro ao buscar texto:", err);
+    } finally {
+      setCarregandoBiblia(false);
+    }
+  }, [passagemHoje.passagem, versaoBiblia]);
   const enviarMensagem = useCallback(async () => {
     if (!mensagem.trim()) return;
     setSalvando(true);
@@ -247,25 +274,127 @@ export default function ModoCamila() {
         <p className="text-[11px] text-violet-400 mt-1 font-medium">{versiculo.referencia}</p>
       </div>
 
-      {/* Passagem + check leitura */}
+      {/* Passagem + leitura integrada */}
       <div className="px-5 mb-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BookOpen size={16} style={{ color: ACCENT }} />
-            <div>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <BookOpen size={16} style={{ color: ACCENT }} className="shrink-0" />
+            <div className="min-w-0">
               <p className="font-mono text-[9px] tracking-widest" style={{ color: ACCENT }}>LEITURA DO DIA</p>
-              <p className="text-sm font-medium text-foreground">{passagemHoje.passagem}</p>
+              <p className="text-sm font-medium text-foreground truncate">{passagemHoje.passagem}</p>
             </div>
           </div>
-          <button
-            onClick={() => setLeituraFeita(!leituraFeita)}
-            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90 shrink-0 ml-3"
-            style={leituraFeita ? { background: ACCENT } : { border: `2px solid rgba(${ACCENT_RGB},0.3)` }}
-          >
-            {leituraFeita && <Check size={16} className="text-white" />}
-          </button>
+          <div className="flex items-center gap-2 shrink-0 ml-3">
+            <button
+              onClick={buscarTextoBiblia}
+              disabled={carregandoBiblia}
+              className="h-9 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-90 font-mono text-[9px] font-bold tracking-wider disabled:opacity-50"
+              style={{ border: `1.5px solid rgba(${ACCENT_RGB},0.4)`, color: ACCENT }}
+            >
+              {carregandoBiblia ? (
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
+                  <BookOpen size={14} />
+                </motion.div>
+              ) : (
+                <><BookOpen size={14} /> LER</>
+              )}
+            </button>
+            <button
+              onClick={() => setLeituraFeita(!leituraFeita)}
+              className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-90"
+              style={leituraFeita ? { background: ACCENT } : { border: `2px solid rgba(${ACCENT_RGB},0.3)` }}
+            >
+              {leituraFeita && <Check size={16} className="text-white" />}
+            </button>
+          </div>
         </div>
-        {!leituraFeita && <p className="text-[10px] text-muted-foreground mt-1.5 ml-7">Toque no círculo após ler 📖</p>}
+
+        {/* Leitor expandido */}
+        <AnimatePresence>
+          {showLeitor && textoBiblia.length > 0 && (
+            <motion.div
+              ref={leitorRef}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden"
+            >
+              <div className="mt-3 rounded-2xl p-4 border" style={{ borderColor: `rgba(${ACCENT_RGB},0.2)`, background: `rgba(${ACCENT_RGB},0.05)` }}>
+                {/* Header do leitor */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={versaoBiblia}
+                      onChange={(e) => {
+                        setVersaoBiblia(e.target.value);
+                        localStorage.setItem("camila-versao-biblia", e.target.value);
+                      }}
+                      className="bg-transparent font-mono text-[10px] font-bold tracking-wider rounded-lg px-2 py-1 border"
+                      style={{ color: ACCENT, borderColor: `rgba(${ACCENT_RGB},0.3)` }}
+                    >
+                      {["NTLH", "ARA", "NAA", "ACF", "NVI"].map(v => (
+                        <option key={v} value={v} className="text-foreground bg-background">{v}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    onClick={() => setShowLeitor(false)}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                    style={{ color: ACCENT }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                {/* Texto bíblico */}
+                <div className="max-h-[50vh] overflow-y-auto pr-1 space-y-4 scrollbar-thin">
+                  {textoBiblia.map((ch, i) => (
+                    <div key={i}>
+                      <p className="font-mono text-[10px] tracking-widest font-bold mb-2" style={{ color: ACCENT }}>
+                        {ch.book.toUpperCase()} {ch.chapter}
+                      </p>
+                      <div className="text-sm text-foreground/90 leading-[1.8] font-serif">
+                        {ch.text.split("\n").map((line, j) => {
+                          const verseMatch = line.match(/^(\d+)\s(.+)/);
+                          if (verseMatch) {
+                            return (
+                              <p key={j} className="mb-1">
+                                <sup className="text-[10px] font-mono font-bold mr-1" style={{ color: `rgba(${ACCENT_RGB},0.6)` }}>
+                                  {verseMatch[1]}
+                                </sup>
+                                {verseMatch[2]}
+                              </p>
+                            );
+                          }
+                          return <p key={j} className="mb-1">{line}</p>;
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Botão marcar como lido */}
+                {!leituraFeita && (
+                  <button
+                    onClick={() => setLeituraFeita(true)}
+                    className="mt-3 w-full py-2.5 rounded-xl font-mono text-[10px] font-bold tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.97]"
+                    style={{ background: ACCENT, color: "#fff" }}
+                  >
+                    <Check size={14} /> MARCAR COMO LIDA
+                  </button>
+                )}
+                {leituraFeita && (
+                  <p className="mt-3 text-center font-mono text-[10px] font-bold tracking-wider flex items-center justify-center gap-1.5" style={{ color: ACCENT }}>
+                    <Check size={14} /> LEITURA CONCLUÍDA ✓
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {!showLeitor && !leituraFeita && <p className="text-[10px] text-muted-foreground mt-1.5 ml-7">Toque em LER para abrir a Bíblia 📖</p>}
       </div>
 
       {/* Abas principais */}
