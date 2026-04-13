@@ -719,18 +719,18 @@ export default function ModoCamila() {
 
       {/* Botão salvar — só para reflexão/oração/mensagem */}
       {(abaAtiva === "reflexao" || abaAtiva === "oracao" || abaAtiva === "mensagem") && (
-        <div className="px-5 pt-6">
+        <div className="px-4 sm:px-5 pt-4 sm:pt-6">
           <button
             onClick={abaAtiva === "mensagem" ? enviarMensagem : salvarDevocional}
             disabled={salvando}
-            className="w-full py-4 rounded-2xl font-mono text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-60"
+            className="w-full py-3 sm:py-4 rounded-2xl font-mono text-[13px] sm:text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-60"
             style={{
               background: salvo ? "#34D399" : abaAtiva === "mensagem" ? "#34D399" : ACCENT,
               color: "#fff",
               boxShadow: `0 8px 24px ${abaAtiva === "mensagem" ? "rgba(52,211,153,0.3)" : `rgba(${ACCENT_RGB},0.3)`}`,
             }}
           >
-            {salvo ? <><Check size={18} /> SALVO!</> : abaAtiva === "mensagem" ? <><Send size={18} /> ENVIAR MENSAGEM</> : <><Heart size={18} /> {salvando ? "SALVANDO..." : "SALVAR DEVOCIONAL"}</>}
+            {salvo ? <><Check size={16} /> SALVO!</> : abaAtiva === "mensagem" ? <><Send size={16} /> ENVIAR MENSAGEM</> : <><Heart size={16} /> {salvando ? "SALVANDO..." : "SALVAR DEVOCIONAL"}</>}
           </button>
         </div>
       )}
