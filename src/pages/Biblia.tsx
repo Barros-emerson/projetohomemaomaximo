@@ -1,6 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMarked, X, Sparkles, Send, Mic, Square, Play, Trash2, Plus, Phone, Share2, RefreshCw, Loader2, Save, Clock } from "lucide-react";
 import DevocionalEvolucao from "@/components/biblia/DevocionalEvolucao";
+import ReflexaoPrompts from "@/components/biblia/ReflexaoPrompts";
+import OracaoTimer from "@/components/biblia/OracaoTimer";
+import ModoLeituraEnhanced from "@/components/biblia/ModoLeituraEnhanced";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -541,98 +544,32 @@ const Biblia = () => {
   // Modo leitura limpo
   if (modoLeitura && leituraSelecionada) {
     return (
-      <div className="fixed inset-0 z-50 bg-background flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <button onClick={() => { setModoLeitura(false); setBibliaTexto([]); }} className="text-muted-foreground">
-            <X size={24} />
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs tracking-widest text-muted-foreground">MODO LEITURA</span>
-            <select
-              value={versaoBiblia}
-              onChange={(e) => {
-                const v = e.target.value;
-                setVersaoBiblia(v);
-                localStorage.setItem("ham-versao-biblia", v);
-                if (leituraSelecionada) {
-                  setBibliaLoading(true);
-                  setBibliaTexto([]);
-                  supabase.functions.invoke("buscar-biblia", {
-                    body: { passagem: leituraSelecionada.passagem, versao: v },
-                  }).then(({ data }) => {
-                    if (data?.chapters) setBibliaTexto(data.chapters);
-                  }).catch(() => toast.error("Erro ao carregar versão"))
-                    .finally(() => setBibliaLoading(false));
-                }
-              }}
-              className="bg-secondary text-foreground text-xs font-mono rounded px-2 py-1 border border-border focus:outline-none"
-            >
-              <option value="ARA">ARA</option>
-              <option value="NTLH">NTLH</option>
-              <option value="NAA">NAA</option>
-              <option value="ACF">ACF</option>
-            </select>
-          </div>
-          <div className="w-6" />
-        </div>
-        <ScrollArea className="flex-1 p-6">
-          <div className="max-w-lg mx-auto space-y-6">
-            <p className="text-xs font-mono tracking-widest text-violet-400 uppercase">Dia {leituraSelecionada.dia}</p>
-            <h2 className="text-2xl font-bold text-foreground leading-tight">{leituraSelecionada.passagem}</h2>
-            <div className="h-px bg-border my-4" />
-
-            {bibliaLoading ? (
-              <div className="flex flex-col items-center gap-3 py-12">
-                <Loader2 size={28} className="text-violet-400 animate-spin" />
-                <p className="text-sm text-muted-foreground">Carregando texto bíblico...</p>
-              </div>
-            ) : bibliaTexto.length > 0 ? (
-              <div className="space-y-10">
-                {bibliaTexto.map((ch, idx) => (
-                  <div key={idx}>
-                    <h3 className="font-mono text-[11px] tracking-[0.2em] text-violet-400 uppercase mb-5 pb-2 border-b border-border">
-                      {ch.book} {ch.chapter}
-                    </h3>
-                    <div className="space-y-3">
-                      {ch.text.split("\n").filter(Boolean).map((line, i) => {
-                        const match = line.match(/^(\d+)\s+(.*)/);
-                        const verseNum = match ? match[1] : null;
-                        const verseText = match ? match[2] : line;
-                        return (
-                          <p key={i} className="text-[15px] text-foreground/90 leading-[2] font-light tracking-[0.01em]">
-                            {verseNum && (
-                              <span className="inline-block font-mono text-[11px] font-semibold text-violet-400/80 mr-2 align-super select-none">
-                                {verseNum}
-                              </span>
-                            )}
-                            {verseText}
-                          </p>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Não foi possível carregar o texto. Abra sua Bíblia e leia a passagem acima.
-              </p>
-            )}
-
-            <Button
-              className="w-full mt-8 bg-violet-600 hover:bg-violet-700 text-white"
-              onClick={() => {
-                concluirLeitura(leituraSelecionada.dia);
-                setModoLeitura(false);
-                setBibliaTexto([]);
-              }}
-            >
-              <Check size={16} className="mr-2" />
-              Concluir leitura
-            </Button>
-          </div>
-        </ScrollArea>
-      </div>
+      <ModoLeituraEnhanced
+        leitura={leituraSelecionada}
+        bibliaTexto={bibliaTexto}
+        bibliaLoading={bibliaLoading}
+        versaoBiblia={versaoBiblia}
+        onClose={() => { setModoLeitura(false); setBibliaTexto([]); }}
+        onConcluir={(dia) => {
+          concluirLeitura(dia);
+          setModoLeitura(false);
+          setBibliaTexto([]);
+        }}
+        onChangeVersao={(v) => {
+          setVersaoBiblia(v);
+          localStorage.setItem("ham-versao-biblia", v);
+          if (leituraSelecionada) {
+            setBibliaLoading(true);
+            setBibliaTexto([]);
+            supabase.functions.invoke("buscar-biblia", {
+              body: { passagem: leituraSelecionada.passagem, versao: v },
+            }).then(({ data }) => {
+              if (data?.chapters) setBibliaTexto(data.chapters);
+            }).catch(() => toast.error("Erro ao carregar versão"))
+              .finally(() => setBibliaLoading(false));
+          }
+        }}
+      />
     );
   }
 
@@ -660,14 +597,17 @@ const Biblia = () => {
         initial={{ y: 12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, duration: 0.5 }}
-        className="surface-card p-4 border-violet-500/20"
+        className="relative overflow-hidden surface-card p-4 border-violet-500/20"
       >
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles size={14} className="text-violet-400" />
-          <span className="font-mono text-[10px] tracking-widest text-violet-400 uppercase">Versículo da semana</span>
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-amber-500/5 pointer-events-none" />
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles size={14} className="text-violet-400" />
+            <span className="font-mono text-[10px] tracking-widest text-violet-400 uppercase">Versículo da semana</span>
+          </div>
+          <p className="text-sm text-foreground leading-relaxed italic">"{versiculo.texto}"</p>
+          <p className="text-xs text-violet-400 mt-2 font-medium">{versiculo.referencia}</p>
         </div>
-        <p className="text-sm text-foreground leading-relaxed italic">"{versiculo.texto}"</p>
-        <p className="text-xs text-violet-400 mt-2 font-medium">{versiculo.referencia}</p>
       </motion.div>
 
       {/* Direção de Deus (AI) */}
@@ -785,6 +725,7 @@ const Biblia = () => {
           <BookMarked size={16} className="text-violet-400" />
           <span className="font-mono text-xs tracking-widest text-foreground">REFLEXÃO DO DIA</span>
         </div>
+        <ReflexaoPrompts />
         <Textarea
           value={reflexao}
           onChange={e => setReflexao(e.target.value)}
@@ -988,6 +929,11 @@ const Biblia = () => {
         className="surface-card p-4"
       >
         <span className="font-mono text-xs tracking-widest text-foreground mb-3 block">ORAÇÃO</span>
+        
+        {/* Prayer Timer */}
+        <div className="mb-4 pb-4 border-b border-border/30">
+          <OracaoTimer />
+        </div>
         <Tabs value={oracaoTab} onValueChange={setOracaoTab}>
           <TabsList className="w-full bg-secondary/50 h-9">
             <TabsTrigger value="gratidao" className="flex-1 text-[11px] gap-1 data-[state=active]:bg-violet-600 data-[state=active]:text-white">
