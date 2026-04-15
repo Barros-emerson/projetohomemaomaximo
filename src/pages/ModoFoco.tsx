@@ -85,15 +85,15 @@ export default function ModoFoco() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="min-h-screen bg-background flex items-center justify-center">
         <span className="text-muted-foreground font-mono text-sm animate-pulse">Carregando...</span>
-      </div>
+      </motion.div>
     );
   }
 
   if (done) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+      <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }} className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -125,14 +125,20 @@ export default function ModoFoco() {
         >
           FECHAR
         </button>
-      </div>
+      </motion.div>
     );
   }
 
   if (!currentItem) return null;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen bg-background flex flex-col"
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <div className="flex items-center gap-2">
@@ -251,6 +257,6 @@ export default function ModoFoco() {
           </button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
