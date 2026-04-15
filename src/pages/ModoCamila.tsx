@@ -443,13 +443,27 @@ export default function ModoCamila() {
                       ))}
                     </select>
                   </div>
-                  <button
-                    onClick={() => setShowLeitor(false)}
-                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-all active:scale-90"
-                    style={{ color: ACCENT }}
-                  >
-                    <X size={16} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowFavoritos(!showFavoritos)}
+                      className="relative w-7 h-7 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                      style={{ color: showFavoritos ? "#F59E0B" : ACCENT }}
+                    >
+                      <Bookmark size={16} fill={showFavoritos ? "currentColor" : "none"} />
+                      {favoritos.length > 0 && (
+                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-500 rounded-full flex items-center justify-center">
+                          <span className="text-[7px] font-bold text-white">{favoritos.length > 9 ? "9+" : favoritos.length}</span>
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setShowLeitor(false)}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                      style={{ color: ACCENT }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Busca personalizada */}
