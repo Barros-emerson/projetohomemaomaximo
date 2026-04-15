@@ -86,6 +86,12 @@ export default function ModoCamila() {
   const [novoEncontro, setNovoEncontro] = useState({ titulo: "", descricao: "", data_evento: "", tipo: "date" });
   const [criandoEncontro, setCriandoEncontro] = useState(false);
 
+  // Favoritos de versículos
+  const [favoritos, setFavoritos] = useState<Array<{ id: string; referencia: string; texto: string; versao: string }>>([]);
+  const [favoritosSet, setFavoritosSet] = useState<Set<string>>(new Set());
+  const [savingRef, setSavingRef] = useState<string | null>(null);
+  const [showFavoritos, setShowFavoritos] = useState(false);
+
   useEffect(() => {
     const load = async () => {
       try {
