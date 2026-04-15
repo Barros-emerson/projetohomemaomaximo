@@ -81,6 +81,8 @@ const getTreinoStorageKey = (dayIdx: number) => {
 };
 
 const Treino = () => {
+  const navigate = useNavigate();
+  const { data: readiness } = useReadiness();
   const [selectedDay, setSelectedDay] = useState(getTodayIndex());
   const [completedSets, setCompletedSets] = useState<Record<string, Set<number>>>(() => {
     try {
