@@ -570,7 +570,21 @@ const Treino = () => {
                   <div className="flex items-center gap-2">
                     {suggestions[ex.name] && (
                       <button
-                        onClick={() => setShowSuggestion(prev => ({ ...prev, [ex.id]: !prev[ex.id] }))}
+                        onClick={() => {
+                          const wasOpen = showSuggestion[ex.id];
+                          setShowSuggestion(prev => ({ ...prev, [ex.id]: !prev[ex.id] }));
+                          if (!wasOpen) {
+                            const suggested = String(suggestions[ex.name].suggestedLoad);
+                            setLoads(prev => {
+                              const exLoads = { ...(prev[ex.id] || {}) };
+                              for (let i = 0; i < setsCount; i++) {
+                                if (!exLoads[i]) exLoads[i] = suggested;
+                              }
+                              return { ...prev, [ex.id]: exLoads };
+                            });
+                            toast.success(`${suggested}kg aplicado em ${ex.name}`);
+                          }
+                        }}
                         className={`flex items-center gap-1 px-2 py-1 rounded-lg font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95 ${
                           showSuggestion[ex.id]
                             ? "bg-primary/15 text-primary"
