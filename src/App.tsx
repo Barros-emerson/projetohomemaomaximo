@@ -21,6 +21,7 @@ import ModoFoco from "@/pages/ModoFoco";
 import ModoCamila from "@/pages/ModoCamila";
 import Metas from "@/pages/Metas";
 import Habitos from "@/pages/Habitos";
+import Readiness from "@/pages/Readiness";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/performance" element={<Performance />} />
               <Route path="/metas" element={<Metas />} />
               <Route path="/habitos" element={<Habitos />} />
+              <Route path="/readiness" element={<Readiness />} />
             </Route>
             <Route path="/foco" element={<ModoFoco />} />
             <Route path="/camila" element={<ModoCamila />} />

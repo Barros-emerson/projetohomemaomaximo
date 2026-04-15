@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Square, Timer, Check, Camera, X, Image as ImageIcon, RotateCcw } from "lucide-react";
+import { Play, Square, Timer, Check, Camera, X, Image as ImageIcon, RotateCcw, Activity } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { weekPlan } from "@/data/treino-plano";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import TreinoRelatorio, { type RelatorioData } from "@/components/treino/TreinoRelatorio";
 import TreinoComparativo from "@/components/treino/TreinoComparativo";
+import { useReadiness, getReadinessColor, getReadinessBg, getReadinessLabel, getReadinessMessage, getLoadAdjustment } from "@/hooks/useReadiness";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
@@ -79,6 +81,8 @@ const getTreinoStorageKey = (dayIdx: number) => {
 };
 
 const Treino = () => {
+  const navigate = useNavigate();
+  const { data: readiness } = useReadiness();
   const [selectedDay, setSelectedDay] = useState(getTodayIndex());
   const [completedSets, setCompletedSets] = useState<Record<string, Set<number>>>(() => {
     try {
@@ -421,6 +425,48 @@ const Treino = () => {
           </div>
         )}
       </motion.div>
+
+      {/* Readiness Banner */}
+      {!isOff && (
+        readiness ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`surface-card p-3 border ${getReadinessBg(readiness.status)} cursor-pointer`}
+            onClick={() => navigate("/readiness")}
+          >
+            <div className="flex items-center gap-3">
+              <Activity size={16} className={getReadinessColor(readiness.status)} />
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className={`font-mono text-xs font-extrabold ${getReadinessColor(readiness.status)}`}>
+                    READINESS: {Math.round(readiness.score)}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground font-mono">
+                    — {getReadinessLabel(readiness.status)}
+                  </span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5 italic">
+                  {getLoadAdjustment(readiness.status).label} · "{getReadinessMessage(readiness.status)}"
+                </p>
+              </div>
+              <span className={`font-mono text-lg font-black ${getReadinessColor(readiness.status)}`}>
+                {Math.round(readiness.score)}
+              </span>
+            </div>
+          </motion.div>
+        ) : (
+          <button
+            onClick={() => navigate("/readiness")}
+            className="w-full surface-card p-3 border border-dashed border-primary/30 flex items-center gap-3 active:scale-[0.98] transition-all"
+          >
+            <Activity size={16} className="text-primary" />
+            <span className="font-mono text-[10px] text-primary font-bold tracking-wider">
+              FAZER CHECK-IN DE PRONTIDÃO →
+            </span>
+          </button>
+        )
+      )}
 
       {/* Photo upload section */}
       {!isOff && (
