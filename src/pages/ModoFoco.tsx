@@ -125,7 +125,7 @@ export default function ModoFoco() {
         >
           FECHAR
         </button>
-      </div>
+      </motion.div>
     );
   }
 
