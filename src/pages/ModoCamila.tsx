@@ -493,6 +493,56 @@ export default function ModoCamila() {
                 )}
 
 
+                {/* Favoritos panel */}
+                <AnimatePresence>
+                  {showFavoritos && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden mb-3"
+                    >
+                      <div className="rounded-xl p-3 border" style={{ borderColor: "rgba(245,158,11,0.2)", background: "rgba(245,158,11,0.05)" }}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <BookmarkCheck size={13} className="text-amber-400" />
+                          <span className="font-mono text-[9px] tracking-widest text-amber-400 font-bold">VERSÍCULOS FAVORITOS</span>
+                          <span className="text-[9px] text-muted-foreground">({favoritos.length})</span>
+                        </div>
+                        {favoritos.length === 0 ? (
+                          <p className="text-[11px] text-muted-foreground italic text-center py-2">Toque em um versículo para salvar 🍃</p>
+                        ) : (
+                          <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
+                            {favoritos.map((fav) => (
+                              <div key={fav.id} className="group relative p-2 rounded-lg bg-background border border-border/50 hover:border-amber-500/20 transition-colors">
+                                <div className="flex items-start gap-1.5">
+                                  <Heart size={10} className="text-amber-400 mt-0.5 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[9px] font-mono text-amber-400 font-medium">{fav.referencia} <span className="text-muted-foreground/60">• {fav.versao}</span></p>
+                                    <p className="text-[11px] text-foreground/80 leading-relaxed line-clamp-2">{fav.texto}</p>
+                                  </div>
+                                  <button onClick={() => toggleFavorito(fav.referencia, fav.texto)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all p-0.5">
+                                    <X size={10} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {passagemAtual && (
+                  <p className="font-mono text-[10px] tracking-wider mb-2 text-muted-foreground">
+                    Lendo: <span style={{ color: ACCENT }} className="font-bold">{passagemAtual}</span>
+                  </p>
+                )}
+
+                {textoBiblia.length > 0 && (
+                  <p className="text-[9px] text-center text-muted-foreground/50 italic mb-2">Toque em um versículo para salvar 🍃</p>
+                )}
+
                 <div className="max-h-[50vh] overflow-y-auto pr-1 space-y-4 scrollbar-thin">
                   {textoBiblia.map((ch, i) => (
                     <div key={i}>
@@ -500,19 +550,44 @@ export default function ModoCamila() {
                         {ch.book.toUpperCase()} {ch.chapter}
                       </p>
                       <div className="text-sm text-foreground/90 leading-[1.8] font-serif">
-                        {ch.text.split("\n").map((line, j) => {
+                        {ch.text.split("\n").filter(Boolean).map((line, j) => {
                           const verseMatch = line.match(/^(\d+)\s(.+)/);
-                          if (verseMatch) {
-                            return (
-                              <p key={j} className="mb-1">
-                                <sup className="text-[10px] font-mono font-bold mr-1" style={{ color: `rgba(${ACCENT_RGB},0.6)` }}>
-                                  {verseMatch[1]}
+                          const verseNum = verseMatch ? verseMatch[1] : null;
+                          const verseText = verseMatch ? verseMatch[2] : line;
+                          const ref = verseNum ? `${ch.book} ${ch.chapter}:${verseNum}` : "";
+                          const isFav = ref ? favoritosSet.has(ref) : false;
+                          const isSaving = savingRef === ref;
+
+                          return (
+                            <motion.p
+                              key={j}
+                              className={`mb-1 rounded-lg px-1.5 py-0.5 -mx-1.5 cursor-pointer transition-colors ${
+                                isFav
+                                  ? "border-l-2 border-amber-500/40"
+                                  : "hover:bg-secondary/30 border-l-2 border-transparent"
+                              }`}
+                              style={isFav ? { background: "rgba(245,158,11,0.08)" } : {}}
+                              onClick={() => {
+                                if (verseNum && verseText && !isSaving) {
+                                  toggleFavorito(ref, verseText);
+                                }
+                              }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              {verseNum && (
+                                <sup
+                                  className="text-[10px] font-mono font-bold mr-1"
+                                  style={{ color: isFav ? "#F59E0B" : `rgba(${ACCENT_RGB},0.6)` }}
+                                >
+                                  {verseNum}
                                 </sup>
-                                {verseMatch[2]}
-                              </p>
-                            );
-                          }
-                          return <p key={j} className="mb-1">{line}</p>;
+                              )}
+                              {verseText}
+                              {isFav && (
+                                <Bookmark size={10} className="inline-block ml-1 text-amber-400 align-middle" fill="currentColor" />
+                              )}
+                            </motion.p>
+                          );
                         })}
                       </div>
                     </div>
