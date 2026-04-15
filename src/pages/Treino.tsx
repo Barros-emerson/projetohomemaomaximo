@@ -7,7 +7,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import TreinoRelatorio, { type RelatorioData } from "@/components/treino/TreinoRelatorio";
 import TreinoComparativo from "@/components/treino/TreinoComparativo";
+import SugestaoCarga from "@/components/treino/SugestaoCarga";
 import { useReadiness, getReadinessColor, getReadinessBg, getReadinessLabel, getReadinessMessage, getLoadAdjustment } from "@/hooks/useReadiness";
+import { useLoadSuggestions } from "@/hooks/useLoadSuggestion";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
@@ -83,6 +85,8 @@ const getTreinoStorageKey = (dayIdx: number) => {
 const Treino = () => {
   const navigate = useNavigate();
   const { data: readiness } = useReadiness();
+  const { suggestions, weekNumber } = useLoadSuggestions();
+  const [showSuggestion, setShowSuggestion] = useState<Record<string, boolean>>({});
   const [selectedDay, setSelectedDay] = useState(getTodayIndex());
   const [completedSets, setCompletedSets] = useState<Record<string, Set<number>>>(() => {
     try {
