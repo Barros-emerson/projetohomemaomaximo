@@ -686,6 +686,30 @@ export type Database = {
         }
         Relationships: []
       }
+      versiculos_favoritos: {
+        Row: {
+          created_at: string
+          id: string
+          referencia: string
+          texto: string
+          versao: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referencia: string
+          texto: string
+          versao?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referencia?: string
+          texto?: string
+          versao?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
