@@ -144,6 +144,13 @@ export default function ModoCamila() {
         // Agenda de Encontros
         const { data: encontrosData } = await supabase.from("agenda_encontros").select("*").order("data_evento", { ascending: true });
         if (encontrosData) setEncontros(encontrosData);
+
+        // Favoritos de versículos
+        const { data: favData } = await supabase.from("versiculos_favoritos").select("*").order("created_at", { ascending: false });
+        if (favData) {
+          setFavoritos(favData);
+          setFavoritosSet(new Set(favData.map((f: any) => f.referencia)));
+        }
       } catch (err) {
         console.error(err);
       } finally {
