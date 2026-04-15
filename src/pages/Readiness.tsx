@@ -12,12 +12,12 @@ import {
   getLoadAdjustment,
 } from "@/hooks/useReadiness";
 
-const sliderFields = [
+const sliderFields: Array<{ key: "sono" | "energia" | "dor" | "estresse"; label: string; icon: typeof Moon; emoji: string; inverted?: boolean }> = [
   { key: "sono", label: "Qualidade do sono", icon: Moon, emoji: "😴" },
   { key: "energia", label: "Nível de energia", icon: Zap, emoji: "⚡" },
   { key: "dor", label: "Dor muscular", icon: Flame, emoji: "🔥", inverted: true },
   { key: "estresse", label: "Nível de estresse", icon: Brain, emoji: "🧠", inverted: true },
-] as const;
+];
 
 const Readiness = () => {
   const { data: todayData, loading, saveCheckin } = useReadiness();
