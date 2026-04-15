@@ -597,14 +597,17 @@ const Biblia = () => {
         initial={{ y: 12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, duration: 0.5 }}
-        className="surface-card p-4 border-violet-500/20"
+        className="relative overflow-hidden surface-card p-4 border-violet-500/20"
       >
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles size={14} className="text-violet-400" />
-          <span className="font-mono text-[10px] tracking-widest text-violet-400 uppercase">Versículo da semana</span>
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-amber-500/5 pointer-events-none" />
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles size={14} className="text-violet-400" />
+            <span className="font-mono text-[10px] tracking-widest text-violet-400 uppercase">Versículo da semana</span>
+          </div>
+          <p className="text-sm text-foreground leading-relaxed italic">"{versiculo.texto}"</p>
+          <p className="text-xs text-violet-400 mt-2 font-medium">{versiculo.referencia}</p>
         </div>
-        <p className="text-sm text-foreground leading-relaxed italic">"{versiculo.texto}"</p>
-        <p className="text-xs text-violet-400 mt-2 font-medium">{versiculo.referencia}</p>
       </motion.div>
 
       {/* Direção de Deus (AI) */}
