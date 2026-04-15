@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X, Sun, Moon, Leaf, Search, CalendarHeart, HeartHandshake } from "lucide-react";
+import { Heart, BookOpen, HandHeart, Shield, Check, Send, Sparkles, Flame, ChevronDown, MessageCircleHeart, Scroll, StickyNote, ListChecks, Plus, Trash2, X, Sun, Moon, Leaf, Search, CalendarHeart, HeartHandshake, Bookmark, BookmarkCheck } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/components/ThemeProvider";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
@@ -85,6 +86,12 @@ export default function ModoCamila() {
   const [novoEncontro, setNovoEncontro] = useState({ titulo: "", descricao: "", data_evento: "", tipo: "date" });
   const [criandoEncontro, setCriandoEncontro] = useState(false);
 
+  // Favoritos de versículos
+  const [favoritos, setFavoritos] = useState<Array<{ id: string; referencia: string; texto: string; versao: string }>>([]);
+  const [favoritosSet, setFavoritosSet] = useState<Set<string>>(new Set());
+  const [savingRef, setSavingRef] = useState<string | null>(null);
+  const [showFavoritos, setShowFavoritos] = useState(false);
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -137,6 +144,13 @@ export default function ModoCamila() {
         // Agenda de Encontros
         const { data: encontrosData } = await supabase.from("agenda_encontros").select("*").order("data_evento", { ascending: true });
         if (encontrosData) setEncontros(encontrosData);
+
+        // Favoritos de versículos
+        const { data: favData } = await supabase.from("versiculos_favoritos").select("*").order("created_at", { ascending: false });
+        if (favData) {
+          setFavoritos(favData);
+          setFavoritosSet(new Set(favData.map((f: any) => f.referencia)));
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -286,6 +300,33 @@ export default function ModoCamila() {
     setEncontros(prev => prev.filter(e => e.id !== id));
   }, []);
 
+  // Toggle favorito versículo
+  const toggleFavorito = useCallback(async (referencia: string, texto: string) => {
+    setSavingRef(referencia);
+    const isFav = favoritosSet.has(referencia);
+    try {
+      if (isFav) {
+        await supabase.from("versiculos_favoritos").delete().eq("referencia", referencia);
+        setFavoritos(prev => prev.filter(f => f.referencia !== referencia));
+        setFavoritosSet(prev => { const next = new Set(prev); next.delete(referencia); return next; });
+        toast.success("Versículo removido dos favoritos");
+      } else {
+        const { data, error } = await supabase.from("versiculos_favoritos").insert({ referencia, texto, versao: versaoBiblia }).select().single();
+        if (error) throw error;
+        if (data) {
+          setFavoritos(prev => [data, ...prev]);
+          setFavoritosSet(prev => new Set(prev).add(referencia));
+        }
+        toast.success("Versículo salvo! 🍃");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao salvar versículo");
+    } finally {
+      setSavingRef(null);
+    }
+  }, [favoritosSet, versaoBiblia]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -402,13 +443,27 @@ export default function ModoCamila() {
                       ))}
                     </select>
                   </div>
-                  <button
-                    onClick={() => setShowLeitor(false)}
-                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-all active:scale-90"
-                    style={{ color: ACCENT }}
-                  >
-                    <X size={16} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowFavoritos(!showFavoritos)}
+                      className="relative w-7 h-7 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                      style={{ color: showFavoritos ? "#F59E0B" : ACCENT }}
+                    >
+                      <Bookmark size={16} fill={showFavoritos ? "currentColor" : "none"} />
+                      {favoritos.length > 0 && (
+                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-500 rounded-full flex items-center justify-center">
+                          <span className="text-[7px] font-bold text-white">{favoritos.length > 9 ? "9+" : favoritos.length}</span>
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setShowLeitor(false)}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                      style={{ color: ACCENT }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Busca personalizada */}
@@ -438,6 +493,56 @@ export default function ModoCamila() {
                 )}
 
 
+                {/* Favoritos panel */}
+                <AnimatePresence>
+                  {showFavoritos && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden mb-3"
+                    >
+                      <div className="rounded-xl p-3 border" style={{ borderColor: "rgba(245,158,11,0.2)", background: "rgba(245,158,11,0.05)" }}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <BookmarkCheck size={13} className="text-amber-400" />
+                          <span className="font-mono text-[9px] tracking-widest text-amber-400 font-bold">VERSÍCULOS FAVORITOS</span>
+                          <span className="text-[9px] text-muted-foreground">({favoritos.length})</span>
+                        </div>
+                        {favoritos.length === 0 ? (
+                          <p className="text-[11px] text-muted-foreground italic text-center py-2">Toque em um versículo para salvar 🍃</p>
+                        ) : (
+                          <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
+                            {favoritos.map((fav) => (
+                              <div key={fav.id} className="group relative p-2 rounded-lg bg-background border border-border/50 hover:border-amber-500/20 transition-colors">
+                                <div className="flex items-start gap-1.5">
+                                  <Heart size={10} className="text-amber-400 mt-0.5 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[9px] font-mono text-amber-400 font-medium">{fav.referencia} <span className="text-muted-foreground/60">• {fav.versao}</span></p>
+                                    <p className="text-[11px] text-foreground/80 leading-relaxed line-clamp-2">{fav.texto}</p>
+                                  </div>
+                                  <button onClick={() => toggleFavorito(fav.referencia, fav.texto)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all p-0.5">
+                                    <X size={10} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {passagemAtual && (
+                  <p className="font-mono text-[10px] tracking-wider mb-2 text-muted-foreground">
+                    Lendo: <span style={{ color: ACCENT }} className="font-bold">{passagemAtual}</span>
+                  </p>
+                )}
+
+                {textoBiblia.length > 0 && (
+                  <p className="text-[9px] text-center text-muted-foreground/50 italic mb-2">Toque em um versículo para salvar 🍃</p>
+                )}
+
                 <div className="max-h-[50vh] overflow-y-auto pr-1 space-y-4 scrollbar-thin">
                   {textoBiblia.map((ch, i) => (
                     <div key={i}>
@@ -445,19 +550,44 @@ export default function ModoCamila() {
                         {ch.book.toUpperCase()} {ch.chapter}
                       </p>
                       <div className="text-sm text-foreground/90 leading-[1.8] font-serif">
-                        {ch.text.split("\n").map((line, j) => {
+                        {ch.text.split("\n").filter(Boolean).map((line, j) => {
                           const verseMatch = line.match(/^(\d+)\s(.+)/);
-                          if (verseMatch) {
-                            return (
-                              <p key={j} className="mb-1">
-                                <sup className="text-[10px] font-mono font-bold mr-1" style={{ color: `rgba(${ACCENT_RGB},0.6)` }}>
-                                  {verseMatch[1]}
+                          const verseNum = verseMatch ? verseMatch[1] : null;
+                          const verseText = verseMatch ? verseMatch[2] : line;
+                          const ref = verseNum ? `${ch.book} ${ch.chapter}:${verseNum}` : "";
+                          const isFav = ref ? favoritosSet.has(ref) : false;
+                          const isSaving = savingRef === ref;
+
+                          return (
+                            <motion.p
+                              key={j}
+                              className={`mb-1 rounded-lg px-1.5 py-0.5 -mx-1.5 cursor-pointer transition-colors ${
+                                isFav
+                                  ? "border-l-2 border-amber-500/40"
+                                  : "hover:bg-secondary/30 border-l-2 border-transparent"
+                              }`}
+                              style={isFav ? { background: "rgba(245,158,11,0.08)" } : {}}
+                              onClick={() => {
+                                if (verseNum && verseText && !isSaving) {
+                                  toggleFavorito(ref, verseText);
+                                }
+                              }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              {verseNum && (
+                                <sup
+                                  className="text-[10px] font-mono font-bold mr-1"
+                                  style={{ color: isFav ? "#F59E0B" : `rgba(${ACCENT_RGB},0.6)` }}
+                                >
+                                  {verseNum}
                                 </sup>
-                                {verseMatch[2]}
-                              </p>
-                            );
-                          }
-                          return <p key={j} className="mb-1">{line}</p>;
+                              )}
+                              {verseText}
+                              {isFav && (
+                                <Bookmark size={10} className="inline-block ml-1 text-amber-400 align-middle" fill="currentColor" />
+                              )}
+                            </motion.p>
+                          );
                         })}
                       </div>
                     </div>
