@@ -93,7 +93,7 @@ export default function ModoFoco() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+      <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }} className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
