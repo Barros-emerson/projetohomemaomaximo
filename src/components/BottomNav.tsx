@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 const mainTabs = [
-  { path: "/", icon: Home, label: "Home" },
+  { path: "/foco", icon: Home, label: "Home" },
   { path: "/rotina", icon: Zap, label: "Rotina" },
   { path: "__fab__", icon: Plus, label: "" },
   { path: "/treino", icon: Dumbbell, label: "Treino" },

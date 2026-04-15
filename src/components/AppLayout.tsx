@@ -92,7 +92,7 @@ export const AppLayout = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl px-4 py-3">
         <div className="flex items-center justify-between max-w-lg mx-auto">
-          <button onClick={() => navigate("/")} className="flex items-center gap-2 active:scale-95 transition-transform">
+          <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 active:scale-95 transition-transform">
             <span className="font-semibold text-sm tracking-tight text-foreground">
               HOMEM <span className="text-gradient font-bold">DE VERDADE</span>
             </span>
