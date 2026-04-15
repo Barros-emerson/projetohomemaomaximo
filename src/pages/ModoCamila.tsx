@@ -300,6 +300,33 @@ export default function ModoCamila() {
     setEncontros(prev => prev.filter(e => e.id !== id));
   }, []);
 
+  // Toggle favorito versículo
+  const toggleFavorito = useCallback(async (referencia: string, texto: string) => {
+    setSavingRef(referencia);
+    const isFav = favoritosSet.has(referencia);
+    try {
+      if (isFav) {
+        await supabase.from("versiculos_favoritos").delete().eq("referencia", referencia);
+        setFavoritos(prev => prev.filter(f => f.referencia !== referencia));
+        setFavoritosSet(prev => { const next = new Set(prev); next.delete(referencia); return next; });
+        toast.success("Versículo removido dos favoritos");
+      } else {
+        const { data, error } = await supabase.from("versiculos_favoritos").insert({ referencia, texto, versao: versaoBiblia }).select().single();
+        if (error) throw error;
+        if (data) {
+          setFavoritos(prev => [data, ...prev]);
+          setFavoritosSet(prev => new Set(prev).add(referencia));
+        }
+        toast.success("Versículo salvo! 🍃");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao salvar versículo");
+    } finally {
+      setSavingRef(null);
+    }
+  }, [favoritosSet, versaoBiblia]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
