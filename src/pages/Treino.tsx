@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Square, Timer, Check, Camera, X, Image as ImageIcon, RotateCcw } from "lucide-react";
+import { Play, Square, Timer, Check, Camera, X, Image as ImageIcon, RotateCcw, Activity } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { weekPlan } from "@/data/treino-plano";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import TreinoRelatorio, { type RelatorioData } from "@/components/treino/TreinoRelatorio";
 import TreinoComparativo from "@/components/treino/TreinoComparativo";
+import { useReadiness, getReadinessColor, getReadinessBg, getReadinessLabel, getReadinessMessage, getLoadAdjustment } from "@/hooks/useReadiness";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
