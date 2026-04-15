@@ -457,6 +457,42 @@ export type Database = {
         }
         Relationships: []
       }
+      readiness_checkin: {
+        Row: {
+          created_at: string
+          data: string
+          dor_muscular: number
+          energia: number
+          estresse: number
+          id: string
+          score: number
+          sono_qualidade: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          dor_muscular?: number
+          energia?: number
+          estresse?: number
+          id?: string
+          score?: number
+          sono_qualidade?: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          dor_muscular?: number
+          energia?: number
+          estresse?: number
+          id?: string
+          score?: number
+          sono_qualidade?: number
+          status?: string
+        }
+        Relationships: []
+      }
       score_diario: {
         Row: {
           created_at: string
