@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Square, Timer, Check, Camera, X, Image as ImageIcon, RotateCcw, Activity } from "lucide-react";
+import { Play, Square, Timer, Check, Camera, X, Image as ImageIcon, RotateCcw, Activity, Brain } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { weekPlan } from "@/data/treino-plano";
 import { toast } from "sonner";
