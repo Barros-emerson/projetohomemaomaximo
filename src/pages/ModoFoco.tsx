@@ -85,7 +85,7 @@ export default function ModoFoco() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="min-h-screen bg-background flex items-center justify-center">
         <span className="text-muted-foreground font-mono text-sm animate-pulse">Carregando...</span>
       </div>
     );
