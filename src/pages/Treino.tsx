@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Square, Timer, Check, Camera, X, Image as ImageIcon, RotateCcw, Activity } from "lucide-react";
+import { Play, Square, Timer, Check, Camera, X, Image as ImageIcon, RotateCcw, Activity, Brain } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { weekPlan } from "@/data/treino-plano";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import TreinoRelatorio, { type RelatorioData } from "@/components/treino/TreinoRelatorio";
 import TreinoComparativo from "@/components/treino/TreinoComparativo";
+import SugestaoCarga from "@/components/treino/SugestaoCarga";
 import { useReadiness, getReadinessColor, getReadinessBg, getReadinessLabel, getReadinessMessage, getLoadAdjustment } from "@/hooks/useReadiness";
+import { useLoadSuggestions } from "@/hooks/useLoadSuggestion";
 
 const getTodayIndex = () => {
   const d = new Date().getDay();
@@ -83,6 +85,8 @@ const getTreinoStorageKey = (dayIdx: number) => {
 const Treino = () => {
   const navigate = useNavigate();
   const { data: readiness } = useReadiness();
+  const { suggestions, weekNumber } = useLoadSuggestions();
+  const [showSuggestion, setShowSuggestion] = useState<Record<string, boolean>>({});
   const [selectedDay, setSelectedDay] = useState(getTodayIndex());
   const [completedSets, setCompletedSets] = useState<Record<string, Set<number>>>(() => {
     try {
@@ -563,10 +567,36 @@ const Treino = () => {
                       <span className="text-[10px] text-muted-foreground ml-2">{ex.equipment}</span>
                     )}
                   </div>
-                  <span className={`font-mono text-lg font-extrabold ${day.colorClass}`}>
-                    {ex.sets}x{ex.reps}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {suggestions[ex.name] && (
+                      <button
+                        onClick={() => setShowSuggestion(prev => ({ ...prev, [ex.id]: !prev[ex.id] }))}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-lg font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95 ${
+                          showSuggestion[ex.id]
+                            ? "bg-primary/15 text-primary"
+                            : "bg-secondary text-muted-foreground"
+                        }`}
+                      >
+                        <Brain size={10} />
+                        {suggestions[ex.name].suggestedLoad}kg
+                      </button>
+                    )}
+                    <span className={`font-mono text-lg font-extrabold ${day.colorClass}`}>
+                      {ex.sets}x{ex.reps}
+                    </span>
+                  </div>
                 </div>
+
+                {showSuggestion[ex.id] && suggestions[ex.name] && (
+                  <SugestaoCarga
+                    estimated1RM={suggestions[ex.name].estimated1RM}
+                    targetPct={suggestions[ex.name].targetPct}
+                    calculatedLoad={suggestions[ex.name].calculatedLoad}
+                    suggestedLoad={suggestions[ex.name].suggestedLoad}
+                    isChestExercise={suggestions[ex.name].isChestExercise}
+                    weekNumber={weekNumber}
+                  />
+                )}
 
                 <div className="flex gap-2 mt-2 flex-wrap">
                     {Array.from({ length: setsCount }).map((_, si) => {
