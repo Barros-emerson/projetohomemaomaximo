@@ -722,6 +722,7 @@ const Biblia = () => {
           <BookMarked size={16} className="text-violet-400" />
           <span className="font-mono text-xs tracking-widest text-foreground">REFLEXÃO DO DIA</span>
         </div>
+        <ReflexaoPrompts />
         <Textarea
           value={reflexao}
           onChange={e => setReflexao(e.target.value)}
@@ -925,6 +926,11 @@ const Biblia = () => {
         className="surface-card p-4"
       >
         <span className="font-mono text-xs tracking-widest text-foreground mb-3 block">ORAÇÃO</span>
+        
+        {/* Prayer Timer */}
+        <div className="mb-4 pb-4 border-b border-border/30">
+          <OracaoTimer />
+        </div>
         <Tabs value={oracaoTab} onValueChange={setOracaoTab}>
           <TabsList className="w-full bg-secondary/50 h-9">
             <TabsTrigger value="gratidao" className="flex-1 text-[11px] gap-1 data-[state=active]:bg-violet-600 data-[state=active]:text-white">
