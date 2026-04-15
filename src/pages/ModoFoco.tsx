@@ -120,7 +120,7 @@ export default function ModoFoco() {
           </p>
         </motion.div>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/dashboard")}
           className="mt-12 px-8 py-4 rounded-2xl bg-primary text-primary-foreground font-mono text-sm font-bold tracking-widest active:scale-95 transition-transform"
         >
           FECHAR
@@ -142,7 +142,7 @@ export default function ModoFoco() {
           </span>
         </div>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/dashboard")}
           className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center active:scale-90 transition-transform"
         >
           <X size={16} className="text-muted-foreground" />
