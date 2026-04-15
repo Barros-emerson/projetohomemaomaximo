@@ -132,7 +132,13 @@ export default function ModoFoco() {
   if (!currentItem) return null;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen bg-background flex flex-col"
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <div className="flex items-center gap-2">
