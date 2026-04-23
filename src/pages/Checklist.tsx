@@ -124,7 +124,7 @@ const Checklist = () => {
   const [showSkipConfirm, setShowSkipConfirm] = useState<string | null>(null);
   const [alertPickerFor, setAlertPickerFor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const { config: alertsConfig, setItemAlert } = useItemAlerts(todayIdx);
+  const { config: alertsConfig, setItemAlert, triggerTestAlert } = useItemAlerts(todayIdx);
   const isToday = selectedDay === todayIdx;
   const tipoConfig = TIPOS_DIA.find((t) => t.id === tipoDia)!;
   const isDiaEspecial = tipoDia !== "normal";
@@ -665,9 +665,28 @@ const Checklist = () => {
                     );
                   })}
                 </div>
-                <p className="font-mono text-[10px] text-muted-foreground/70 leading-relaxed text-center">
-                  Lembrete via notificação + som. Mantenha o app aberto na aba.
-                </p>
+
+                {/* Modo de teste */}
+                <div className="border-t border-border pt-3 space-y-2">
+                  <p className="font-mono text-[10px] text-muted-foreground tracking-widest">MODO DE TESTE</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { sec: 5, label: "5 SEG" },
+                      { sec: 60, label: "1 MIN" },
+                      { sec: 120, label: "2 MIN" },
+                    ].map((t) => (
+                      <button key={t.sec}
+                        onClick={() => { triggerTestAlert(alertPickerFor, t.sec); setAlertPickerFor(null); }}
+                        className="py-2.5 rounded-lg font-mono text-[10px] font-bold tracking-wider active:scale-95 transition-all"
+                        style={{ background: "rgba(251,146,60,0.12)", color: "#FB923C", border: "1px solid rgba(251,146,60,0.3)" }}>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="font-mono text-[10px] text-muted-foreground/70 leading-relaxed text-center">
+                    Dispara notificação + toast + beep para conferir se está tudo funcionando.
+                  </p>
+                </div>
               </motion.div>
             </motion.div>
           );
