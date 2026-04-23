@@ -140,12 +140,51 @@ export const OneShotComposer = () => {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-lg border border-border bg-card p-3 space-y-3"
     >
-      <div className="flex items-center gap-2">
-        <Clock size={14} className="text-primary" />
-        <p className="font-mono text-[10px] font-bold tracking-widest text-foreground">
-          ALERTA ÚNICO
-        </p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Clock size={14} className="text-primary" />
+          <p className="font-mono text-[10px] font-bold tracking-widest text-foreground">
+            ALERTA ÚNICO
+          </p>
+        </div>
+        <button
+          onClick={handleTestNow}
+          className="flex items-center gap-1 px-2 py-1 rounded border border-primary/40 bg-primary/10 active:scale-95 transition-all"
+          aria-label="Disparar teste imediato"
+        >
+          <Zap size={11} className="text-primary" />
+          <span className="font-mono text-[9px] font-bold tracking-wider text-primary">TESTAR AGORA</span>
+        </button>
       </div>
+
+      {/* Diagnóstico de permissão */}
+      {permission !== "granted" && (
+        <div className="flex items-start gap-2 px-2.5 py-2 rounded-md border border-destructive/40 bg-destructive/10">
+          <AlertTriangle size={12} className="text-destructive shrink-0 mt-0.5" />
+          <div className="flex-1 space-y-1">
+            <p className="font-mono text-[10px] font-bold text-destructive">
+              {permission === "denied"
+                ? "NOTIFICAÇÕES BLOQUEADAS"
+                : permission === "unsupported"
+                  ? "NAVEGADOR SEM SUPORTE"
+                  : "PERMISSÃO PENDENTE"}
+            </p>
+            <p className="font-mono text-[9px] text-muted-foreground leading-relaxed">
+              {permission === "denied"
+                ? "Desbloqueie em: ícone do cadeado na URL → Notificações → Permitir. Depois recarregue a página."
+                : permission === "unsupported"
+                  ? "Use Chrome/Safari atualizado. Em iPhone, instale o app na tela inicial primeiro."
+                  : "Clique em ATIVAR no banner acima pra liberar as notificações."}
+            </p>
+          </div>
+        </div>
+      )}
+      {permission === "granted" && (
+        <p className="font-mono text-[9px] text-muted-foreground">
+          ✅ Permissão ativa. Mantenha o app aberto na hora do disparo (Web Push em background ainda não implementado).
+        </p>
+      )}
+
 
       {/* Form */}
       <div className="space-y-2">
