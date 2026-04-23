@@ -5,8 +5,18 @@ import { rotinaSemanal } from "@/data/rotina-diaria";
 // Per-item alert config: minutes before (0 = off)
 const STORAGE_KEY = "ham-item-alerts-v1";
 const FIRED_KEY = "ham-item-alerts-fired-v1"; // {date}:{itemId}:{minutes}
+const ONESHOT_KEY = "ham-oneshot-alerts-v1"; // one-shot dated alerts
 
 export type AlertConfig = Record<string, number>; // itemId -> minutes before (0 = off)
+
+export type OneShotAlert = {
+  id: string;
+  label: string;
+  detail?: string;
+  /** ISO string YYYY-MM-DDTHH:mm (local time) */
+  fireAt: string;
+  fired?: boolean;
+};
 
 export const ALERT_OPTIONS: { value: number; label: string }[] = [
   { value: 0, label: "Desligado" },
@@ -58,6 +68,38 @@ const parseTime = (t: string): number | null => {
   if (!m) return null;
   return parseInt(m[1]) * 60 + parseInt(m[2]);
 };
+
+// ─── ONE-SHOT (dated) alerts ─────────────────────────────────────────────────
+
+const loadOneShots = (): OneShotAlert[] => {
+  try {
+    const raw = localStorage.getItem(ONESHOT_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveOneShots = (list: OneShotAlert[]) => {
+  try {
+    localStorage.setItem(ONESHOT_KEY, JSON.stringify(list));
+  } catch {}
+};
+
+/** Add a one-shot alert that fires at an exact local datetime. */
+export const addOneShotAlert = (alert: Omit<OneShotAlert, "id" | "fired">) => {
+  const list = loadOneShots();
+  const id = `oneshot-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  list.push({ ...alert, id, fired: false });
+  saveOneShots(list);
+  return id;
+};
+
+export const removeOneShotAlert = (id: string) => {
+  saveOneShots(loadOneShots().filter((a) => a.id !== id));
+};
+
+export const listOneShotAlerts = (): OneShotAlert[] => loadOneShots();
 
 const beep = () => {
   try {
@@ -179,6 +221,25 @@ export const useItemAlerts = (todayIdx: number) => {
           beep();
         }
       });
+
+      // ─── One-shot dated alerts ─────────────────────────────────
+      const oneShots = loadOneShots();
+      let mutated = false;
+      oneShots.forEach((alert) => {
+        if (alert.fired) return;
+        const fireTime = new Date(alert.fireAt).getTime();
+        const nowMs = now.getTime();
+        // Fire when within [fireTime, fireTime + 60s] window
+        if (nowMs >= fireTime && nowMs <= fireTime + 60_000) {
+          alert.fired = true;
+          mutated = true;
+          const msg = `🔔 ${alert.label}`;
+          toast(msg, { description: alert.detail || "Lembrete agendado.", duration: 10000 });
+          notify(alert.label, alert.detail || "Lembrete agendado.");
+          beep();
+        }
+      });
+      if (mutated) saveOneShots(oneShots);
     };
 
     tick();
