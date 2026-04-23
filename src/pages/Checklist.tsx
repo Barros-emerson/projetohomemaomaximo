@@ -350,6 +350,9 @@ const Checklist = () => {
       {/* Setup de notificações + instalação PWA */}
       {isToday && <NotificationsSetup />}
 
+      {/* Composer de alerta único */}
+      {isToday && <OneShotComposer />}
+
       {/* Tipo do dia — só hoje */}
       {isToday && (
         <motion.button initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
