@@ -21,15 +21,16 @@ export interface RotinaDia {
 }
 
 const morningBase: RotinaItem[] = [
-  { id: "acordar", time: "5:20", label: "Acordar", detail: "Ritmo lento. Banheiro, escovação, troca de roupa.", alert: true, dotColor: "#F5C542" },
-  { id: "passeio", time: "5:45", label: "Passeio com o cachorro", detail: "10 a 13 minutos. Celular junto mas sem usar.", dotColor: "#4ADE80", tags: [{ label: "Sol matinal", color: "#4ADE80" }, { label: "Ativação", color: "#4ADE80" }] },
-  { id: "cafe", time: "6:00", label: "Café preto + prep mochilas", detail: "Café sem açúcar. Mochilas de notebook + academia + kimono. Creatina 5g.", dotColor: "#FB923C", tags: [{ label: "Creatina 5g", color: "#FB923C" }, { label: "Pré-treino", color: "#FB923C" }] },
-  { id: "sair", time: "6:25", label: "Sair de casa", detail: "Deslocamento para academia. Chegada ~6:45.", dotColor: "#60A5FA" },
+  { id: "acordar", time: "5:45", label: "Acordar", detail: "Ritmo lento. Banheiro, escovação, troca de roupa.", alert: true, dotColor: "#F5C542" },
+  { id: "passeio", time: "6:10", label: "Passeio com o cachorro", detail: "10 a 13 minutos. Celular junto mas sem usar.", dotColor: "#4ADE80", tags: [{ label: "Sol matinal", color: "#4ADE80" }, { label: "Ativação", color: "#4ADE80" }] },
+  { id: "cafe", time: "6:25", label: "Café preto + prep", detail: "Café sem açúcar. Creatina 5g. Prep para treino do lado de casa.", dotColor: "#FB923C", tags: [{ label: "Creatina 5g", color: "#FB923C" }, { label: "Pré-treino", color: "#FB923C" }] },
 ];
 
 const workBase: RotinaItem[] = [
-  { id: "sol", time: "8:20", label: "Banho + sol pós-treino", detail: "10-20 min de sol direto. Respiração. Sem celular.", dotColor: "#4ADE80", tags: [{ label: "Testo livre", color: "#4ADE80" }, { label: "Cortisol", color: "#4ADE80" }] },
-  { id: "trabalho", time: "8:55", label: "Chegar no trabalho", detail: "Pós-treino: arroz + ovos/frango + gordura boa. ~9:10.", dotColor: "#60A5FA" },
+  { id: "volta_casa", time: "7:50", label: "Voltar para casa", detail: "Pós-treino. Hidratação e respiração até em casa.", dotColor: "#60A5FA" },
+  { id: "sol", time: "8:00", label: "Banho + sol pós-treino", detail: "10-20 min de sol direto. Respiração. Sem celular.", dotColor: "#4ADE80", tags: [{ label: "Testo livre", color: "#4ADE80" }, { label: "Cortisol", color: "#4ADE80" }] },
+  { id: "sair_trabalho", time: "8:10", label: "Sair para o trabalho", detail: "Deslocamento. Chegada ~9:00.", dotColor: "#60A5FA" },
+  { id: "trabalho", time: "9:00", label: "Chegar no trabalho", detail: "Pós-treino: arroz + ovos/frango + gordura boa.", dotColor: "#60A5FA" },
   { id: "almoco", time: "12:30", label: "Almoço", detail: "Proteína + carboidrato complexo. Comer sem pressa.", dotColor: "#FB923C" },
   { id: "lanche", time: "16:00", label: "Lanche da tarde", detail: "Proteína + gordura. Pré-Jiu: banana ou arroz ~17:30.", dotColor: "#FB923C" },
 ];
@@ -49,7 +50,7 @@ export const rotinaSemanal: RotinaDia[] = [
     ],
     items: [
       ...morningBase,
-      { id: "treino_seg", time: "6:55", label: "Treino — UPPER FORÇA", detail: "Supino Reto 5x5 / Barra Fixa 4xFalha / Desenv. Militar 4x6 / Remada Curvada 4x6 / Paralelas 3xFalha", alert: true, dotColor: "#F87171", tags: [{ label: "Força", color: "#F87171" }, { label: "Polar ativo", color: "#F87171" }] },
+      { id: "treino_seg", time: "6:40", label: "Treino — UPPER FORÇA", detail: "Supino Reto 5x5 / Barra Fixa 4xFalha / Desenv. Militar 4x6 / Remada Curvada 4x6 / Paralelas 3xFalha", alert: true, dotColor: "#F87171", tags: [{ label: "Força", color: "#F87171" }, { label: "Polar ativo", color: "#F87171" }] },
       ...workBase,
       { id: "saida_jiu_seg", time: "17:50", label: "Saída do trabalho", detail: "Deslocamento para o Jiu-Jitsu.", dotColor: "#22D3EE" },
       { id: "jiu_seg", time: "19:00", label: "Jiu-Jitsu — ALUNO", detail: "Treino até 20:30. Intensidade alta. Na porrada.", alert: true, dotColor: "#22D3EE", tags: [{ label: "Aluno", color: "#22D3EE" }, { label: "Alta intensidade", color: "#F87171" }, { label: "Polar ativo", color: "#4ADE80" }] },
@@ -66,7 +67,7 @@ export const rotinaSemanal: RotinaDia[] = [
     ],
     items: [
       ...morningBase,
-      { id: "treino_ter", time: "6:55", label: "Treino — LOWER FORÇA", detail: "Agachamento 5x5 / Terra 4x5 / Leg Press 3x8 / Panturrilha 4x15 / Abdominal pesado", alert: true, dotColor: "#F87171", tags: [{ label: "Força", color: "#F87171" }] },
+      { id: "treino_ter", time: "6:40", label: "Treino — LOWER FORÇA", detail: "Agachamento 5x5 / Terra 4x5 / Leg Press 3x8 / Panturrilha 4x15 / Abdominal pesado", alert: true, dotColor: "#F87171", tags: [{ label: "Força", color: "#F87171" }] },
       ...workBase,
       { id: "jiu_ter", time: "18:10", label: "Jiu-Jitsu — PROFESSOR", detail: "Aula até 19:20. Carga controlada. Técnica, não guerra.", alert: true, dotColor: "#22D3EE", tags: [{ label: "Professor", color: "#22D3EE" }, { label: "Controlado", color: "#F5C542" }] },
       { id: "casa_ter", time: "20:00", label: "Chegar em casa", detail: "Mais cedo que segunda/quarta. Rotina noturna mais tranquila.", dotColor: "#C084FC" },
@@ -82,7 +83,7 @@ export const rotinaSemanal: RotinaDia[] = [
     ],
     items: [
       ...morningBase,
-      { id: "treino_qua", time: "6:55", label: "Treino — UPPER HIPER", detail: "Supino Inclinado 4x10-12 / Puxador 4x10 / Elevação Lateral 4x15 / Remada Baixa 3x12 / Rosca 3x10 / Tríceps 3x12", alert: true, dotColor: "#C084FC", tags: [{ label: "Hipertrofia", color: "#C084FC" }] },
+      { id: "treino_qua", time: "6:40", label: "Treino — UPPER HIPER", detail: "Supino Inclinado 4x10-12 / Puxador 4x10 / Elevação Lateral 4x15 / Remada Baixa 3x12 / Rosca 3x10 / Tríceps 3x12", alert: true, dotColor: "#C084FC", tags: [{ label: "Hipertrofia", color: "#C084FC" }] },
       ...workBase,
       { id: "saida_jiu_qua", time: "17:50", label: "Saída do trabalho", detail: "Deslocamento para o Jiu-Jitsu.", dotColor: "#22D3EE" },
       { id: "jiu_qua", time: "19:00", label: "Jiu-Jitsu — ALUNO (pesado)", detail: "Até 20:30. Na porrada. Máxima intensidade como aluno.", alert: true, dotColor: "#22D3EE", tags: [{ label: "Alta intensidade", color: "#F87171" }] },
@@ -99,7 +100,7 @@ export const rotinaSemanal: RotinaDia[] = [
     ],
     items: [
       ...morningBase,
-      { id: "treino_qui", time: "6:55", label: "Treino — LOWER HIPER", detail: "Agachamento 4x10 / Stiff 4x10 / Extensora 3x15 / Flexora 3x15 / Elevação Pélvica 3x12 / Panturrilha 4x15", alert: true, dotColor: "#C084FC", tags: [{ label: "Hipertrofia", color: "#C084FC" }] },
+      { id: "treino_qui", time: "6:40", label: "Treino — LOWER HIPER", detail: "Agachamento 4x10 / Stiff 4x10 / Extensora 3x15 / Flexora 3x15 / Elevação Pélvica 3x12 / Panturrilha 4x15", alert: true, dotColor: "#C084FC", tags: [{ label: "Hipertrofia", color: "#C084FC" }] },
       ...workBase,
       { id: "jiu_qui", time: "18:10", label: "Jiu-Jitsu — PROFESSOR", detail: "Aula até 19:20. Técnica em foco, carga gerenciada.", alert: true, dotColor: "#22D3EE", tags: [{ label: "Professor", color: "#22D3EE" }, { label: "Controlado", color: "#F5C542" }] },
       { id: "casa_qui", time: "20:00", label: "Chegar em casa", detail: "Rotina noturna. Bíblia. Desacelerar. Dormir 22:30.", dotColor: "#C084FC" },
@@ -115,7 +116,7 @@ export const rotinaSemanal: RotinaDia[] = [
     ],
     items: [
       ...morningBase,
-      { id: "treino_sex", time: "6:55", label: "Treino — LOWER HIPER", detail: "Agachamento 4x10 / Stiff 4x10 / Extensora 3x15 / Flexora 3x15 / Elevação Pélvica 3x12 / Panturrilha 4x15", alert: true, dotColor: "#C084FC", tags: [{ label: "Hipertrofia", color: "#C084FC" }] },
+      { id: "treino_sex", time: "6:40", label: "Treino — LOWER HIPER", detail: "Agachamento 4x10 / Stiff 4x10 / Extensora 3x15 / Flexora 3x15 / Elevação Pélvica 3x12 / Panturrilha 4x15", alert: true, dotColor: "#C084FC", tags: [{ label: "Hipertrofia", color: "#C084FC" }] },
       ...workBase,
       { id: "casa_sex", time: "17:30", label: "Saída do trabalho — para casa", detail: "Trânsito. Chegada em casa ~18:30. Sem Jiu. Dia mais livre.", dotColor: "#4ADE80", tags: [{ label: "Recuperação ativa", color: "#4ADE80" }] },
       ...nightBase,
