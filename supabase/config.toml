@@ -1,1 +1,10 @@
 project_id = "scnuayhblcusabnbjbfv"
+
+[functions.push-config]
+verify_jwt = false
+
+[functions.push-subscribe]
+verify_jwt = false
+
+[functions.push-send-due]
+verify_jwt = false
