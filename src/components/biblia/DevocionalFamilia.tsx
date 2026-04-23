@@ -98,13 +98,84 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
   const perguntaAtual = perfil.perguntas[perguntaIdx % perfil.perguntas.length];
   const perguntaCasal = PERGUNTAS_CASAL[perguntaCasalIdx];
 
-  const handleConcluir = () => {
+  const handleConcluir = useCallback(() => {
     if (onConcluir && perfilAtivo) onConcluir(perfilAtivo.id);
     setEtapa("concluido");
-  };
+  }, [onConcluir, perfilAtivo]);
+
+  // Próximo passo (mesma lógica do botão do rodapé)
+  const handleProximo = useCallback(() => {
+    if (etapa === "concluido") return;
+    if (etapa === "leitura" && !leituraFeita) return;
+    if (etapa === "casal") { handleConcluir(); return; }
+    if (etapa === "oracao" && perfil.id === "crianca") { handleConcluir(); return; }
+    const idx = ETAPAS.indexOf(etapa);
+    const next = ETAPAS[idx + 1];
+    if (next) setEtapa(next);
+  }, [etapa, leituraFeita, perfil.id, handleConcluir]);
+
+  const handleVoltar = useCallback(() => {
+    const idx = ETAPAS.indexOf(etapa);
+    if (idx > 0 && etapa !== "perfil") setEtapa(ETAPAS[idx - 1]);
+  }, [etapa]);
+
+  const proximaPergunta = useCallback(() => {
+    if (etapa === "reflexao") setPerguntaIdx(i => i + 1);
+    else if (etapa === "casal" && perfil.id !== "crianca") setPerguntaCasalIdx(i => (i + 1) % PERGUNTAS_CASAL.length);
+  }, [etapa, perfil.id]);
+
+  // Foco automático e atalhos de teclado
+  const containerRef = useRef<HTMLDivElement>(null);
+  const reflexaoRef = useRef<HTMLTextAreaElement>(null);
+  const oracaoRef = useRef<HTMLTextAreaElement>(null);
+  const proximoBtnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    // Foca no textarea quando entra em reflexão/oração; senão foca no botão Próximo
+    const t = setTimeout(() => {
+      if (etapa === "reflexao") reflexaoRef.current?.focus();
+      else if (etapa === "oracao") oracaoRef.current?.focus();
+      else proximoBtnRef.current?.focus();
+    }, 250);
+    return () => clearTimeout(t);
+  }, [etapa]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // Esc fecha sempre
+      if (e.key === "Escape") { e.preventDefault(); onFechar?.(); return; }
+
+      const target = e.target as HTMLElement | null;
+      const isTextField = target && (target.tagName === "TEXTAREA" || target.tagName === "INPUT");
+
+      // Ctrl/Cmd + Enter: avança mesmo dentro de textarea
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleProximo();
+        return;
+      }
+
+      // Atalhos só fora de campos de texto
+      if (isTextField) return;
+
+      if (e.key === "Enter" || e.key === "ArrowRight") { e.preventDefault(); handleProximo(); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); handleVoltar(); }
+      else if (e.key.toLowerCase() === "n") { e.preventDefault(); proximaPergunta(); }
+      else if (e.key === " " && etapa === "leitura") { e.preventDefault(); setLeituraFeita(v => !v); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [etapa, handleProximo, handleVoltar, proximaPergunta, onFechar]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden">
+    <div
+      ref={containerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Devocional em Família"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden focus:outline-none"
+    >
       {/* Header com progresso */}
       <div className="px-5 pt-6 pb-4 shrink-0 border-b border-border/40">
         <div className="flex items-center justify-between mb-4">
