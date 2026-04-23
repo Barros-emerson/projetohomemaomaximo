@@ -108,6 +108,38 @@ export const useItemAlerts = (todayIdx: number) => {
     });
   }, []);
 
+  /** Dispara um lembrete de teste após `delaySec` segundos (default 5s). */
+  const triggerTestAlert = useCallback(
+    (itemId: string, delaySec = 5) => {
+      const day = rotinaSemanal[todayIdx];
+      const item = day?.items.find((i) => i.id === itemId);
+      const label = item?.label || "Item da rotina";
+      const detail = item?.detail || "";
+
+      // Pede permissão na hora se ainda não foi concedida
+      if (
+        typeof window !== "undefined" &&
+        "Notification" in window &&
+        Notification.permission === "default"
+      ) {
+        Notification.requestPermission().catch(() => {});
+      }
+
+      toast(`Teste agendado em ${delaySec}s`, {
+        description: `Vou disparar o alerta de "${label}" para você verificar.`,
+        duration: 4000,
+      });
+
+      window.setTimeout(() => {
+        const msg = `🔔 TESTE · ${label}`;
+        toast(msg, { description: detail || "Notificação + toast + beep funcionando.", duration: 8000 });
+        notify("Teste de lembrete", msg);
+        beep();
+      }, delaySec * 1000);
+    },
+    [todayIdx]
+  );
+
   // Request notification permission once when user enables an alert
   useEffect(() => {
     const hasAny = Object.values(config).some((v) => v > 0);
