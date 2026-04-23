@@ -186,5 +186,5 @@ export const useItemAlerts = (todayIdx: number) => {
     return () => window.clearInterval(id);
   }, [todayIdx]);
 
-  return { config, setItemAlert };
+  return { config, setItemAlert, triggerTestAlert };
 };
