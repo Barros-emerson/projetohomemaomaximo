@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Heart, HandHeart, Check, ChevronRight, Sparkles, Star, RefreshCw } from "lucide-react";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
