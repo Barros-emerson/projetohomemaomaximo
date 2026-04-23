@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { Check, Clock, X, ChevronLeft, ChevronRight, Utensils, Droplets, AlertTriangle, Calendar, Ban } from "lucide-react";
+import { Check, Clock, X, ChevronLeft, ChevronRight, Utensils, Droplets, AlertTriangle, Calendar, Ban, Bell, BellOff } from "lucide-react";
 import { rotinaSemanal, type RotinaItem } from "@/data/rotina-diaria";
 import { dietaSemanal } from "@/data/dieta-semanal";
 import { getLocalDateStr } from "@/lib/dateUtils";
+import { useItemAlerts, ALERT_OPTIONS } from "@/hooks/useItemAlerts";
 import {
   loadCheckedFromDB,
   toggleChecklistItem,
@@ -121,7 +122,9 @@ const Checklist = () => {
   const [tipoDia, setTipoDia] = useState<TipoDia>("normal");
   const [showTipoModal, setShowTipoModal] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState<string | null>(null);
+  const [alertPickerFor, setAlertPickerFor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const { config: alertsConfig, setItemAlert } = useItemAlerts(todayIdx);
   const isToday = selectedDay === todayIdx;
   const tipoConfig = TIPOS_DIA.find((t) => t.id === tipoDia)!;
   const isDiaEspecial = tipoDia !== "normal";
@@ -483,6 +486,25 @@ const Checklist = () => {
                                 NÃO FIZ
                               </button>
                             )}
+                            {/* Alert button */}
+                            {isToday && !isDiaEspecial && parseTime(item.time) !== null && (() => {
+                              const mins = alertsConfig[item.id] || 0;
+                              const active = mins > 0;
+                              return (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setAlertPickerFor(item.id); }}
+                                  title={active ? `Alerta ${mins} min antes` : "Configurar alerta"}
+                                  aria-label={active ? `Alerta ${mins} min antes` : "Configurar alerta"}
+                                  className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded transition-colors active:scale-90 flex items-center gap-1"
+                                  style={active
+                                    ? { color: "#FB923C", background: "rgba(251,146,60,0.12)" }
+                                    : { color: "hsl(var(--muted-foreground) / 0.5)", background: "hsl(var(--secondary) / 0.5)" }}
+                                >
+                                  {active ? <Bell size={9} /> : <BellOff size={9} />}
+                                  {active ? `${mins}M` : "ALERTA"}
+                                </button>
+                              );
+                            })()}
                           </div>
                           <p className="font-mono text-[10px] text-muted-foreground leading-relaxed mt-0.5">{item.detail}</p>
                           {item.tags && item.tags.length > 0 && !isDiaEspecial && (
@@ -596,6 +618,60 @@ const Checklist = () => {
       {/* Modal Tipo de Dia */}
       <AnimatePresence>
         {showTipoModal && <TipoDiaModal current={tipoDia} onSelect={handleSetTipo} onClose={() => setShowTipoModal(false)} />}
+      </AnimatePresence>
+
+      {/* Modal Alert Picker */}
+      <AnimatePresence>
+        {alertPickerFor && (() => {
+          const item = day.items.find((i) => i.id === alertPickerFor);
+          if (!item) return null;
+          const current = alertsConfig[alertPickerFor] || 0;
+          return (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-md p-0 sm:p-6 sm:items-center"
+              onClick={() => setAlertPickerFor(null)}>
+              <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+                transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                className="surface-card p-5 border-glow w-full max-w-sm space-y-4 rounded-b-none sm:rounded-2xl rounded-t-2xl"
+                onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Bell size={16} style={{ color: "#FB923C" }} />
+                    <p className="font-mono text-xs font-bold tracking-widest text-foreground">ALERTA</p>
+                  </div>
+                  <button onClick={() => setAlertPickerFor(null)} className="active:scale-90" aria-label="Fechar">
+                    <X size={18} className="text-muted-foreground" />
+                  </button>
+                </div>
+                <div>
+                  <p className="font-mono text-sm text-foreground font-bold">{item.label}</p>
+                  <p className="font-mono text-[11px] text-muted-foreground mt-0.5">Horário: {item.time}</p>
+                </div>
+                <div className="space-y-1.5">
+                  {ALERT_OPTIONS.map((opt) => {
+                    const isCurrent = current === opt.value;
+                    return (
+                      <button key={opt.value}
+                        onClick={() => { setItemAlert(alertPickerFor, opt.value); setAlertPickerFor(null); }}
+                        className="w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-all active:scale-[0.98]"
+                        style={isCurrent
+                          ? { borderColor: "rgba(251,146,60,0.5)", background: "rgba(251,146,60,0.1)" }
+                          : { borderColor: "hsl(var(--border))", background: "transparent" }}>
+                        <span className="font-mono text-sm" style={{ color: isCurrent ? "#FB923C" : "hsl(var(--foreground))" }}>
+                          {opt.label}
+                        </span>
+                        {isCurrent && <div className="w-2 h-2 rounded-full" style={{ background: "#FB923C" }} />}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="font-mono text-[10px] text-muted-foreground/70 leading-relaxed text-center">
+                  Lembrete via notificação + som. Mantenha o app aberto na aba.
+                </p>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
     </div>
   );
