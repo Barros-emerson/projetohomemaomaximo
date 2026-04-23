@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Bell, Plus, Trash2, Clock, AlertTriangle, Zap } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Bell, Plus, Trash2, Clock, AlertTriangle, Zap, Smartphone, Send, BellOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -8,16 +8,20 @@ import {
   removeOneShotAlert,
   type OneShotAlert,
 } from "@/hooks/useItemAlerts";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  isPushSupported,
+  isInIframe,
+  getPushSubscription,
+  subscribeThisDevice,
+  unsubscribeThisDevice,
+  sendTestPush,
+} from "@/lib/webPush";
 
 const pad = (n: number) => n.toString().padStart(2, "0");
 
-const formatLocal = (d: Date) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours()
-  )}:${pad(d.getMinutes())}`;
-
 const defaultTime = () => {
-  const d = new Date(Date.now() + 30 * 60_000);
+  const d = new Date(Date.now() + 5 * 60_000);
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
@@ -47,49 +51,110 @@ const beep = () => {
   } catch {}
 };
 
+interface PendingAlert {
+  id: string;
+  label: string;
+  detail: string;
+  fire_at: string;
+}
+
 export const OneShotComposer = () => {
   const [label, setLabel] = useState("");
   const [time, setTime] = useState(defaultTime());
-  const [alerts, setAlerts] = useState<OneShotAlert[]>([]);
+  const [localAlerts, setLocalAlerts] = useState<OneShotAlert[]>([]);
+  const [serverAlerts, setServerAlerts] = useState<PendingAlert[]>([]);
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">(
     typeof window !== "undefined" && "Notification" in window
       ? Notification.permission
       : "unsupported"
   );
+  const [deviceSubscribed, setDeviceSubscribed] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const refresh = () => setAlerts(listOneShotAlerts().filter((a) => !a.fired));
+  const refreshLocal = () => setLocalAlerts(listOneShotAlerts().filter((a) => !a.fired));
 
-  useEffect(() => {
-    refresh();
-    const id = window.setInterval(() => {
-      refresh();
-      if (typeof window !== "undefined" && "Notification" in window) {
-        setPermission(Notification.permission);
-      }
-    }, 5_000);
-    return () => window.clearInterval(id);
+  const refreshServer = useCallback(async () => {
+    const { data } = await supabase
+      .from("push_alerts_agendados")
+      .select("id, label, detail, fire_at")
+      .eq("enviado", false)
+      .order("fire_at", { ascending: true });
+    setServerAlerts((data as PendingAlert[]) || []);
   }, []);
 
-  const handleTestNow = () => {
+  const refreshDevice = useCallback(async () => {
+    if (!isPushSupported() || isInIframe()) {
+      setDeviceSubscribed(false);
+      return;
+    }
+    try {
+      const sub = await getPushSubscription();
+      setDeviceSubscribed(!!sub);
+    } catch {
+      setDeviceSubscribed(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshLocal();
+    refreshServer();
+    refreshDevice();
+    const id = window.setInterval(() => {
+      refreshLocal();
+      if ("Notification" in window) setPermission(Notification.permission);
+    }, 5_000);
+    return () => window.clearInterval(id);
+  }, [refreshServer, refreshDevice]);
+
+  const handleSubscribe = async () => {
+    setBusy(true);
+    const r = await subscribeThisDevice();
+    setBusy(false);
+    if (r.ok) {
+      toast.success("Este device foi inscrito", {
+        description: "Agora vai receber push mesmo com o app fechado.",
+      });
+      refreshDevice();
+    } else {
+      toast.error("Falha ao inscrever", { description: r.reason });
+    }
+  };
+
+  const handleUnsubscribe = async () => {
+    setBusy(true);
+    await unsubscribeThisDevice();
+    setBusy(false);
+    toast("Device desinscrito");
+    refreshDevice();
+  };
+
+  const handleTestRealPush = async () => {
+    setBusy(true);
+    const r = await sendTestPush();
+    setBusy(false);
+    if (r.ok) {
+      toast.success("Push enviado", {
+        description: `${r.sent} device(s) recebem agora. Bloqueie o celular e aguarde.`,
+      });
+    } else {
+      toast.error("Falha no envio", { description: r.reason });
+    }
+  };
+
+  const handleTestLocalToast = () => {
     if (permission === "granted") {
       try {
-        new Notification("🔔 Teste imediato", {
-          body: "Se você está vendo isso, as notificações funcionam.",
+        new Notification("🔔 Teste local", {
+          body: "Notificação local (app aberto).",
           icon: "/logo-alfa1000.png",
         });
       } catch {}
     }
-    toast("🔔 Teste disparado", {
-      description: permission === "granted"
-        ? "Notificação + toast + beep enviados."
-        : "Sem permissão: só toast + beep funcionam.",
-      duration: 6000,
-    });
+    toast("🔔 Teste local disparado");
     beep();
   };
 
-
-  const handleAdd = () => {
+  const handleAdd = async () => {
     const trimmed = label.trim();
     if (!trimmed) {
       toast.error("Digite um rótulo pro alerta");
@@ -100,7 +165,6 @@ export const OneShotComposer = () => {
       return;
     }
 
-    // Build local datetime — assume hoje; se já passou, agenda pra amanhã
     const [hh, mm] = time.split(":").map((s) => parseInt(s, 10));
     const fire = new Date();
     fire.setHours(hh, mm, 0, 0);
@@ -108,31 +172,49 @@ export const OneShotComposer = () => {
       fire.setDate(fire.getDate() + 1);
     }
 
+    // 1) Local fallback (app aberto)
     addOneShotAlert({
       label: trimmed,
       detail: `Lembrete agendado às ${time}`,
-      fireAt: formatLocal(fire),
+      fireAt: `${fire.getFullYear()}-${pad(fire.getMonth() + 1)}-${pad(fire.getDate())}T${pad(fire.getHours())}:${pad(fire.getMinutes())}`,
     });
 
-    // Pede permissão se ainda não tem
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission().catch(() => {});
+    // 2) Servidor (Web Push em background)
+    const { error } = await supabase.from("push_alerts_agendados").insert({
+      label: trimmed,
+      detail: `Lembrete agendado às ${time}`,
+      fire_at: fire.toISOString(),
+    });
+
+    if (error) {
+      toast.error("Salvo só localmente", { description: error.message });
+    } else {
+      const isAmanha = fire.getDate() !== new Date().getDate();
+      toast.success(`"${trimmed}" agendado`, {
+        description: `${isAmanha ? "Amanhã" : "Hoje"} às ${time}. Funciona com app fechado.`,
+      });
     }
 
-    const isAmanha = fire.getDate() !== new Date().getDate();
-    toast.success(`"${trimmed}" agendado`, {
-      description: `${isAmanha ? "Amanhã" : "Hoje"} às ${time}. Mantenha o app aberto.`,
-    });
     setLabel("");
     setTime(defaultTime());
-    refresh();
+    refreshLocal();
+    refreshServer();
   };
 
-  const handleRemove = (id: string, lbl: string) => {
-    removeOneShotAlert(id);
-    refresh();
+  const handleRemoveServer = async (id: string, lbl: string) => {
+    await supabase.from("push_alerts_agendados").delete().eq("id", id);
     toast(`"${lbl}" removido`);
+    refreshServer();
   };
+
+  const handleRemoveLocal = (id: string, lbl: string) => {
+    removeOneShotAlert(id);
+    refreshLocal();
+    toast(`"${lbl}" removido (local)`);
+  };
+
+  const inIframe = isInIframe();
+  const supported = isPushSupported();
 
   return (
     <motion.div
@@ -144,47 +226,102 @@ export const OneShotComposer = () => {
         <div className="flex items-center gap-2">
           <Clock size={14} className="text-primary" />
           <p className="font-mono text-[10px] font-bold tracking-widest text-foreground">
-            ALERTA ÚNICO
+            ALERTA ÚNICO (PUSH REAL)
           </p>
         </div>
+      </div>
+
+      {/* DEVICE STATUS */}
+      <div className="rounded-md border border-border bg-background/40 p-2.5 space-y-2">
+        <div className="flex items-center gap-2">
+          <Smartphone size={12} className="text-primary" />
+          <p className="font-mono text-[10px] font-bold tracking-widest text-foreground">
+            ESTE DEVICE
+          </p>
+        </div>
+
+        {!supported && (
+          <p className="font-mono text-[9px] text-destructive">
+            Navegador sem suporte a Web Push.
+          </p>
+        )}
+        {supported && inIframe && (
+          <p className="font-mono text-[9px] text-muted-foreground leading-relaxed">
+            Web Push em background só funciona fora do preview. Abra a URL publicada ou instale o app na tela inicial.
+          </p>
+        )}
+        {supported && !inIframe && (
+          <>
+            {deviceSubscribed === null && (
+              <p className="font-mono text-[9px] text-muted-foreground">Verificando…</p>
+            )}
+            {deviceSubscribed === false && (
+              <button
+                onClick={handleSubscribe}
+                disabled={busy}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-primary text-primary-foreground font-mono text-[11px] font-bold tracking-wider active:scale-[0.98] transition-all disabled:opacity-50"
+              >
+                <Bell size={12} />
+                INSCREVER ESTE DEVICE
+              </button>
+            )}
+            {deviceSubscribed === true && (
+              <div className="space-y-1.5">
+                <p className="font-mono text-[9px] text-primary">
+                  ✅ Inscrito. Receberá push com app fechado e celular bloqueado.
+                </p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    onClick={handleTestRealPush}
+                    disabled={busy}
+                    className="flex items-center justify-center gap-1 px-2 py-1.5 rounded border border-primary/40 bg-primary/10 active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    <Send size={10} className="text-primary" />
+                    <span className="font-mono text-[9px] font-bold tracking-wider text-primary">
+                      TESTAR PUSH REAL
+                    </span>
+                  </button>
+                  <button
+                    onClick={handleUnsubscribe}
+                    disabled={busy}
+                    className="flex items-center justify-center gap-1 px-2 py-1.5 rounded border border-border bg-background/40 active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    <BellOff size={10} className="text-muted-foreground" />
+                    <span className="font-mono text-[9px] font-bold tracking-wider text-muted-foreground">
+                      DESINSCREVER
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
         <button
-          onClick={handleTestNow}
-          className="flex items-center gap-1 px-2 py-1 rounded border border-primary/40 bg-primary/10 active:scale-95 transition-all"
-          aria-label="Disparar teste imediato"
+          onClick={handleTestLocalToast}
+          className="w-full flex items-center justify-center gap-1 px-2 py-1 rounded border border-border bg-background/30 active:scale-95 transition-all"
         >
-          <Zap size={11} className="text-primary" />
-          <span className="font-mono text-[9px] font-bold tracking-wider text-primary">TESTAR AGORA</span>
+          <Zap size={10} className="text-muted-foreground" />
+          <span className="font-mono text-[9px] tracking-wider text-muted-foreground">
+            TESTAR LOCAL (APP ABERTO)
+          </span>
         </button>
       </div>
 
-      {/* Diagnóstico de permissão */}
-      {permission !== "granted" && (
+      {/* Permission warning */}
+      {permission === "denied" && (
         <div className="flex items-start gap-2 px-2.5 py-2 rounded-md border border-destructive/40 bg-destructive/10">
           <AlertTriangle size={12} className="text-destructive shrink-0 mt-0.5" />
           <div className="flex-1 space-y-1">
             <p className="font-mono text-[10px] font-bold text-destructive">
-              {permission === "denied"
-                ? "NOTIFICAÇÕES BLOQUEADAS"
-                : permission === "unsupported"
-                  ? "NAVEGADOR SEM SUPORTE"
-                  : "PERMISSÃO PENDENTE"}
+              NOTIFICAÇÕES BLOQUEADAS
             </p>
             <p className="font-mono text-[9px] text-muted-foreground leading-relaxed">
-              {permission === "denied"
-                ? "Desbloqueie em: ícone do cadeado na URL → Notificações → Permitir. Depois recarregue a página."
-                : permission === "unsupported"
-                  ? "Use Chrome/Safari atualizado. Em iPhone, instale o app na tela inicial primeiro."
-                  : "Clique em ATIVAR no banner acima pra liberar as notificações."}
+              Desbloqueie em: ícone do cadeado na URL → Notificações → Permitir. Depois recarregue.
             </p>
           </div>
         </div>
       )}
-      {permission === "granted" && (
-        <p className="font-mono text-[9px] text-muted-foreground">
-          ✅ Permissão ativa. Mantenha o app aberto na hora do disparo (Web Push em background ainda não implementado).
-        </p>
-      )}
-
 
       {/* Form */}
       <div className="space-y-2">
@@ -202,7 +339,6 @@ export const OneShotComposer = () => {
           />
         </div>
 
-        {/* Quick labels */}
         <div className="flex flex-wrap gap-1.5">
           {QUICK_LABELS.map((q) => (
             <button
@@ -237,9 +373,9 @@ export const OneShotComposer = () => {
         </button>
       </div>
 
-      {/* Pending list */}
+      {/* Server pending list */}
       <AnimatePresence>
-        {alerts.length > 0 && (
+        {serverAlerts.length > 0 && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
@@ -247,10 +383,10 @@ export const OneShotComposer = () => {
             className="border-t border-border pt-2 space-y-1.5"
           >
             <p className="font-mono text-[9px] tracking-widest text-muted-foreground">
-              AGENDADOS ({alerts.length})
+              AGENDADOS NO SERVIDOR ({serverAlerts.length})
             </p>
-            {alerts.map((a) => {
-              const fireDate = new Date(a.fireAt);
+            {serverAlerts.map((a) => {
+              const fireDate = new Date(a.fire_at);
               const isToday = fireDate.toDateString() === new Date().toDateString();
               const timeStr = `${pad(fireDate.getHours())}:${pad(fireDate.getMinutes())}`;
               return (
@@ -260,17 +396,56 @@ export const OneShotComposer = () => {
                 >
                   <Bell size={11} className="text-primary shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-mono text-[11px] text-foreground truncate">
-                      {a.label}
+                    <p className="font-mono text-[11px] text-foreground truncate">{a.label}</p>
+                    <p className="font-mono text-[9px] text-muted-foreground">
+                      {isToday ? "Hoje" : fireDate.toLocaleDateString("pt-BR")} · {timeStr}
                     </p>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveServer(a.id, a.label)}
+                    className="p-1.5 rounded hover:bg-destructive/10 active:scale-90 transition-all"
+                    aria-label="Remover alerta"
+                  >
+                    <Trash2 size={12} className="text-muted-foreground" />
+                  </button>
+                </div>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Local-only fallback */}
+      <AnimatePresence>
+        {localAlerts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-t border-border pt-2 space-y-1.5"
+          >
+            <p className="font-mono text-[9px] tracking-widest text-muted-foreground">
+              FALLBACK LOCAL ({localAlerts.length})
+            </p>
+            {localAlerts.map((a) => {
+              const fireDate = new Date(a.fireAt);
+              const isToday = fireDate.toDateString() === new Date().toDateString();
+              const timeStr = `${pad(fireDate.getHours())}:${pad(fireDate.getMinutes())}`;
+              return (
+                <div
+                  key={a.id}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-background/30 border border-border/30"
+                >
+                  <Bell size={11} className="text-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-mono text-[11px] text-muted-foreground truncate">{a.label}</p>
                     <p className="font-mono text-[9px] text-muted-foreground">
                       {isToday ? "Hoje" : "Amanhã"} · {timeStr}
                     </p>
                   </div>
                   <button
-                    onClick={() => handleRemove(a.id, a.label)}
+                    onClick={() => handleRemoveLocal(a.id, a.label)}
                     className="p-1.5 rounded hover:bg-destructive/10 active:scale-90 transition-all"
-                    aria-label="Remover alerta"
                   >
                     <Trash2 size={12} className="text-muted-foreground" />
                   </button>
