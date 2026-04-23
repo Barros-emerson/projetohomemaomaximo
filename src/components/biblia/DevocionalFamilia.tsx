@@ -435,13 +435,12 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
       {etapa !== "concluido" && (
         <div className="px-5 py-5 shrink-0">
           <button
-            onClick={() => {
-              if (etapa === "casal") { handleConcluir(); return; }
-              if (etapa === "oracao" && perfil.id === "crianca") { handleConcluir(); return; }
-              avancar();
-            }}
+            ref={proximoBtnRef}
+            onClick={handleProximo}
             disabled={etapa === "leitura" && !leituraFeita}
-            className="w-full py-4 rounded-2xl font-mono text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-40"
+            aria-label={etapa === "perfil" ? "Começar devocional" : "Próxima etapa (Enter ou →)"}
+            title="Enter ou →"
+            className="w-full py-4 rounded-2xl font-mono text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
             style={{ background: perfil.cor, color: "#000", boxShadow: `0 8px 24px ${perfil.cor}40` }}
           >
             {etapa === "perfil" ? "COMEÇAR" :
@@ -450,13 +449,19 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
                : (<><span>PRÓXIMO</span> <ChevronRight size={16} /></>)}
           </button>
           {etapa !== "perfil" && (
-            <button onClick={() => {
-              const idx = ETAPAS.indexOf(etapa);
-              if (idx > 0) setEtapa(ETAPAS[idx - 1]);
-            }} className="w-full text-center font-mono text-[10px] text-muted-foreground/50 tracking-wider mt-2 py-2 active:text-muted-foreground transition-colors">
+            <button
+              onClick={handleVoltar}
+              aria-label="Voltar etapa (←)"
+              title="Voltar (←)"
+              className="w-full text-center font-mono text-[10px] text-muted-foreground/50 tracking-wider mt-2 py-2 active:text-muted-foreground transition-colors focus-visible:text-foreground focus-visible:outline-none"
+            >
               ← VOLTAR
             </button>
           )}
+          <p className="sr-only" aria-live="polite">Etapa {etapaIdx + 1} de {totalEtapas}: {ETAPA_LABELS[etapa]}</p>
+          <p className="text-center font-mono text-[9px] text-muted-foreground/40 mt-2 hidden sm:block">
+            Atalhos: Enter/→ próximo · ← voltar · N nova pergunta · Esc fechar
+          </p>
         </div>
       )}
 
