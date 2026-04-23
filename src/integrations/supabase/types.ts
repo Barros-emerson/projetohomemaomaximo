@@ -457,6 +457,63 @@ export type Database = {
         }
         Relationships: []
       }
+      push_alerts_agendados: {
+        Row: {
+          created_at: string
+          detail: string | null
+          enviado: boolean
+          enviado_at: string | null
+          fire_at: string
+          id: string
+          label: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          enviado?: boolean
+          enviado_at?: string | null
+          fire_at: string
+          id?: string
+          label: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          enviado?: boolean
+          enviado_at?: string | null
+          fire_at?: string
+          id?: string
+          label?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          device_label: string | null
+          endpoint: string
+          id: string
+          p256dh: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          device_label?: string | null
+          endpoint: string
+          id?: string
+          p256dh: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          device_label?: string | null
+          endpoint?: string
+          id?: string
+          p256dh?: string
+        }
+        Relationships: []
+      }
       readiness_checkin: {
         Row: {
           created_at: string
