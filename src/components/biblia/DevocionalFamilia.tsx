@@ -186,7 +186,12 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
             </span>
           </div>
           {onFechar && (
-            <button onClick={onFechar} className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground active:scale-90 transition-transform">
+            <button
+              onClick={onFechar}
+              aria-label="Fechar devocional (Esc)"
+              title="Fechar (Esc)"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground active:scale-90 transition-transform focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            >
               ✕
             </button>
           )}
@@ -295,13 +300,20 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
                 <p className="font-mono text-[10px] tracking-[0.3em]" style={{ color: perfil.cor }}>PENSE E ESCREVA</p>
                 <div className="flex items-start gap-2 px-2">
                   <p className="text-base font-bold text-foreground leading-relaxed flex-1">"{perguntaAtual}"</p>
-                  <button onClick={() => setPerguntaIdx(i => i + 1)} className="text-muted-foreground active:scale-90 shrink-0 mt-1">
+                  <button
+                    onClick={() => setPerguntaIdx(i => i + 1)}
+                    aria-label="Próxima pergunta (N)"
+                    title="Próxima pergunta (N)"
+                    className="text-muted-foreground active:scale-90 shrink-0 mt-1 focus-visible:ring-2 focus-visible:ring-ring rounded-full p-1 focus-visible:outline-none"
+                  >
                     <RefreshCw size={14} />
                   </button>
                 </div>
               </div>
               <div className="rounded-2xl p-4" style={{ border: `1px solid ${perfil.border}`, background: perfil.bg }}>
                 <textarea
+                  ref={reflexaoRef}
+                  aria-label="Sua reflexão"
                   value={reflexao}
                   onChange={(e) => setReflexao(e.target.value)}
                   placeholder={perfil.id === "crianca" ? "Desenhe ou escreva o que você aprendeu hoje com Jesus... 🎨" : "Escreva aqui o que veio ao seu coração..."}
@@ -335,6 +347,8 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
               </div>
               <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(167,139,250,0.2)", background: "rgba(167,139,250,0.04)" }}>
                 <textarea
+                  ref={oracaoRef}
+                  aria-label="Sua oração"
                   value={oracao}
                   onChange={(e) => setOracao(e.target.value)}
                   placeholder={perfil.id === "crianca" ? "Senhor Jesus, obrigado por... Eu quero pedir por..." : "Senhor, hoje eu te agradeço por... Eu te peço por... Intercedo por..."}
@@ -368,8 +382,13 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
                 <p className="font-mono text-xs text-muted-foreground leading-relaxed">
                   Compartilhem a resposta um com o outro antes de dormir ou no próximo encontro. Não precisa escrever aqui, só conversar 💬
                 </p>
-                <button onClick={() => setPerguntaCasalIdx(i => (i + 1) % PERGUNTAS_CASAL.length)}
-                  className="flex items-center gap-1.5 mx-auto font-mono text-[10px] tracking-wider active:scale-95" style={{ color: "#FB7185" }}>
+                <button
+                  onClick={() => setPerguntaCasalIdx(i => (i + 1) % PERGUNTAS_CASAL.length)}
+                  aria-label="Outra pergunta (N)"
+                  title="Outra pergunta (N)"
+                  className="flex items-center gap-1.5 mx-auto font-mono text-[10px] tracking-wider active:scale-95 focus-visible:ring-2 focus-visible:ring-ring rounded-full px-2 py-1 focus-visible:outline-none"
+                  style={{ color: "#FB7185" }}
+                >
                   <RefreshCw size={11} /> Outra pergunta
                 </button>
               </div>
