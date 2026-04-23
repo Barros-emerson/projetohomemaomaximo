@@ -21,15 +21,16 @@ export interface RotinaDia {
 }
 
 const morningBase: RotinaItem[] = [
-  { id: "acordar", time: "5:20", label: "Acordar", detail: "Ritmo lento. Banheiro, escovação, troca de roupa.", alert: true, dotColor: "#F5C542" },
-  { id: "passeio", time: "5:45", label: "Passeio com o cachorro", detail: "10 a 13 minutos. Celular junto mas sem usar.", dotColor: "#4ADE80", tags: [{ label: "Sol matinal", color: "#4ADE80" }, { label: "Ativação", color: "#4ADE80" }] },
-  { id: "cafe", time: "6:00", label: "Café preto + prep mochilas", detail: "Café sem açúcar. Mochilas de notebook + academia + kimono. Creatina 5g.", dotColor: "#FB923C", tags: [{ label: "Creatina 5g", color: "#FB923C" }, { label: "Pré-treino", color: "#FB923C" }] },
-  { id: "sair", time: "6:25", label: "Sair de casa", detail: "Deslocamento para academia. Chegada ~6:45.", dotColor: "#60A5FA" },
+  { id: "acordar", time: "5:45", label: "Acordar", detail: "Ritmo lento. Banheiro, escovação, troca de roupa.", alert: true, dotColor: "#F5C542" },
+  { id: "passeio", time: "6:10", label: "Passeio com o cachorro", detail: "10 a 13 minutos. Celular junto mas sem usar.", dotColor: "#4ADE80", tags: [{ label: "Sol matinal", color: "#4ADE80" }, { label: "Ativação", color: "#4ADE80" }] },
+  { id: "cafe", time: "6:25", label: "Café preto + prep", detail: "Café sem açúcar. Creatina 5g. Prep para treino do lado de casa.", dotColor: "#FB923C", tags: [{ label: "Creatina 5g", color: "#FB923C" }, { label: "Pré-treino", color: "#FB923C" }] },
 ];
 
 const workBase: RotinaItem[] = [
-  { id: "sol", time: "8:20", label: "Banho + sol pós-treino", detail: "10-20 min de sol direto. Respiração. Sem celular.", dotColor: "#4ADE80", tags: [{ label: "Testo livre", color: "#4ADE80" }, { label: "Cortisol", color: "#4ADE80" }] },
-  { id: "trabalho", time: "8:55", label: "Chegar no trabalho", detail: "Pós-treino: arroz + ovos/frango + gordura boa. ~9:10.", dotColor: "#60A5FA" },
+  { id: "volta_casa", time: "7:50", label: "Voltar para casa", detail: "Pós-treino. Hidratação e respiração até em casa.", dotColor: "#60A5FA" },
+  { id: "sol", time: "8:00", label: "Banho + sol pós-treino", detail: "10-20 min de sol direto. Respiração. Sem celular.", dotColor: "#4ADE80", tags: [{ label: "Testo livre", color: "#4ADE80" }, { label: "Cortisol", color: "#4ADE80" }] },
+  { id: "sair_trabalho", time: "8:10", label: "Sair para o trabalho", detail: "Deslocamento. Chegada ~9:00.", dotColor: "#60A5FA" },
+  { id: "trabalho", time: "9:00", label: "Chegar no trabalho", detail: "Pós-treino: arroz + ovos/frango + gordura boa.", dotColor: "#60A5FA" },
   { id: "almoco", time: "12:30", label: "Almoço", detail: "Proteína + carboidrato complexo. Comer sem pressa.", dotColor: "#FB923C" },
   { id: "lanche", time: "16:00", label: "Lanche da tarde", detail: "Proteína + gordura. Pré-Jiu: banana ou arroz ~17:30.", dotColor: "#FB923C" },
 ];
