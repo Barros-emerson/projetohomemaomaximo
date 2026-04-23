@@ -221,6 +221,25 @@ export const useItemAlerts = (todayIdx: number) => {
           beep();
         }
       });
+
+      // ─── One-shot dated alerts ─────────────────────────────────
+      const oneShots = loadOneShots();
+      let mutated = false;
+      oneShots.forEach((alert) => {
+        if (alert.fired) return;
+        const fireTime = new Date(alert.fireAt).getTime();
+        const nowMs = now.getTime();
+        // Fire when within [fireTime, fireTime + 60s] window
+        if (nowMs >= fireTime && nowMs <= fireTime + 60_000) {
+          alert.fired = true;
+          mutated = true;
+          const msg = `🔔 ${alert.label}`;
+          toast(msg, { description: alert.detail || "Lembrete agendado.", duration: 10000 });
+          notify(alert.label, alert.detail || "Lembrete agendado.");
+          beep();
+        }
+      });
+      if (mutated) saveOneShots(oneShots);
     };
 
     tick();
