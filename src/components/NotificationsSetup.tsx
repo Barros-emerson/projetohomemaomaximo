@@ -89,7 +89,7 @@ export const NotificationsSetup = () => {
         {notifGranted && (
           <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-md bg-background/40">
             <div className="flex items-center gap-2">
-              <Check size={14} className="text-emerald-500" />
+              <Check size={14} className="text-primary" />
               <span className="font-mono text-[11px] text-muted-foreground">
                 Notificações ativas
               </span>
