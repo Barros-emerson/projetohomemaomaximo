@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Plus, Trash2, Clock } from "lucide-react";
+import { Bell, Plus, Trash2, Clock, AlertTriangle, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -17,7 +17,6 @@ const formatLocal = (d: Date) =>
   )}:${pad(d.getMinutes())}`;
 
 const defaultTime = () => {
-  // 30 min no futuro como sugestão inicial
   const d = new Date(Date.now() + 30 * 60_000);
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
@@ -30,18 +29,65 @@ const QUICK_LABELS = [
   "Pausa pra alongar",
 ];
 
+const beep = () => {
+  try {
+    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = 880;
+    osc.type = "sine";
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
+  } catch {}
+};
+
 export const OneShotComposer = () => {
   const [label, setLabel] = useState("");
   const [time, setTime] = useState(defaultTime());
   const [alerts, setAlerts] = useState<OneShotAlert[]>([]);
+  const [permission, setPermission] = useState<NotificationPermission | "unsupported">(
+    typeof window !== "undefined" && "Notification" in window
+      ? Notification.permission
+      : "unsupported"
+  );
 
   const refresh = () => setAlerts(listOneShotAlerts().filter((a) => !a.fired));
 
   useEffect(() => {
     refresh();
-    const id = window.setInterval(refresh, 30_000);
+    const id = window.setInterval(() => {
+      refresh();
+      if (typeof window !== "undefined" && "Notification" in window) {
+        setPermission(Notification.permission);
+      }
+    }, 5_000);
     return () => window.clearInterval(id);
   }, []);
+
+  const handleTestNow = () => {
+    if (permission === "granted") {
+      try {
+        new Notification("🔔 Teste imediato", {
+          body: "Se você está vendo isso, as notificações funcionam.",
+          icon: "/logo-alfa1000.png",
+        });
+      } catch {}
+    }
+    toast("🔔 Teste disparado", {
+      description: permission === "granted"
+        ? "Notificação + toast + beep enviados."
+        : "Sem permissão: só toast + beep funcionam.",
+      duration: 6000,
+    });
+    beep();
+  };
+
 
   const handleAdd = () => {
     const trimmed = label.trim();
