@@ -129,21 +129,71 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
   const reflexaoRef = useRef<HTMLTextAreaElement>(null);
   const oracaoRef = useRef<HTMLTextAreaElement>(null);
   const proximoBtnRef = useRef<HTMLButtonElement>(null);
+  const firstProfileBtnRef = useRef<HTMLButtonElement>(null);
+  // Captura o elemento que abriu o modal para devolver o foco ao fechar
+  const previouslyFocusedRef = useRef<HTMLElement | null>(
+    typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null
+  );
 
+  // Devolve o foco ao desmontar
   useEffect(() => {
-    // Foca no textarea quando entra em reflexão/oração; senão foca no botão Próximo
+    return () => {
+      const el = previouslyFocusedRef.current;
+      if (el && typeof el.focus === "function") {
+        // pequeno delay garante que o React terminou a saída
+        setTimeout(() => el.focus({ preventScroll: true }), 0);
+      }
+    };
+  }, []);
+
+  // Foca no elemento mais relevante de cada etapa
+  useEffect(() => {
     const t = setTimeout(() => {
-      if (etapa === "reflexao") reflexaoRef.current?.focus();
+      if (etapa === "perfil") firstProfileBtnRef.current?.focus();
+      else if (etapa === "reflexao") reflexaoRef.current?.focus();
       else if (etapa === "oracao") oracaoRef.current?.focus();
       else proximoBtnRef.current?.focus();
     }, 250);
     return () => clearTimeout(t);
   }, [etapa]);
 
+  // Atalhos + focus trap (Tab cycle dentro do modal)
   useEffect(() => {
+    const getFocusable = (): HTMLElement[] => {
+      const root = containerRef.current;
+      if (!root) return [];
+      return Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => !el.hasAttribute("aria-hidden") && el.offsetParent !== null);
+    };
+
     const onKey = (e: KeyboardEvent) => {
       // Esc fecha sempre
       if (e.key === "Escape") { e.preventDefault(); onFechar?.(); return; }
+
+      // Focus trap: Tab cicla dentro do modal
+      if (e.key === "Tab") {
+        const focusables = getFocusable();
+        if (focusables.length === 0) {
+          e.preventDefault();
+          containerRef.current?.focus();
+          return;
+        }
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        const insideModal = containerRef.current?.contains(active ?? null);
+        if (!insideModal) {
+          e.preventDefault();
+          first.focus();
+          return;
+        }
+        if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+        return;
+      }
 
       const target = e.target as HTMLElement | null;
       const isTextField = target && (target.tagName === "TEXTAREA" || target.tagName === "INPUT");
