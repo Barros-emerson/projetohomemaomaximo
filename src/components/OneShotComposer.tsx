@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Plus, Trash2, Clock } from "lucide-react";
+import { Bell, Plus, Trash2, Clock, AlertTriangle, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -17,7 +17,6 @@ const formatLocal = (d: Date) =>
   )}:${pad(d.getMinutes())}`;
 
 const defaultTime = () => {
-  // 30 min no futuro como sugestão inicial
   const d = new Date(Date.now() + 30 * 60_000);
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
@@ -30,18 +29,65 @@ const QUICK_LABELS = [
   "Pausa pra alongar",
 ];
 
+const beep = () => {
+  try {
+    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = 880;
+    osc.type = "sine";
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
+  } catch {}
+};
+
 export const OneShotComposer = () => {
   const [label, setLabel] = useState("");
   const [time, setTime] = useState(defaultTime());
   const [alerts, setAlerts] = useState<OneShotAlert[]>([]);
+  const [permission, setPermission] = useState<NotificationPermission | "unsupported">(
+    typeof window !== "undefined" && "Notification" in window
+      ? Notification.permission
+      : "unsupported"
+  );
 
   const refresh = () => setAlerts(listOneShotAlerts().filter((a) => !a.fired));
 
   useEffect(() => {
     refresh();
-    const id = window.setInterval(refresh, 30_000);
+    const id = window.setInterval(() => {
+      refresh();
+      if (typeof window !== "undefined" && "Notification" in window) {
+        setPermission(Notification.permission);
+      }
+    }, 5_000);
     return () => window.clearInterval(id);
   }, []);
+
+  const handleTestNow = () => {
+    if (permission === "granted") {
+      try {
+        new Notification("🔔 Teste imediato", {
+          body: "Se você está vendo isso, as notificações funcionam.",
+          icon: "/logo-alfa1000.png",
+        });
+      } catch {}
+    }
+    toast("🔔 Teste disparado", {
+      description: permission === "granted"
+        ? "Notificação + toast + beep enviados."
+        : "Sem permissão: só toast + beep funcionam.",
+      duration: 6000,
+    });
+    beep();
+  };
+
 
   const handleAdd = () => {
     const trimmed = label.trim();
@@ -94,12 +140,51 @@ export const OneShotComposer = () => {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-lg border border-border bg-card p-3 space-y-3"
     >
-      <div className="flex items-center gap-2">
-        <Clock size={14} className="text-primary" />
-        <p className="font-mono text-[10px] font-bold tracking-widest text-foreground">
-          ALERTA ÚNICO
-        </p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Clock size={14} className="text-primary" />
+          <p className="font-mono text-[10px] font-bold tracking-widest text-foreground">
+            ALERTA ÚNICO
+          </p>
+        </div>
+        <button
+          onClick={handleTestNow}
+          className="flex items-center gap-1 px-2 py-1 rounded border border-primary/40 bg-primary/10 active:scale-95 transition-all"
+          aria-label="Disparar teste imediato"
+        >
+          <Zap size={11} className="text-primary" />
+          <span className="font-mono text-[9px] font-bold tracking-wider text-primary">TESTAR AGORA</span>
+        </button>
       </div>
+
+      {/* Diagnóstico de permissão */}
+      {permission !== "granted" && (
+        <div className="flex items-start gap-2 px-2.5 py-2 rounded-md border border-destructive/40 bg-destructive/10">
+          <AlertTriangle size={12} className="text-destructive shrink-0 mt-0.5" />
+          <div className="flex-1 space-y-1">
+            <p className="font-mono text-[10px] font-bold text-destructive">
+              {permission === "denied"
+                ? "NOTIFICAÇÕES BLOQUEADAS"
+                : permission === "unsupported"
+                  ? "NAVEGADOR SEM SUPORTE"
+                  : "PERMISSÃO PENDENTE"}
+            </p>
+            <p className="font-mono text-[9px] text-muted-foreground leading-relaxed">
+              {permission === "denied"
+                ? "Desbloqueie em: ícone do cadeado na URL → Notificações → Permitir. Depois recarregue a página."
+                : permission === "unsupported"
+                  ? "Use Chrome/Safari atualizado. Em iPhone, instale o app na tela inicial primeiro."
+                  : "Clique em ATIVAR no banner acima pra liberar as notificações."}
+            </p>
+          </div>
+        </div>
+      )}
+      {permission === "granted" && (
+        <p className="font-mono text-[9px] text-muted-foreground">
+          ✅ Permissão ativa. Mantenha o app aberto na hora do disparo (Web Push em background ainda não implementado).
+        </p>
+      )}
+
 
       {/* Form */}
       <div className="space-y-2">
