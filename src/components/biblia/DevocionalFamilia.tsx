@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Heart, HandHeart, Check, ChevronRight, Sparkles, Star, RefreshCw } from "lucide-react";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
@@ -98,13 +98,84 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
   const perguntaAtual = perfil.perguntas[perguntaIdx % perfil.perguntas.length];
   const perguntaCasal = PERGUNTAS_CASAL[perguntaCasalIdx];
 
-  const handleConcluir = () => {
+  const handleConcluir = useCallback(() => {
     if (onConcluir && perfilAtivo) onConcluir(perfilAtivo.id);
     setEtapa("concluido");
-  };
+  }, [onConcluir, perfilAtivo]);
+
+  // Próximo passo (mesma lógica do botão do rodapé)
+  const handleProximo = useCallback(() => {
+    if (etapa === "concluido") return;
+    if (etapa === "leitura" && !leituraFeita) return;
+    if (etapa === "casal") { handleConcluir(); return; }
+    if (etapa === "oracao" && perfil.id === "crianca") { handleConcluir(); return; }
+    const idx = ETAPAS.indexOf(etapa);
+    const next = ETAPAS[idx + 1];
+    if (next) setEtapa(next);
+  }, [etapa, leituraFeita, perfil.id, handleConcluir]);
+
+  const handleVoltar = useCallback(() => {
+    const idx = ETAPAS.indexOf(etapa);
+    if (idx > 0 && etapa !== "perfil") setEtapa(ETAPAS[idx - 1]);
+  }, [etapa]);
+
+  const proximaPergunta = useCallback(() => {
+    if (etapa === "reflexao") setPerguntaIdx(i => i + 1);
+    else if (etapa === "casal" && perfil.id !== "crianca") setPerguntaCasalIdx(i => (i + 1) % PERGUNTAS_CASAL.length);
+  }, [etapa, perfil.id]);
+
+  // Foco automático e atalhos de teclado
+  const containerRef = useRef<HTMLDivElement>(null);
+  const reflexaoRef = useRef<HTMLTextAreaElement>(null);
+  const oracaoRef = useRef<HTMLTextAreaElement>(null);
+  const proximoBtnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    // Foca no textarea quando entra em reflexão/oração; senão foca no botão Próximo
+    const t = setTimeout(() => {
+      if (etapa === "reflexao") reflexaoRef.current?.focus();
+      else if (etapa === "oracao") oracaoRef.current?.focus();
+      else proximoBtnRef.current?.focus();
+    }, 250);
+    return () => clearTimeout(t);
+  }, [etapa]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // Esc fecha sempre
+      if (e.key === "Escape") { e.preventDefault(); onFechar?.(); return; }
+
+      const target = e.target as HTMLElement | null;
+      const isTextField = target && (target.tagName === "TEXTAREA" || target.tagName === "INPUT");
+
+      // Ctrl/Cmd + Enter: avança mesmo dentro de textarea
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleProximo();
+        return;
+      }
+
+      // Atalhos só fora de campos de texto
+      if (isTextField) return;
+
+      if (e.key === "Enter" || e.key === "ArrowRight") { e.preventDefault(); handleProximo(); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); handleVoltar(); }
+      else if (e.key.toLowerCase() === "n") { e.preventDefault(); proximaPergunta(); }
+      else if (e.key === " " && etapa === "leitura") { e.preventDefault(); setLeituraFeita(v => !v); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [etapa, handleProximo, handleVoltar, proximaPergunta, onFechar]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden">
+    <div
+      ref={containerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Devocional em Família"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden focus:outline-none"
+    >
       {/* Header com progresso */}
       <div className="px-5 pt-6 pb-4 shrink-0 border-b border-border/40">
         <div className="flex items-center justify-between mb-4">
@@ -115,7 +186,12 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
             </span>
           </div>
           {onFechar && (
-            <button onClick={onFechar} className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground active:scale-90 transition-transform">
+            <button
+              onClick={onFechar}
+              aria-label="Fechar devocional (Esc)"
+              title="Fechar (Esc)"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground active:scale-90 transition-transform focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            >
               ✕
             </button>
           )}
@@ -224,13 +300,20 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
                 <p className="font-mono text-[10px] tracking-[0.3em]" style={{ color: perfil.cor }}>PENSE E ESCREVA</p>
                 <div className="flex items-start gap-2 px-2">
                   <p className="text-base font-bold text-foreground leading-relaxed flex-1">"{perguntaAtual}"</p>
-                  <button onClick={() => setPerguntaIdx(i => i + 1)} className="text-muted-foreground active:scale-90 shrink-0 mt-1">
+                  <button
+                    onClick={() => setPerguntaIdx(i => i + 1)}
+                    aria-label="Próxima pergunta (N)"
+                    title="Próxima pergunta (N)"
+                    className="text-muted-foreground active:scale-90 shrink-0 mt-1 focus-visible:ring-2 focus-visible:ring-ring rounded-full p-1 focus-visible:outline-none"
+                  >
                     <RefreshCw size={14} />
                   </button>
                 </div>
               </div>
               <div className="rounded-2xl p-4" style={{ border: `1px solid ${perfil.border}`, background: perfil.bg }}>
                 <textarea
+                  ref={reflexaoRef}
+                  aria-label="Sua reflexão"
                   value={reflexao}
                   onChange={(e) => setReflexao(e.target.value)}
                   placeholder={perfil.id === "crianca" ? "Desenhe ou escreva o que você aprendeu hoje com Jesus... 🎨" : "Escreva aqui o que veio ao seu coração..."}
@@ -264,6 +347,8 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
               </div>
               <div className="rounded-2xl p-4" style={{ border: "1px solid rgba(167,139,250,0.2)", background: "rgba(167,139,250,0.04)" }}>
                 <textarea
+                  ref={oracaoRef}
+                  aria-label="Sua oração"
                   value={oracao}
                   onChange={(e) => setOracao(e.target.value)}
                   placeholder={perfil.id === "crianca" ? "Senhor Jesus, obrigado por... Eu quero pedir por..." : "Senhor, hoje eu te agradeço por... Eu te peço por... Intercedo por..."}
@@ -297,8 +382,13 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
                 <p className="font-mono text-xs text-muted-foreground leading-relaxed">
                   Compartilhem a resposta um com o outro antes de dormir ou no próximo encontro. Não precisa escrever aqui, só conversar 💬
                 </p>
-                <button onClick={() => setPerguntaCasalIdx(i => (i + 1) % PERGUNTAS_CASAL.length)}
-                  className="flex items-center gap-1.5 mx-auto font-mono text-[10px] tracking-wider active:scale-95" style={{ color: "#FB7185" }}>
+                <button
+                  onClick={() => setPerguntaCasalIdx(i => (i + 1) % PERGUNTAS_CASAL.length)}
+                  aria-label="Outra pergunta (N)"
+                  title="Outra pergunta (N)"
+                  className="flex items-center gap-1.5 mx-auto font-mono text-[10px] tracking-wider active:scale-95 focus-visible:ring-2 focus-visible:ring-ring rounded-full px-2 py-1 focus-visible:outline-none"
+                  style={{ color: "#FB7185" }}
+                >
                   <RefreshCw size={11} /> Outra pergunta
                 </button>
               </div>
@@ -345,13 +435,12 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
       {etapa !== "concluido" && (
         <div className="px-5 py-5 shrink-0">
           <button
-            onClick={() => {
-              if (etapa === "casal") { handleConcluir(); return; }
-              if (etapa === "oracao" && perfil.id === "crianca") { handleConcluir(); return; }
-              avancar();
-            }}
+            ref={proximoBtnRef}
+            onClick={handleProximo}
             disabled={etapa === "leitura" && !leituraFeita}
-            className="w-full py-4 rounded-2xl font-mono text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-40"
+            aria-label={etapa === "perfil" ? "Começar devocional" : "Próxima etapa (Enter ou →)"}
+            title="Enter ou →"
+            className="w-full py-4 rounded-2xl font-mono text-sm font-black tracking-[0.1em] flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
             style={{ background: perfil.cor, color: "#000", boxShadow: `0 8px 24px ${perfil.cor}40` }}
           >
             {etapa === "perfil" ? "COMEÇAR" :
@@ -360,13 +449,19 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
                : (<><span>PRÓXIMO</span> <ChevronRight size={16} /></>)}
           </button>
           {etapa !== "perfil" && (
-            <button onClick={() => {
-              const idx = ETAPAS.indexOf(etapa);
-              if (idx > 0) setEtapa(ETAPAS[idx - 1]);
-            }} className="w-full text-center font-mono text-[10px] text-muted-foreground/50 tracking-wider mt-2 py-2 active:text-muted-foreground transition-colors">
+            <button
+              onClick={handleVoltar}
+              aria-label="Voltar etapa (←)"
+              title="Voltar (←)"
+              className="w-full text-center font-mono text-[10px] text-muted-foreground/50 tracking-wider mt-2 py-2 active:text-muted-foreground transition-colors focus-visible:text-foreground focus-visible:outline-none"
+            >
               ← VOLTAR
             </button>
           )}
+          <p className="sr-only" aria-live="polite">Etapa {etapaIdx + 1} de {totalEtapas}: {ETAPA_LABELS[etapa]}</p>
+          <p className="text-center font-mono text-[9px] text-muted-foreground/40 mt-2 hidden sm:block">
+            Atalhos: Enter/→ próximo · ← voltar · N nova pergunta · Esc fechar
+          </p>
         </div>
       )}
 
