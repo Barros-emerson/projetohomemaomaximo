@@ -276,9 +276,10 @@ export default function DevocionalFamilia({ onConcluir, onFechar }: DevocionalFa
                 <p className="text-sm text-muted-foreground">Cada um com seu momento com Deus 🙏</p>
               </div>
               <div className="space-y-3">
-                {PERFIS.map((p) => (
+                {PERFIS.map((p, idx) => (
                   <button
                     key={p.id}
+                    ref={idx === 0 ? firstProfileBtnRef : undefined}
                     onClick={() => { setPerfilAtivo(p); avancar("versiculo"); }}
                     className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl border transition-all active:scale-[0.97]"
                     style={{ border: `1.5px solid ${p.border}`, background: p.bg }}
