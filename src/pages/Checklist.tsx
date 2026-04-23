@@ -6,8 +6,6 @@ import { rotinaSemanal, type RotinaItem } from "@/data/rotina-diaria";
 import { dietaSemanal } from "@/data/dieta-semanal";
 import { getLocalDateStr } from "@/lib/dateUtils";
 import { useItemAlerts, ALERT_OPTIONS } from "@/hooks/useItemAlerts";
-import { NotificationsSetup } from "@/components/NotificationsSetup";
-import { OneShotComposer } from "@/components/OneShotComposer";
 import {
   loadCheckedFromDB,
   toggleChecklistItem,
@@ -346,12 +344,6 @@ const Checklist = () => {
           );
         })}
       </div>
-
-      {/* Setup de notificações + instalação PWA */}
-      {isToday && <NotificationsSetup />}
-
-      {/* Composer de alerta único */}
-      {isToday && <OneShotComposer />}
 
       {/* Tipo do dia — só hoje */}
       {isToday && (
