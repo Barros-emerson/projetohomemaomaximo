@@ -486,6 +486,25 @@ const Checklist = () => {
                                 NÃO FIZ
                               </button>
                             )}
+                            {/* Alert button */}
+                            {isToday && !isDiaEspecial && parseTime(item.time) !== null && (() => {
+                              const mins = alertsConfig[item.id] || 0;
+                              const active = mins > 0;
+                              return (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setAlertPickerFor(item.id); }}
+                                  title={active ? `Alerta ${mins} min antes` : "Configurar alerta"}
+                                  aria-label={active ? `Alerta ${mins} min antes` : "Configurar alerta"}
+                                  className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded transition-colors active:scale-90 flex items-center gap-1"
+                                  style={active
+                                    ? { color: "#FB923C", background: "rgba(251,146,60,0.12)" }
+                                    : { color: "hsl(var(--muted-foreground) / 0.5)", background: "hsl(var(--secondary) / 0.5)" }}
+                                >
+                                  {active ? <Bell size={9} /> : <BellOff size={9} />}
+                                  {active ? `${mins}M` : "ALERTA"}
+                                </button>
+                              );
+                            })()}
                           </div>
                           <p className="font-mono text-[10px] text-muted-foreground leading-relaxed mt-0.5">{item.detail}</p>
                           {item.tags && item.tags.length > 0 && !isDiaEspecial && (
