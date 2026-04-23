@@ -124,7 +124,7 @@ const Checklist = () => {
   const [showSkipConfirm, setShowSkipConfirm] = useState<string | null>(null);
   const [alertPickerFor, setAlertPickerFor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const { config: alertsConfig, setItemAlert } = useItemAlerts(todayIdx);
+  const { config: alertsConfig, setItemAlert, triggerTestAlert } = useItemAlerts(todayIdx);
   const isToday = selectedDay === todayIdx;
   const tipoConfig = TIPOS_DIA.find((t) => t.id === tipoDia)!;
   const isDiaEspecial = tipoDia !== "normal";
