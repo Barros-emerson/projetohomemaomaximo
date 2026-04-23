@@ -4,6 +4,7 @@ import DevocionalEvolucao from "@/components/biblia/DevocionalEvolucao";
 import ReflexaoPrompts from "@/components/biblia/ReflexaoPrompts";
 import OracaoTimer from "@/components/biblia/OracaoTimer";
 import ModoLeituraEnhanced from "@/components/biblia/ModoLeituraEnhanced";
+import DevocionalFamilia from "@/components/biblia/DevocionalFamilia";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +47,7 @@ const Biblia = () => {
   const [modoLeitura, setModoLeitura] = useState(false);
   const [leituraSelecionada, setLeituraSelecionada] = useState<LeituraDia | null>(null);
   const [versaoBiblia, setVersaoBiblia] = useState(() => localStorage.getItem("ham-versao-biblia") || "ARA");
+  const [showDevocionalFamilia, setShowDevocionalFamilia] = useState(false);
   
   // Multiple contacts
   const [contatos, setContatos] = useState<Contato[]>(() => {
@@ -575,6 +577,26 @@ const Biblia = () => {
 
   return (
     <div className="p-4 pb-24 space-y-4">
+      {/* Botão Devocional em Família */}
+      <button
+        onClick={() => setShowDevocionalFamilia(true)}
+        className="w-full rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-all mb-2"
+        style={{ background: "linear-gradient(135deg, rgba(74,222,128,0.08) 0%, rgba(251,113,133,0.08) 50%, rgba(251,191,36,0.08) 100%)", border: "1px solid rgba(167,139,250,0.2)" }}
+      >
+        <div className="flex -space-x-2">
+          <span className="text-2xl">⚔️</span>
+          <span className="text-2xl">🌸</span>
+          <span className="text-2xl">⭐</span>
+        </div>
+        <div className="flex-1 text-left">
+          <p className="font-mono text-xs font-bold tracking-widest text-foreground">DEVOCIONAL EM FAMÍLIA</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">Etapas guiadas · Para todos os perfis</p>
+        </div>
+        <span className="font-mono text-[9px] font-bold tracking-widest px-2 py-1 rounded-full" style={{ background: "rgba(167,139,250,0.15)", color: "#A78BFA" }}>
+          NOVO
+        </span>
+      </button>
+
       {/* Header + Streak */}
       <div className="flex items-center justify-between">
         <div>
@@ -1148,6 +1170,24 @@ const Biblia = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Devocional Família */}
+      <AnimatePresence>
+        {showDevocionalFamilia && (
+          <DevocionalFamilia
+            onConcluir={(perfil) => {
+              if (perfil === "emerson") {
+                const novoStreak = streak.lastDate === hoje
+                  ? streak
+                  : { count: isYesterday(streak.lastDate) ? streak.count + 1 : 1, lastDate: hoje };
+                localStorage.setItem("ham-biblia-streak", JSON.stringify(novoStreak));
+                setStreak(novoStreak);
+              }
+            }}
+            onFechar={() => setShowDevocionalFamilia(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
