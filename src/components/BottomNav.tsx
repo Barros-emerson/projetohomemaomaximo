@@ -92,12 +92,12 @@ export const BottomNav = () => {
               <button
                 key={item.path}
                 onClick={() => { navigate(item.path); setShowFab(false); }}
-                className={`flex flex-col items-center gap-1 px-4 py-1 rounded-xl transition-all duration-200 active:scale-95 ${
+                className={`flex flex-col items-center gap-1 px-2 py-1 rounded-xl transition-all duration-200 active:scale-95 min-w-0 ${
                   isActive ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 <Icon size={20} strokeWidth={isActive ? 2.2 : 1.5} />
-                <span className="text-[9px] font-medium tracking-wider">
+                <span className="text-[9px] font-medium tracking-wider whitespace-nowrap">
                   {item.label.toUpperCase()}
                 </span>
               </button>
