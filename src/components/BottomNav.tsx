@@ -10,8 +10,6 @@ import {
   StickyNote,
   X,
   ClipboardList,
-  History,
-  Focus,
   Target,
   Flame,
 } from "lucide-react";
