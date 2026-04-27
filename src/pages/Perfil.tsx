@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Target, Dumbbell, Heart, BookOpen, Settings, ChevronRight, ChevronDown, Crown, TrendingUp, Shield, Pencil, X, Check } from "lucide-react";
+import { User, Target, Dumbbell, Heart, BookOpen, Settings, ChevronRight, ChevronDown, Crown, TrendingUp, Shield, Pencil, X, Check, Focus, History } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -429,8 +429,10 @@ const Perfil = () => {
   };
 
   const quickLinks = [
+    { icon: Focus, label: "Modo Foco", path: "/foco", color: "hsl(var(--primary))" },
     { icon: BookOpen, label: "Bíblia & Devocional", path: "/biblia", color: "hsl(270 55% 65%)" },
     { icon: Target, label: "Performance", path: "/performance", color: "hsl(var(--primary))" },
+    { icon: History, label: "Histórico", path: "/historico", color: "hsl(346 70% 60%)" },
     { icon: Settings, label: "Configurações", path: "/config", color: "hsl(var(--muted-foreground))" },
   ];
 

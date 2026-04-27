@@ -10,8 +10,6 @@ import {
   StickyNote,
   X,
   ClipboardList,
-  History,
-  Focus,
   Target,
   Flame,
 } from "lucide-react";
@@ -45,21 +43,19 @@ export const BottomNav = () => {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.85, opacity: 0, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="absolute bottom-24 left-0 right-0 flex gap-2 justify-center px-4"
+            className="absolute bottom-24 left-0 right-0 grid grid-cols-4 gap-2 px-4"
               onClick={(e) => e.stopPropagation()}
             >
               {[
-                { path: "/foco", icon: Focus, label: "FOCO", color: "text-primary", bg: "bg-primary/10 border-primary/20" },
                 { path: "/metas", icon: Target, label: "METAS", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
                 { path: "/habitos", icon: Flame, label: "HÁBITOS", color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/20" },
                 { path: "/notas", icon: StickyNote, label: "NOTA", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
                 { path: "/tarefas", icon: ClipboardList, label: "TAREFA", color: "text-purple-400", bg: "bg-purple-400/10 border-purple-400/20" },
-                { path: "/historico", icon: History, label: "HISTÓRICO", color: "text-rose-400", bg: "bg-rose-400/10 border-rose-400/20" },
               ].map((item) => (
                 <button
                   key={item.path}
                   onClick={() => { navigate(item.path); setShowFab(false); }}
-                  className={`${item.bg} border rounded-2xl px-4 py-3 flex flex-col items-center gap-1.5 ${item.color} font-mono text-[9px] font-bold tracking-wider active:scale-95 transition-transform`}
+                  className={`${item.bg} border rounded-2xl px-2 py-3 flex flex-col items-center gap-1.5 ${item.color} font-mono text-[9px] font-bold tracking-wider active:scale-95 transition-transform min-w-0`}
                 >
                   <item.icon size={18} />
                   {item.label}
