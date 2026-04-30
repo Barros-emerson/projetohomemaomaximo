@@ -97,13 +97,15 @@ export const rotinaSemanal: RotinaDia[] = [
     pillColor: "#C084FC", pillBorder: "rgba(192,132,252,0.4)", pillBg: "rgba(192,132,252,0.1)",
     badges: [
       { label: "LOWER HIPER", color: "#C084FC", bg: "rgba(192,132,252,0.1)" },
-      { label: "SEM JIU", color: "#4ADE80", bg: "rgba(74,222,128,0.1)" },
+      { label: "ALUNO JIU", color: "#60A5FA", bg: "rgba(96,165,250,0.1)" },
     ],
     items: [
       ...morningBase,
       { id: "treino_qui", time: "6:40", label: "Treino — LOWER HIPER", detail: "Agachamento 4x10 / Stiff 4x10 / Extensora 3x15 / Flexora 3x15 / Elevação Pélvica 3x12 / Panturrilha 4x15", alert: true, dotColor: "#C084FC", tags: [{ label: "Hipertrofia", color: "#C084FC" }] },
       ...workBase,
-      { id: "casa_qui", time: "18:30", label: "Voltar para casa", detail: "Sem aula de Jiu hoje. Rotina noturna mais cedo: jantar, presença, leitura, descanso.", dotColor: "#C084FC" },
+      { id: "saida_jiu_qui", time: "17:50", label: "Saída do trabalho", detail: "Deslocamento para o Jiu-Jitsu.", dotColor: "#22D3EE" },
+      { id: "jiu_qui", time: "19:00", label: "Jiu-Jitsu — ALUNO", detail: "Treino até 20:30. Intensidade alta.", alert: true, dotColor: "#22D3EE", tags: [{ label: "Aluno", color: "#22D3EE" }, { label: "Alta intensidade", color: "#F87171" }] },
+      { id: "casa_qui", time: "21:10", label: "Chegar em casa", detail: "Pós-Jiu: proteína + gordura. Pouco carbo.", dotColor: "#C084FC" },
       ...nightBase,
     ],
   },
