@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Check, Clock, X, ChevronLeft, ChevronRight, Utensils, Droplets, AlertTriangle, Calendar, Ban, Bell, BellOff } from "lucide-react";
-import { rotinaSemanal, type RotinaItem } from "@/data/rotina-diaria";
+import { rotinaSemanalAuto, getRotinaDoDia, type RotinaItem } from "@/data/rotina-diaria";
 import { dietaSemanal } from "@/data/dieta-semanal";
 import { getLocalDateStr } from "@/lib/dateUtils";
 import { useItemAlerts, ALERT_OPTIONS } from "@/hooks/useItemAlerts";
@@ -175,7 +175,7 @@ const Checklist = () => {
     await saveTipoDiaDB(tipo);
   };
 
-  const day = rotinaSemanal[selectedDay];
+  const day = getRotinaDoDia(selectedDay);
 
   const adjustedItems: AdjustedItem[] = useMemo(() => {
     let accumulatedDelay = 0;
@@ -332,7 +332,7 @@ const Checklist = () => {
     <div className="p-4 space-y-4">
       {/* Day selector */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
-        {rotinaSemanal.map((d, i) => {
+        {rotinaSemanalAuto.map((d, i) => {
           const isTodayPill = i === todayIdx; const isSelected = i === selectedDay;
           return (
             <button key={i} onClick={() => handleSelectDay(i)}

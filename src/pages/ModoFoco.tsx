@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Check, X, ChevronRight, Zap } from "lucide-react";
-import { rotinaSemanal } from "@/data/rotina-diaria";
+import { getRotinaDoDia } from "@/data/rotina-diaria";
 import { loadCheckedFromDB, toggleChecklistItem } from "@/hooks/useChecklistDB";
 
 const getTodayIndex = () => {
@@ -13,7 +13,7 @@ const getTodayIndex = () => {
 export default function ModoFoco() {
   const navigate = useNavigate();
   const todayIdx = getTodayIndex();
-  const day = rotinaSemanal[todayIdx];
+  const day = getRotinaDoDia(todayIdx);
 
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [currentItemIdx, setCurrentItemIdx] = useState(0);

@@ -63,13 +63,15 @@ export const rotinaSemanal: RotinaDia[] = [
     pillColor: "#F87171", pillBorder: "rgba(248,113,113,0.4)", pillBg: "rgba(248,113,113,0.1)",
     badges: [
       { label: "LOWER FORÇA", color: "#F87171", bg: "rgba(248,113,113,0.12)" },
-      { label: "SEM JIU", color: "#4ADE80", bg: "rgba(74,222,128,0.1)" },
+      { label: "ALUNO JIU", color: "#60A5FA", bg: "rgba(96,165,250,0.1)" },
     ],
     items: [
       ...morningBase,
       { id: "treino_ter", time: "6:40", label: "Treino — LOWER FORÇA", detail: "Agachamento 5x5 / Terra 4x5 / Leg Press 3x8 / Panturrilha 4x15 / Abdominal pesado", alert: true, dotColor: "#F87171", tags: [{ label: "Força", color: "#F87171" }] },
       ...workBase,
-      { id: "casa_ter", time: "18:30", label: "Voltar para casa", detail: "Sem aula de Jiu hoje. Rotina noturna mais cedo: jantar, presença, leitura, descanso.", dotColor: "#C084FC" },
+      { id: "saida_jiu_ter", time: "17:50", label: "Saída do trabalho", detail: "Deslocamento para o Jiu-Jitsu.", dotColor: "#22D3EE" },
+      { id: "jiu_ter", time: "19:00", label: "Jiu-Jitsu — ALUNO", detail: "Treino até 20:30. Intensidade alta.", alert: true, dotColor: "#22D3EE", tags: [{ label: "Aluno", color: "#22D3EE" }, { label: "Alta intensidade", color: "#F87171" }] },
+      { id: "casa_ter", time: "21:10", label: "Chegar em casa", detail: "Pós-Jiu: proteína + gordura. Pouco carbo.", dotColor: "#C084FC" },
       ...nightBase,
     ],
   },
@@ -95,13 +97,15 @@ export const rotinaSemanal: RotinaDia[] = [
     pillColor: "#C084FC", pillBorder: "rgba(192,132,252,0.4)", pillBg: "rgba(192,132,252,0.1)",
     badges: [
       { label: "LOWER HIPER", color: "#C084FC", bg: "rgba(192,132,252,0.1)" },
-      { label: "SEM JIU", color: "#4ADE80", bg: "rgba(74,222,128,0.1)" },
+      { label: "ALUNO JIU", color: "#60A5FA", bg: "rgba(96,165,250,0.1)" },
     ],
     items: [
       ...morningBase,
       { id: "treino_qui", time: "6:40", label: "Treino — LOWER HIPER", detail: "Agachamento 4x10 / Stiff 4x10 / Extensora 3x15 / Flexora 3x15 / Elevação Pélvica 3x12 / Panturrilha 4x15", alert: true, dotColor: "#C084FC", tags: [{ label: "Hipertrofia", color: "#C084FC" }] },
       ...workBase,
-      { id: "casa_qui", time: "18:30", label: "Voltar para casa", detail: "Sem aula de Jiu hoje. Rotina noturna mais cedo: jantar, presença, leitura, descanso.", dotColor: "#C084FC" },
+      { id: "saida_jiu_qui", time: "17:50", label: "Saída do trabalho", detail: "Deslocamento para o Jiu-Jitsu.", dotColor: "#22D3EE" },
+      { id: "jiu_qui", time: "19:00", label: "Jiu-Jitsu — ALUNO", detail: "Treino até 20:30. Intensidade alta.", alert: true, dotColor: "#22D3EE", tags: [{ label: "Aluno", color: "#22D3EE" }, { label: "Alta intensidade", color: "#F87171" }] },
+      { id: "casa_qui", time: "21:10", label: "Chegar em casa", detail: "Pós-Jiu: proteína + gordura. Pouco carbo.", dotColor: "#C084FC" },
       ...nightBase,
     ],
   },
@@ -149,3 +153,67 @@ export const rotinaSemanal: RotinaDia[] = [
     ],
   },
 ];
+
+/**
+ * Dias da semana SEM aula de Jiu (regra automática).
+ * 1 = Terça, 3 = Quinta (índice interno: 0=Seg ... 6=Dom)
+ */
+const DIAS_SEM_JIU = new Set<number>([1, 3]);
+
+/**
+ * Aplica regras automáticas de rotina:
+ * - Em DIAS_SEM_JIU: remove itens de Jiu (id começa com 'jiu_' ou 'saida_jiu_')
+ *   e substitui o "Chegar em casa" pós-Jiu por "Voltar para casa" às 18:30.
+ *
+ * Use SEMPRE esta função em vez de acessar `rotinaSemanal[i].items` direto.
+ */
+export function getRotinaDoDia(dayIndex: number): RotinaDia {
+  const base = rotinaSemanal[dayIndex];
+  if (!base) return base;
+
+  if (!DIAS_SEM_JIU.has(dayIndex)) return base;
+
+  const filteredItems = base.items
+    .filter((it) => !it.id.startsWith("jiu_") && !it.id.startsWith("saida_jiu_"))
+    .map((it) => {
+      // Substitui "Chegar em casa" pós-Jiu pelo "Voltar para casa" 18:30
+      if (it.id.startsWith("casa_")) {
+        return {
+          ...it,
+          time: "18:30",
+          label: "Voltar para casa",
+          detail:
+            "Sem aula de Jiu hoje. Rotina noturna mais cedo: jantar, presença, leitura, descanso.",
+          dotColor: "#C084FC",
+          tags: undefined,
+        };
+      }
+      return it;
+    })
+    .sort((a, b) => {
+      // Ordena por horário (mantém "Livre" e textos no fim)
+      const toMin = (t: string) => {
+        const m = t.match(/^(\d{1,2}):(\d{2})$/);
+        if (!m) return 99 * 60;
+        return parseInt(m[1]) * 60 + parseInt(m[2]);
+      };
+      return toMin(a.time) - toMin(b.time);
+    });
+
+  // Substitui badges para refletir "SEM JIU"
+  const newBadges = base.badges.map((b) =>
+    b.label.includes("JIU")
+      ? { label: "SEM JIU", color: "#4ADE80", bg: "rgba(74,222,128,0.1)" }
+      : b
+  );
+
+  return { ...base, items: filteredItems, badges: newBadges };
+}
+
+/**
+ * Versão derivada de `rotinaSemanal` com regras automáticas já aplicadas
+ * para todos os dias da semana. Use para iterar a semana inteira.
+ */
+export const rotinaSemanalAuto: RotinaDia[] = rotinaSemanal.map((_, i) =>
+  getRotinaDoDia(i)
+);
