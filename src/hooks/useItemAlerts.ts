@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { rotinaSemanal } from "@/data/rotina-diaria";
+import { rotinaSemanal, getRotinaDoDia } from "@/data/rotina-diaria";
 
 // Per-item alert config: minutes before (0 = off)
 const STORAGE_KEY = "ham-item-alerts-v1";
@@ -153,7 +153,7 @@ export const useItemAlerts = (todayIdx: number) => {
   /** Dispara um lembrete de teste após `delaySec` segundos (default 5s). */
   const triggerTestAlert = useCallback(
     (itemId: string, delaySec = 5) => {
-      const day = rotinaSemanal[todayIdx];
+      const day = getRotinaDoDia(todayIdx);
       const item = day?.items.find((i) => i.id === itemId);
       const label = item?.label || "Item da rotina";
       const detail = item?.detail || "";
@@ -194,7 +194,7 @@ export const useItemAlerts = (todayIdx: number) => {
 
   // Polling tick
   useEffect(() => {
-    const day = rotinaSemanal[todayIdx];
+    const day = getRotinaDoDia(todayIdx);
     if (!day) return;
 
     const tick = () => {
