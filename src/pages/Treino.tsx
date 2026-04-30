@@ -401,6 +401,7 @@ const Treino = () => {
               <div className="flex items-center gap-2 flex-1">
                 <button
                   onClick={() => {
+                    if (!requireReadiness()) return;
                     localStorage.setItem("ham-treino-start", Date.now().toString());
                     startTsRef.current = Date.now();
                     setWorkoutActive(true);
