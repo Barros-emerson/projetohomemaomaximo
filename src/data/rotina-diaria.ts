@@ -95,14 +95,13 @@ export const rotinaSemanal: RotinaDia[] = [
     pillColor: "#C084FC", pillBorder: "rgba(192,132,252,0.4)", pillBg: "rgba(192,132,252,0.1)",
     badges: [
       { label: "LOWER HIPER", color: "#C084FC", bg: "rgba(192,132,252,0.1)" },
-      { label: "PROFESSOR JIU", color: "#F5C542", bg: "rgba(245,197,66,0.1)" },
+      { label: "SEM JIU", color: "#4ADE80", bg: "rgba(74,222,128,0.1)" },
     ],
     items: [
       ...morningBase,
       { id: "treino_qui", time: "6:40", label: "Treino — LOWER HIPER", detail: "Agachamento 4x10 / Stiff 4x10 / Extensora 3x15 / Flexora 3x15 / Elevação Pélvica 3x12 / Panturrilha 4x15", alert: true, dotColor: "#C084FC", tags: [{ label: "Hipertrofia", color: "#C084FC" }] },
       ...workBase,
-      { id: "jiu_qui", time: "18:10", label: "Jiu-Jitsu — PROFESSOR", detail: "Aula até 19:20. Técnica em foco, carga gerenciada.", alert: true, dotColor: "#22D3EE", tags: [{ label: "Professor", color: "#22D3EE" }, { label: "Controlado", color: "#F5C542" }] },
-      { id: "casa_qui", time: "20:00", label: "Chegar em casa", detail: "Rotina noturna. Bíblia. Desacelerar. Dormir 22:30.", dotColor: "#C084FC" },
+      { id: "casa_qui", time: "18:30", label: "Voltar para casa", detail: "Sem aula de Jiu hoje. Rotina noturna mais cedo: jantar, presença, leitura, descanso.", dotColor: "#C084FC" },
       ...nightBase,
     ],
   },
