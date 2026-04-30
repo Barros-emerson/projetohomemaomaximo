@@ -153,3 +153,67 @@ export const rotinaSemanal: RotinaDia[] = [
     ],
   },
 ];
+
+/**
+ * Dias da semana SEM aula de Jiu (regra automática).
+ * 1 = Terça, 3 = Quinta (índice interno: 0=Seg ... 6=Dom)
+ */
+const DIAS_SEM_JIU = new Set<number>([1, 3]);
+
+/**
+ * Aplica regras automáticas de rotina:
+ * - Em DIAS_SEM_JIU: remove itens de Jiu (id começa com 'jiu_' ou 'saida_jiu_')
+ *   e substitui o "Chegar em casa" pós-Jiu por "Voltar para casa" às 18:30.
+ *
+ * Use SEMPRE esta função em vez de acessar `rotinaSemanal[i].items` direto.
+ */
+export function getRotinaDoDia(dayIndex: number): RotinaDia {
+  const base = rotinaSemanal[dayIndex];
+  if (!base) return base;
+
+  if (!DIAS_SEM_JIU.has(dayIndex)) return base;
+
+  const filteredItems = base.items
+    .filter((it) => !it.id.startsWith("jiu_") && !it.id.startsWith("saida_jiu_"))
+    .map((it) => {
+      // Substitui "Chegar em casa" pós-Jiu pelo "Voltar para casa" 18:30
+      if (it.id.startsWith("casa_")) {
+        return {
+          ...it,
+          time: "18:30",
+          label: "Voltar para casa",
+          detail:
+            "Sem aula de Jiu hoje. Rotina noturna mais cedo: jantar, presença, leitura, descanso.",
+          dotColor: "#C084FC",
+          tags: undefined,
+        };
+      }
+      return it;
+    })
+    .sort((a, b) => {
+      // Ordena por horário (mantém "Livre" e textos no fim)
+      const toMin = (t: string) => {
+        const m = t.match(/^(\d{1,2}):(\d{2})$/);
+        if (!m) return 99 * 60;
+        return parseInt(m[1]) * 60 + parseInt(m[2]);
+      };
+      return toMin(a.time) - toMin(b.time);
+    });
+
+  // Substitui badges para refletir "SEM JIU"
+  const newBadges = base.badges.map((b) =>
+    b.label.includes("JIU")
+      ? { label: "SEM JIU", color: "#4ADE80", bg: "rgba(74,222,128,0.1)" }
+      : b
+  );
+
+  return { ...base, items: filteredItems, badges: newBadges };
+}
+
+/**
+ * Versão derivada de `rotinaSemanal` com regras automáticas já aplicadas
+ * para todos os dias da semana. Use para iterar a semana inteira.
+ */
+export const rotinaSemanalAuto: RotinaDia[] = rotinaSemanal.map((_, i) =>
+  getRotinaDoDia(i)
+);
