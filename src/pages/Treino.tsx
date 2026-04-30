@@ -475,12 +475,17 @@ const Treino = () => {
         ) : (
           <button
             onClick={() => navigate("/readiness")}
-            className="w-full surface-card p-3 border border-dashed border-primary/30 flex items-center gap-3 active:scale-[0.98] transition-all"
+            className="w-full surface-card p-3 border border-dashed border-primary/40 bg-primary/5 flex items-center gap-3 active:scale-[0.98] transition-all"
           >
-            <Activity size={16} className="text-primary" />
-            <span className="font-mono text-[10px] text-primary font-bold tracking-wider">
-              FAZER CHECK-IN DE PRONTIDÃO →
-            </span>
+            <Activity size={16} className="text-primary shrink-0" />
+            <div className="flex-1 text-left">
+              <p className="font-mono text-[10px] text-primary font-bold tracking-wider">
+                READINESS OBRIGATÓRIO →
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                Responda o check-in antes de iniciar ou marcar séries.
+              </p>
+            </div>
           </button>
         )
       )}
