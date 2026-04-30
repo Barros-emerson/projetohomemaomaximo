@@ -160,7 +160,19 @@ const Treino = () => {
     return () => clearInterval(t);
   }, [workoutActive]);
 
+  const requireReadiness = (): boolean => {
+    if (!readiness) {
+      toast.error("Responda o Readiness diário antes de treinar.", {
+        action: { label: "Responder", onClick: () => navigate("/readiness") },
+      });
+      navigate("/readiness");
+      return false;
+    }
+    return true;
+  };
+
   const toggleSet = (exId: string, setIdx: number) => {
+    if (!requireReadiness()) return;
     setCompletedSets((prev) => {
       const exSets = new Set(prev[exId] || []);
       if (exSets.has(setIdx)) exSets.delete(setIdx);
