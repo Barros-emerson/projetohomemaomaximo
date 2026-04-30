@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { rotinaSemanal, getRotinaDoDia } from "@/data/rotina-diaria";
+import { getRotinaDoDia } from "@/data/rotina-diaria";
 
 // Per-item alert config: minutes before (0 = off)
 const STORAGE_KEY = "ham-item-alerts-v1";

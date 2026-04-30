@@ -17,7 +17,7 @@ import {
   RefreshCw,
   BarChart3,
 } from "lucide-react";
-import { rotinaSemanal } from "@/data/rotina-diaria";
+import { getRotinaDoDia, rotinaSemanalAuto } from "@/data/rotina-diaria";
 import { weekPlan } from "@/data/treino-plano";
 import { versiculosMemorizacao, planosDisponiveis } from "@/data/biblia-planos";
 import { getFraseHoje, frasesPoder } from "@/data/frases-poder";
@@ -45,7 +45,7 @@ const getPillarScores = (checklistPct: number, treinoPct: number, aguaMl: number
 const getChecklistPct = async (dayIdx: number): Promise<number> => {
   try {
     const map = await loadCheckedFromDB(dayIdx);
-    const allItems = rotinaSemanal[dayIdx].items;
+    const allItems = getRotinaDoDia(dayIdx).items;
     let skippedCount = 0;
     let doneCount = 0;
     map.forEach((info) => {
@@ -121,7 +121,7 @@ const getResumoOntem = async (todayIdx: number): Promise<ResumoOntem | null> => 
       supabase.from("agua_registros").select("quantidade_ml").eq("data", ontemStr).limit(1),
     ]);
 
-    const totalItems = rotinaSemanal[ontemIdx]?.items?.length || 1;
+    const totalItems = getRotinaDoDia(ontemIdx)?.items?.length || 1;
     const checkedCount = checkRes.count || 0;
     const checklistPct = Math.round((checkedCount / totalItems) * 100);
     const treinoFeito = (treinoRes.data?.length || 0) > 0;
@@ -260,7 +260,7 @@ const Dashboard = () => {
   }, []);
 
   const todayIdx = (() => { const d = now.getDay(); return d === 0 ? 6 : d - 1; })();
-  const todayRoutine = rotinaSemanal[todayIdx];
+  const todayRoutine = getRotinaDoDia(todayIdx);
   const todayTraining = weekPlan[todayIdx];
   const semana = Math.ceil(((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7);
   const versiculo = versiculosMemorizacao[(semana - 1) % versiculosMemorizacao.length];
