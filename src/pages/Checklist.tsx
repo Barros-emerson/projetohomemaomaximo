@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Check, Clock, X, ChevronLeft, ChevronRight, Utensils, Droplets, AlertTriangle, Calendar, Ban, Bell, BellOff } from "lucide-react";
@@ -48,10 +48,10 @@ export const getTipoDiaHoje = async (): Promise<TipoDia> => {
 interface AdjustedItem extends RotinaItem { adjustedTime: string | null; deltaMinutes: number; }
 const SWIPE_THRESHOLD = 80;
 
-const SwipeableItem = ({ children, index, isDone, disabled, onSwipeRight, onSwipeLeft }: {
+const SwipeableItem = React.forwardRef<HTMLDivElement, {
   children: React.ReactNode; index: number; isDone: boolean; disabled?: boolean;
   onSwipeRight: () => void; onSwipeLeft: () => void;
-}) => {
+}>(({ children, index, isDone, disabled, onSwipeRight, onSwipeLeft }, ref) => {
   const x = useMotionValue(0);
   const bgOpacity = useTransform(x, [-120, -60, 0, 60, 120], [1, 0.6, 0, 0.6, 1]);
   const checkScale = useTransform(x, [0, 60, 120], [0, 0.8, 1]);
@@ -62,7 +62,7 @@ const SwipeableItem = ({ children, index, isDone, disabled, onSwipeRight, onSwip
     else if (info.offset.x < -SWIPE_THRESHOLD) onSwipeLeft();
   };
   return (
-    <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.02 }} className="relative overflow-hidden rounded-lg">
+    <motion.div ref={ref} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.02 }} className="relative overflow-hidden rounded-lg">
       <motion.div className="absolute inset-0 flex items-center justify-start pl-5 rounded-lg" style={{ opacity: bgOpacity, background: "linear-gradient(90deg, hsl(142 72% 50% / 0.15), transparent)" }}>
         <motion.div style={{ scale: checkScale }}><Check size={22} className="text-primary" /></motion.div>
       </motion.div>
@@ -75,7 +75,8 @@ const SwipeableItem = ({ children, index, isDone, disabled, onSwipeRight, onSwip
       </motion.div>
     </motion.div>
   );
-};
+});
+SwipeableItem.displayName = "SwipeableItem";
 
 // ─── MODAL TIPO DE DIA ────────────────────────────────────────────────────────
 
@@ -436,9 +437,9 @@ const Checklist = () => {
               if (!isVisible) return null;
               return (
                 <motion.div key={item.id} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
-                  <SwipeableItem index={i} isDone={isDone || isItemSkipped} disabled={(isDiaEspecial && isToday && !isDone) || isItemSkipped}
+                  <SwipeableItem index={i} isDone={isDone || isItemSkipped} disabled={isItemSkipped}
                     onSwipeRight={() => { if (!isDone && !isItemSkipped) toggle(item.id); }}
-                    onSwipeLeft={() => { if (!isDone && !isItemSkipped && canEditTime && isToday) openEdit(item); }}>
+                    onSwipeLeft={() => { if (!isDone && !isItemSkipped && isToday) { if (canEditTime && !isDiaEspecial) openEdit(item); else setShowSkipConfirm(item.id); } }}>
                     
                     {/* Checkbox / Skip indicator */}
                     {isItemSkipped ? (
@@ -480,7 +481,7 @@ const Checklist = () => {
                             {item.immutable && <span className="text-[8px] font-mono font-bold text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">IMÓVEL</span>}
                             {isDiaEspecial && isToday && <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded" style={{ color: tipoConfig.color, background: tipoConfig.bg }}>OPCIONAL</span>}
                             {/* Skip button */}
-                            {isToday && !isDiaEspecial && (
+                            {isToday && (
                               <button onClick={(e) => { e.stopPropagation(); setShowSkipConfirm(item.id); }}
                                 className="text-[9px] font-mono font-bold px-2 py-0.5 rounded transition-colors active:scale-90 flex items-center gap-1"
                                 style={{ color: "#FB923C", background: "rgba(251,146,60,0.12)", border: "1px solid rgba(251,146,60,0.3)" }}>
