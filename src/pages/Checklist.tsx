@@ -48,10 +48,10 @@ export const getTipoDiaHoje = async (): Promise<TipoDia> => {
 interface AdjustedItem extends RotinaItem { adjustedTime: string | null; deltaMinutes: number; }
 const SWIPE_THRESHOLD = 80;
 
-const SwipeableItem = ({ children, index, isDone, disabled, onSwipeRight, onSwipeLeft }: {
+const SwipeableItem = React.forwardRef<HTMLDivElement, {
   children: React.ReactNode; index: number; isDone: boolean; disabled?: boolean;
   onSwipeRight: () => void; onSwipeLeft: () => void;
-}) => {
+}>(({ children, index, isDone, disabled, onSwipeRight, onSwipeLeft }, ref) => {
   const x = useMotionValue(0);
   const bgOpacity = useTransform(x, [-120, -60, 0, 60, 120], [1, 0.6, 0, 0.6, 1]);
   const checkScale = useTransform(x, [0, 60, 120], [0, 0.8, 1]);
