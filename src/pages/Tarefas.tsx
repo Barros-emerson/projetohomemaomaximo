@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { ClipboardList, Plus, Check, Trash2, ChevronDown } from "lucide-react";
 
 interface Tarefa {
@@ -146,12 +146,12 @@ const Tarefas = () => {
 
       <div className="space-y-1">
         {pending.map((t, i) => (
-          <motion.div
+          <SwipeableTarefa
             key={t.id}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.02 }}
-            className="surface-card px-4 py-3 flex items-center gap-3"
+            index={i}
+            color={getCatColor(t.category)}
+            onSwipeRight={() => toggle(t.id)}
+            onSwipeLeft={() => remove(t.id)}
           >
             <button
               onClick={() => toggle(t.id)}
@@ -167,7 +167,7 @@ const Tarefas = () => {
             <button onClick={() => remove(t.id)} className="active:scale-90 p-1">
               <Trash2 size={12} className="text-muted-foreground/30" />
             </button>
-          </motion.div>
+          </SwipeableTarefa>
         ))}
       </div>
 
