@@ -40,6 +40,43 @@ const getLast7Days = () => {
 
 const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } };
 
+const SWIPE_THRESHOLD = 80;
+
+const SwipeableHabito = ({
+  children,
+  color,
+  onSwipeRight,
+  onSwipeLeft,
+}: {
+  children: React.ReactNode;
+  color: string;
+  onSwipeRight: () => void;
+  onSwipeLeft: () => void;
+}) => {
+  const x = useMotionValue(0);
+  const bgOpacity = useTransform(x, [-120, -60, 0, 60, 120], [1, 0.6, 0, 0.6, 1]);
+  const checkScale = useTransform(x, [0, 60, 120], [0, 0.8, 1]);
+  const trashScale = useTransform(x, [-120, -60, 0], [1, 0.8, 0]);
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    if (info.offset.x > SWIPE_THRESHOLD) onSwipeRight();
+    else if (info.offset.x < -SWIPE_THRESHOLD) onSwipeLeft();
+  };
+  return (
+    <div className="relative overflow-hidden rounded-2xl">
+      <motion.div className="absolute inset-0 flex items-center justify-start pl-6" style={{ opacity: bgOpacity, background: `linear-gradient(90deg, ${color}25, transparent)` }}>
+        <motion.div style={{ scale: checkScale }}><Check size={22} style={{ color }} /></motion.div>
+      </motion.div>
+      <motion.div className="absolute inset-0 flex items-center justify-end pr-6" style={{ opacity: bgOpacity, background: "linear-gradient(270deg, hsl(var(--destructive) / 0.18), transparent)" }}>
+        <motion.div style={{ scale: trashScale }}><Trash2 size={20} className="text-destructive" /></motion.div>
+      </motion.div>
+      <motion.div drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.4} onDragEnd={handleDragEnd} style={{ x }}
+        className="relative z-10 cursor-grab active:cursor-grabbing">
+        {children}
+      </motion.div>
+    </div>
+  );
+};
+
 export default function Habitos() {
   const [habitos, setHabitos] = useState<Habito[]>([]);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
