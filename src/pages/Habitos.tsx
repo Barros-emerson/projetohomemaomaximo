@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Flame, Plus, X, Trash2, Check, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -39,6 +39,43 @@ const getLast7Days = () => {
 };
 
 const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } };
+
+const SWIPE_THRESHOLD = 80;
+
+const SwipeableHabito = ({
+  children,
+  color,
+  onSwipeRight,
+  onSwipeLeft,
+}: {
+  children: React.ReactNode;
+  color: string;
+  onSwipeRight: () => void;
+  onSwipeLeft: () => void;
+}) => {
+  const x = useMotionValue(0);
+  const bgOpacity = useTransform(x, [-120, -60, 0, 60, 120], [1, 0.6, 0, 0.6, 1]);
+  const checkScale = useTransform(x, [0, 60, 120], [0, 0.8, 1]);
+  const trashScale = useTransform(x, [-120, -60, 0], [1, 0.8, 0]);
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    if (info.offset.x > SWIPE_THRESHOLD) onSwipeRight();
+    else if (info.offset.x < -SWIPE_THRESHOLD) onSwipeLeft();
+  };
+  return (
+    <div className="relative overflow-hidden rounded-2xl">
+      <motion.div className="absolute inset-0 flex items-center justify-start pl-6" style={{ opacity: bgOpacity, background: `linear-gradient(90deg, ${color}25, transparent)` }}>
+        <motion.div style={{ scale: checkScale }}><Check size={22} style={{ color }} /></motion.div>
+      </motion.div>
+      <motion.div className="absolute inset-0 flex items-center justify-end pr-6" style={{ opacity: bgOpacity, background: "linear-gradient(270deg, hsl(var(--destructive) / 0.18), transparent)" }}>
+        <motion.div style={{ scale: trashScale }}><Trash2 size={20} className="text-destructive" /></motion.div>
+      </motion.div>
+      <motion.div drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.4} onDragEnd={handleDragEnd} style={{ x }}
+        className="relative z-10 cursor-grab active:cursor-grabbing">
+        {children}
+      </motion.div>
+    </div>
+  );
+};
 
 export default function Habitos() {
   const [habitos, setHabitos] = useState<Habito[]>([]);
@@ -177,48 +214,56 @@ export default function Habitos() {
       {/* Lista de Hábitos */}
       <div className="space-y-2">
         {habitos.map(h => (
-          <motion.div key={h.id} variants={fadeUp} className="surface-card p-3">
-            <div className="flex items-center gap-3">
-              {/* Check hoje */}
-              <button onClick={() => toggleCheckin(h.id)}
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all active:scale-90"
-                style={isChecked(h.id, dataHoje)
-                  ? { background: h.cor, color: "#fff" }
-                  : { border: `2px solid ${h.cor}40` }
-                }
-              >
-                {isChecked(h.id, dataHoje) ? <Check size={18} /> : <span className="text-lg">{h.icone}</span>}
-              </button>
-              <div className="flex-1 min-w-0">
-                <p className="font-mono text-sm font-bold text-foreground">{h.titulo}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  {h.streak_atual > 0 && (
-                    <span className="font-mono text-[9px] font-bold flex items-center gap-0.5" style={{ color: h.cor }}>
-                      <Flame size={10} />{h.streak_atual} dias
-                    </span>
-                  )}
-                  {h.maior_streak > 0 && (
-                    <span className="font-mono text-[9px] text-muted-foreground flex items-center gap-0.5">
-                      <TrendingUp size={9} />max {h.maior_streak}
-                    </span>
-                  )}
+          <motion.div key={h.id} variants={fadeUp}>
+            <SwipeableHabito
+              color={h.cor}
+              onSwipeRight={() => { if (!isChecked(h.id, dataHoje)) toggleCheckin(h.id); }}
+              onSwipeLeft={() => deletar(h.id)}
+            >
+              <div className="surface-card p-3">
+                <div className="flex items-center gap-3">
+                  {/* Check hoje */}
+                  <button onClick={() => toggleCheckin(h.id)}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all active:scale-90"
+                    style={isChecked(h.id, dataHoje)
+                      ? { background: h.cor, color: "#fff" }
+                      : { border: `2px solid ${h.cor}40` }
+                    }
+                  >
+                    {isChecked(h.id, dataHoje) ? <Check size={18} /> : <span className="text-lg">{h.icone}</span>}
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-mono text-sm font-bold text-foreground">{h.titulo}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {h.streak_atual > 0 && (
+                        <span className="font-mono text-[9px] font-bold flex items-center gap-0.5" style={{ color: h.cor }}>
+                          <Flame size={10} />{h.streak_atual} dias
+                        </span>
+                      )}
+                      {h.maior_streak > 0 && (
+                        <span className="font-mono text-[9px] text-muted-foreground flex items-center gap-0.5">
+                          <TrendingUp size={9} />max {h.maior_streak}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button onClick={() => deletar(h.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors shrink-0"><Trash2 size={12} /></button>
+                </div>
+                {/* Mini heatmap 7 dias */}
+                <div className="flex gap-1.5 mt-2 justify-end items-center">
+                  {last7.map(day => (
+                    <div key={day} className="flex flex-col items-center gap-0.5">
+                      <div className="w-5 h-5 flex items-center justify-center">
+                        {isChecked(h.id, day) ? <Check size={14} style={{ color: h.cor }} /> : <span className="text-muted-foreground/20 text-[10px]">·</span>}
+                      </div>
+                      <span className="text-[7px] text-muted-foreground font-mono">
+                        {new Date(day + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "narrow" })}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <button onClick={() => deletar(h.id)} className="text-muted-foreground/30 hover:text-destructive transition-colors shrink-0"><Trash2 size={12} /></button>
-            </div>
-            {/* Mini heatmap 7 dias */}
-            <div className="flex gap-1.5 mt-2 justify-end items-center">
-              {last7.map(day => (
-                <div key={day} className="flex flex-col items-center gap-0.5">
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    {isChecked(h.id, day) ? <Check size={14} style={{ color: h.cor }} /> : <span className="text-muted-foreground/20 text-[10px]">·</span>}
-                  </div>
-                  <span className="text-[7px] text-muted-foreground font-mono">
-                    {new Date(day + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "narrow" })}
-                  </span>
-                </div>
-              ))}
-            </div>
+            </SwipeableHabito>
           </motion.div>
         ))}
       </div>

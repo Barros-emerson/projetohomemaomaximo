@@ -482,7 +482,9 @@ const Checklist = () => {
                             {/* Skip button */}
                             {isToday && !isDiaEspecial && (
                               <button onClick={(e) => { e.stopPropagation(); setShowSkipConfirm(item.id); }}
-                                className="text-[8px] font-mono font-bold text-muted-foreground/50 hover:text-muted-foreground bg-secondary/50 hover:bg-secondary px-1.5 py-0.5 rounded transition-colors active:scale-90">
+                                className="text-[9px] font-mono font-bold px-2 py-0.5 rounded transition-colors active:scale-90 flex items-center gap-1"
+                                style={{ color: "#FB923C", background: "rgba(251,146,60,0.12)", border: "1px solid rgba(251,146,60,0.3)" }}>
+                                <Ban size={9} />
                                 NÃO FIZ
                               </button>
                             )}

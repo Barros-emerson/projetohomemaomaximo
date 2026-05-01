@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { ClipboardList, Plus, Check, Trash2, ChevronDown } from "lucide-react";
 
 interface Tarefa {
@@ -21,6 +21,45 @@ const CATEGORIES = [
 const loadTarefas = (): Tarefa[] => {
   const saved = localStorage.getItem("ham-tarefas");
   return saved ? JSON.parse(saved) : [];
+};
+
+const SWIPE_THRESHOLD = 80;
+
+const SwipeableTarefa = ({
+  children,
+  index,
+  color,
+  onSwipeRight,
+  onSwipeLeft,
+}: {
+  children: React.ReactNode;
+  index: number;
+  color: string;
+  onSwipeRight: () => void;
+  onSwipeLeft: () => void;
+}) => {
+  const x = useMotionValue(0);
+  const bgOpacity = useTransform(x, [-120, -60, 0, 60, 120], [1, 0.6, 0, 0.6, 1]);
+  const checkScale = useTransform(x, [0, 60, 120], [0, 0.8, 1]);
+  const trashScale = useTransform(x, [-120, -60, 0], [1, 0.8, 0]);
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    if (info.offset.x > SWIPE_THRESHOLD) onSwipeRight();
+    else if (info.offset.x < -SWIPE_THRESHOLD) onSwipeLeft();
+  };
+  return (
+    <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.02 }} className="relative overflow-hidden rounded-lg">
+      <motion.div className="absolute inset-0 flex items-center justify-start pl-5" style={{ opacity: bgOpacity, background: `linear-gradient(90deg, ${color}25, transparent)` }}>
+        <motion.div style={{ scale: checkScale }}><Check size={20} style={{ color }} /></motion.div>
+      </motion.div>
+      <motion.div className="absolute inset-0 flex items-center justify-end pr-5" style={{ opacity: bgOpacity, background: "linear-gradient(270deg, hsl(var(--destructive) / 0.18), transparent)" }}>
+        <motion.div style={{ scale: trashScale }}><Trash2 size={18} className="text-destructive" /></motion.div>
+      </motion.div>
+      <motion.div drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.4} onDragEnd={handleDragEnd} style={{ x }}
+        className="relative z-10 surface-card px-4 py-3 flex items-center gap-3 cursor-grab active:cursor-grabbing">
+        {children}
+      </motion.div>
+    </motion.div>
+  );
 };
 
 const Tarefas = () => {
@@ -146,12 +185,12 @@ const Tarefas = () => {
 
       <div className="space-y-1">
         {pending.map((t, i) => (
-          <motion.div
+          <SwipeableTarefa
             key={t.id}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.02 }}
-            className="surface-card px-4 py-3 flex items-center gap-3"
+            index={i}
+            color={getCatColor(t.category)}
+            onSwipeRight={() => toggle(t.id)}
+            onSwipeLeft={() => remove(t.id)}
           >
             <button
               onClick={() => toggle(t.id)}
@@ -167,7 +206,7 @@ const Tarefas = () => {
             <button onClick={() => remove(t.id)} className="active:scale-90 p-1">
               <Trash2 size={12} className="text-muted-foreground/30" />
             </button>
-          </motion.div>
+          </SwipeableTarefa>
         ))}
       </div>
 
