@@ -437,9 +437,9 @@ const Checklist = () => {
               if (!isVisible) return null;
               return (
                 <motion.div key={item.id} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
-                  <SwipeableItem index={i} isDone={isDone || isItemSkipped} disabled={(isDiaEspecial && isToday && !isDone) || isItemSkipped}
+                  <SwipeableItem index={i} isDone={isDone || isItemSkipped} disabled={isItemSkipped}
                     onSwipeRight={() => { if (!isDone && !isItemSkipped) toggle(item.id); }}
-                    onSwipeLeft={() => { if (!isDone && !isItemSkipped && canEditTime && isToday) openEdit(item); }}>
+                    onSwipeLeft={() => { if (!isDone && !isItemSkipped && isToday) { if (canEditTime && !isDiaEspecial) openEdit(item); else setShowSkipConfirm(item.id); } }}>
                     
                     {/* Checkbox / Skip indicator */}
                     {isItemSkipped ? (
