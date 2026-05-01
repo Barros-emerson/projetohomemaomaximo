@@ -481,7 +481,7 @@ const Checklist = () => {
                             {item.immutable && <span className="text-[8px] font-mono font-bold text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">IMÓVEL</span>}
                             {isDiaEspecial && isToday && <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded" style={{ color: tipoConfig.color, background: tipoConfig.bg }}>OPCIONAL</span>}
                             {/* Skip button */}
-                            {isToday && !isDiaEspecial && (
+                            {isToday && (
                               <button onClick={(e) => { e.stopPropagation(); setShowSkipConfirm(item.id); }}
                                 className="text-[9px] font-mono font-bold px-2 py-0.5 rounded transition-colors active:scale-90 flex items-center gap-1"
                                 style={{ color: "#FB923C", background: "rgba(251,146,60,0.12)", border: "1px solid rgba(251,146,60,0.3)" }}>
