@@ -62,7 +62,7 @@ const SwipeableItem = React.forwardRef<HTMLDivElement, {
     else if (info.offset.x < -SWIPE_THRESHOLD) onSwipeLeft();
   };
   return (
-    <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.02 }} className="relative overflow-hidden rounded-lg">
+    <motion.div ref={ref} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.02 }} className="relative overflow-hidden rounded-lg">
       <motion.div className="absolute inset-0 flex items-center justify-start pl-5 rounded-lg" style={{ opacity: bgOpacity, background: "linear-gradient(90deg, hsl(142 72% 50% / 0.15), transparent)" }}>
         <motion.div style={{ scale: checkScale }}><Check size={22} className="text-primary" /></motion.div>
       </motion.div>
@@ -75,7 +75,8 @@ const SwipeableItem = React.forwardRef<HTMLDivElement, {
       </motion.div>
     </motion.div>
   );
-};
+});
+SwipeableItem.displayName = "SwipeableItem";
 
 // ─── MODAL TIPO DE DIA ────────────────────────────────────────────────────────
 
