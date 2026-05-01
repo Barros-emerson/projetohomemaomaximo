@@ -85,7 +85,7 @@ const TipoDiaModal = ({ current, onSelect, onClose }: { current: TipoDia; onSele
     className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-md" onClick={onClose}>
     <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
       transition={{ type: "spring", damping: 28, stiffness: 320 }}
-      className="surface-card p-5 border-glow w-full max-w-lg rounded-b-none rounded-t-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+      className="surface-card p-5 border-glow w-full max-w-lg rounded-b-none rounded-t-2xl space-y-4 max-h-[85vh] overflow-y-auto pb-24" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-between">
         <p className="font-mono text-xs font-bold tracking-widest text-foreground">COMO É ESSE DIA?</p>
         <button onClick={onClose} className="active:scale-90"><X size={18} className="text-muted-foreground" /></button>
