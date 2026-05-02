@@ -113,6 +113,23 @@
 }
 
 @layer base {
+  /* Compact mobile scale: reduce root font-size so all rem-based sizes shrink proportionally */
+  html {
+    font-size: 14px;
+  }
+
+  @media (min-width: 480px) {
+    html {
+      font-size: 15px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    html {
+      font-size: 16px;
+    }
+  }
+
   * {
     @apply border-border;
   }
