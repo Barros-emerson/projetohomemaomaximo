@@ -135,7 +135,7 @@ export const AppLayout = () => {
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              top: "calc(env(safe-area-inset-top, 0px) + 60px)",
+              top: "var(--header-bottom)",
               transformOrigin: "top right",
               willChange: "transform, opacity",
             }}
