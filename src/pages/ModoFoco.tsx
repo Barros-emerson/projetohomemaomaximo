@@ -70,27 +70,31 @@ export default function ModoFoco() {
   const handledCount = doneCount + skippedCount;
   const pct = Math.round((doneCount / totalItems) * 100);
 
-  const handleComplete = async () => {
+  const handleComplete = () => {
     if (!currentItem || busy) return;
-    setBusy(true);
+    const item = currentItem;
     const nowTime = new Date();
     const timeStr = `${nowTime.getHours()}:${nowTime
       .getMinutes()
       .toString()
       .padStart(2, "0")}`;
-    await toggleChecklistItem(todayIdx, currentItem.id, false, timeStr);
-    setChecked((prev) => new Set(prev).add(currentItem.id));
+    // Optimistic update — UI avança imediatamente
+    setChecked((prev) => new Set(prev).add(item.id));
     x.set(0);
-    setBusy(false);
+    // Persiste em background
+    toggleChecklistItem(todayIdx, item.id, false, timeStr).catch((e) =>
+      console.error("toggleChecklistItem failed", e)
+    );
   };
 
-  const handleSkip = async () => {
+  const handleSkip = () => {
     if (!currentItem || busy) return;
-    setBusy(true);
-    await skipChecklistItem(todayIdx, currentItem.id, false);
-    setSkipped((prev) => new Set(prev).add(currentItem.id));
+    const item = currentItem;
+    setSkipped((prev) => new Set(prev).add(item.id));
     x.set(0);
-    setBusy(false);
+    skipChecklistItem(todayIdx, item.id, false).catch((e) =>
+      console.error("skipChecklistItem failed", e)
+    );
   };
 
   const handleDragEnd = (_: any, info: PanInfo) => {
