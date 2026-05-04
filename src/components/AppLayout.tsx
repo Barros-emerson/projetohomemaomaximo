@@ -121,7 +121,7 @@ export const AppLayout = () => {
       {/* Top status bar — solid black strip above header */}
       <div
         className="fixed top-0 left-0 right-0 z-[60] bg-background"
-        style={{ height: "calc(var(--safe-top) + 2.5rem)" }}
+        style={{ height: "var(--safe-top)" }}
         aria-hidden="true"
       />
       <header
