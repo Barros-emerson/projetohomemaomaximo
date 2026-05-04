@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,13 +32,41 @@ export const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const headerRef = useRef<HTMLElement>(null);
   const [now, setNow] = useState(new Date());
   const [showTarefas, setShowTarefas] = useState(false);
   const [tarefas, setTarefas] = useState<Tarefa[]>(loadTarefas);
+  const [headerBottom, setHeaderBottom] = useState<number | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    let frame = 0;
+    const updateHeaderBottom = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        setHeaderBottom(Math.round(header.getBoundingClientRect().bottom));
+      });
+    };
+
+    updateHeaderBottom();
+    const resizeObserver = new ResizeObserver(updateHeaderBottom);
+    resizeObserver.observe(header);
+    window.visualViewport?.addEventListener("resize", updateHeaderBottom);
+    window.addEventListener("orientationchange", updateHeaderBottom);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
+      window.visualViewport?.removeEventListener("resize", updateHeaderBottom);
+      window.removeEventListener("orientationchange", updateHeaderBottom);
+    };
   }, []);
 
   // Sync tarefas from localStorage on route change or focus
@@ -91,6 +119,7 @@ export const AppLayout = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header
+        ref={headerRef}
         className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl px-4 pb-3"
         style={{ paddingTop: "var(--header-pad-top)" }}
       >
@@ -135,7 +164,7 @@ export const AppLayout = () => {
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              top: "var(--header-bottom)",
+              top: headerBottom ? `${headerBottom}px` : "var(--header-bottom)",
               transformOrigin: "top right",
               willChange: "transform, opacity",
             }}
