@@ -130,12 +130,16 @@ export const AppLayout = () => {
       <AnimatePresence>
         {showTarefas && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              top: "calc(env(safe-area-inset-top, 0px) + 60px)",
+              transformOrigin: "top right",
+              willChange: "transform, opacity",
+            }}
             className="fixed left-0 right-0 z-40 px-4"
-            style={{ top: "calc(env(safe-area-inset-top, 0px) + 60px)" }}
           >
             <div className="max-w-lg mx-auto bg-card border border-border rounded-2xl shadow-xl overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b border-border">
