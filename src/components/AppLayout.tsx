@@ -118,6 +118,12 @@ export const AppLayout = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Top status bar — solid black strip above header */}
+      <div
+        className="fixed top-0 left-0 right-0 z-[60] bg-black"
+        style={{ height: "calc(var(--safe-top) + 2.5rem)" }}
+        aria-hidden="true"
+      />
       <header
         ref={headerRef}
         className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl px-4 pb-3"
