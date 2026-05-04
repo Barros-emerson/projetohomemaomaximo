@@ -8,8 +8,8 @@
   :root {
     /* Single source of truth for top safe-area offset (header + overlays) */
     --safe-top: env(safe-area-inset-top, 0px);
-    --header-pad-top: calc(var(--safe-top) + 4.5rem);
-    --header-bottom: calc(var(--safe-top) + 108px);
+    --header-pad-top: calc(var(--safe-top) + clamp(5rem, 12vh, 6.25rem));
+    --header-bottom: calc(var(--safe-top) + 132px);
 
     --background: 240 6% 7%;
     --foreground: 0 0% 95%;
