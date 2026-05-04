@@ -90,7 +90,10 @@ export const AppLayout = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl px-4 py-3">
+      <header
+        className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl px-4 pb-3"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1.25rem)" }}
+      >
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 active:scale-95 transition-transform">
             <span className="font-semibold text-sm tracking-tight text-foreground">
@@ -131,7 +134,8 @@ export const AppLayout = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-[57px] left-0 right-0 z-40 px-4"
+            className="fixed left-0 right-0 z-40 px-4"
+            style={{ top: "calc(env(safe-area-inset-top, 0px) + 60px)" }}
           >
             <div className="max-w-lg mx-auto bg-card border border-border rounded-2xl shadow-xl overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b border-border">
