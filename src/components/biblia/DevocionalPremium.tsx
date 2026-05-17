@@ -683,7 +683,8 @@ const DevocionalPremium = ({
                 {crossRefs.map((r) => (
                   <button
                     key={r}
-                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 transition-colors"
+                    onClick={() => abrirCrossRef(r)}
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 transition-colors active:scale-[0.99]"
                   >
                     <span
                       className="text-sm text-white/80 font-light"
