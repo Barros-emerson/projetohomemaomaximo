@@ -3,7 +3,7 @@ import { BookOpen, Flame, Check, ChevronRight, Heart, HandHeart, Shield, BookMar
 import DevocionalEvolucao from "@/components/biblia/DevocionalEvolucao";
 import ReflexaoPrompts from "@/components/biblia/ReflexaoPrompts";
 import OracaoTimer from "@/components/biblia/OracaoTimer";
-import ModoLeituraEnhanced from "@/components/biblia/ModoLeituraEnhanced";
+import DevocionalPremium from "@/components/biblia/DevocionalPremium";
 import DevocionalFamilia from "@/components/biblia/DevocionalFamilia";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -546,11 +546,12 @@ const Biblia = () => {
   // Modo leitura limpo
   if (modoLeitura && leituraSelecionada) {
     return (
-      <ModoLeituraEnhanced
+      <DevocionalPremium
         leitura={leituraSelecionada}
         bibliaTexto={bibliaTexto}
         bibliaLoading={bibliaLoading}
         versaoBiblia={versaoBiblia}
+        streak={streak.count}
         onClose={() => { setModoLeitura(false); setBibliaTexto([]); }}
         onConcluir={(dia) => {
           concluirLeitura(dia);
