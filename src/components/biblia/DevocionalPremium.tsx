@@ -818,6 +818,150 @@ const DevocionalPremium = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* MODAL DE REFERÊNCIA CRUZADA */}
+      <AnimatePresence>
+        {crossRefAberta && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-6"
+            style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}
+            onClick={fecharCrossRef}
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 40, opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full sm:max-w-[560px] max-h-[88vh] sm:max-h-[82vh] flex flex-col rounded-t-3xl sm:rounded-2xl overflow-hidden"
+              style={{
+                background:
+                  "radial-gradient(ellipse at top, #101013 0%, #08080a 60%, #050507 100%)",
+                border: "1px solid rgba(201,168,106,0.18)",
+                boxShadow: "0 -20px 60px rgba(0,0,0,0.6)",
+              }}
+            >
+              {/* Handle mobile */}
+              <div className="sm:hidden pt-2 pb-1 flex justify-center">
+                <div className="w-10 h-1 rounded-full bg-white/15" />
+              </div>
+
+              {/* Header */}
+              <div
+                className="flex items-center justify-between px-5 py-3"
+                style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <BookOpen size={12} style={{ color: "#c9a86a" }} />
+                  <span
+                    className="font-mono text-[9px] tracking-[0.3em] uppercase truncate"
+                    style={{ color: "#c9a86a" }}
+                  >
+                    Referência cruzada
+                  </span>
+                </div>
+                <button
+                  onClick={fecharCrossRef}
+                  className="text-white/40 hover:text-white/80 transition-colors"
+                  aria-label="Fechar"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Título */}
+              <div className="px-6 pt-5 pb-3">
+                <h3
+                  className="text-2xl font-light text-white tracking-tight"
+                  style={{ fontFamily: "ui-serif, Georgia, serif" }}
+                >
+                  {crossRefAberta}
+                </h3>
+                <p className="text-[11px] text-white/40 font-mono tracking-widest uppercase mt-1">
+                  {versaoBiblia}
+                </p>
+              </div>
+
+              {/* Conteúdo */}
+              <div className="flex-1 overflow-y-auto px-6 pb-8">
+                {crossRefLoading ? (
+                  <div className="flex flex-col items-center gap-3 py-16">
+                    <Loader2
+                      size={22}
+                      className="animate-spin"
+                      style={{ color: "#c9a86a" }}
+                    />
+                    <p className="text-[10px] text-white/40 font-mono tracking-widest uppercase">
+                      Carregando
+                    </p>
+                  </div>
+                ) : crossRefTexto.length > 0 ? (
+                  <div className="space-y-8">
+                    {crossRefTexto.map((ch, idx) => (
+                      <section key={idx}>
+                        <div className="mb-4 flex items-center gap-3">
+                          <div className="h-px flex-1 bg-white/10" />
+                          <h4
+                            className="font-mono text-[9px] tracking-[0.4em] uppercase"
+                            style={{ color: "#c9a86a" }}
+                          >
+                            {ch.book} {ch.chapter}
+                          </h4>
+                          <div className="h-px flex-1 bg-white/10" />
+                        </div>
+                        <div className="space-y-1">
+                          {ch.text
+                            .split("\n")
+                            .filter(Boolean)
+                            .map((line, i) => {
+                              const match = line.match(/^(\d+)\s+(.*)/);
+                              const verseNum = match ? match[1] : null;
+                              const verseText = match ? match[2] : line;
+                              return (
+                                <p
+                                  key={i}
+                                  className="font-light"
+                                  style={{
+                                    fontSize: `${Math.max(14, fontSize - 1)}px`,
+                                    lineHeight: 1.8,
+                                    color: "rgba(255,255,255,0.88)",
+                                    fontFamily:
+                                      "ui-serif, Georgia, 'Times New Roman', serif",
+                                  }}
+                                >
+                                  {verseNum && (
+                                    <span
+                                      className="inline-block mr-2 align-super font-mono select-none"
+                                      style={{
+                                        fontSize: `${Math.max(9, fontSize - 7)}px`,
+                                        color: "#c9a86a",
+                                      }}
+                                    >
+                                      {verseNum}
+                                    </span>
+                                  )}
+                                  {verseText}
+                                </p>
+                              );
+                            })}
+                        </div>
+                      </section>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-white/40 italic text-center py-10">
+                    Nada por aqui.
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
