@@ -79,7 +79,7 @@ export const BottomNav = () => {
                       ? "bg-muted text-muted-foreground rotate-45"
                       : "bg-primary text-primary-foreground"
                   }`}
-                  style={!showFab ? { boxShadow: "0 4px 20px hsl(152 60% 52% / 0.3)" } : undefined}
+                  style={!showFab ? { boxShadow: "0 4px 20px hsl(38 47% 60% / 0.35)" } : undefined}
                 >
                   {showFab ? <X size={20} /> : <Plus size={20} strokeWidth={2.5} />}
                 </button>
