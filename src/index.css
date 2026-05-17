@@ -11,58 +11,58 @@
     --header-pad-top: calc(var(--safe-top) + 0.875rem);
     --header-bottom: calc(var(--safe-top) + 64px);
 
-    --background: 240 6% 7%;
-    --foreground: 0 0% 95%;
+    --background: 0 0% 4%;
+    --foreground: 40 25% 92%;
 
-    --card: 240 5% 10%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 7%;
+    --card-foreground: 40 25% 92%;
 
-    --popover: 240 5% 10%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 40 25% 92%;
 
-    --primary: 152 60% 52%;
-    --primary-foreground: 240 6% 7%;
+    --primary: 38 47% 60%;
+    --primary-foreground: 0 0% 6%;
 
-    --secondary: 240 4% 14%;
-    --secondary-foreground: 0 0% 70%;
+    --secondary: 0 0% 11%;
+    --secondary-foreground: 40 20% 78%;
 
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 45%;
+    --muted: 0 0% 13%;
+    --muted-foreground: 40 8% 55%;
 
-    --accent: 38 92% 60%;
-    --accent-foreground: 240 6% 7%;
+    --accent: 45 90% 58%;
+    --accent-foreground: 0 0% 6%;
 
-    --destructive: 0 65% 55%;
+    --destructive: 0 72% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 152 60% 52%;
+    --border: 40 15% 18%;
+    --input: 0 0% 13%;
+    --ring: 38 47% 60%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 240 5% 8%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 152 60% 52%;
-    --sidebar-primary-foreground: 240 6% 7%;
-    --sidebar-accent: 240 4% 14%;
-    --sidebar-accent-foreground: 0 0% 70%;
-    --sidebar-border: 240 4% 16%;
-    --sidebar-ring: 152 60% 52%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 40 25% 92%;
+    --sidebar-primary: 38 47% 60%;
+    --sidebar-primary-foreground: 0 0% 6%;
+    --sidebar-accent: 0 0% 11%;
+    --sidebar-accent-foreground: 40 20% 78%;
+    --sidebar-border: 40 15% 18%;
+    --sidebar-ring: 38 47% 60%;
 
     /* Module colors */
-    --mod-rotina: 38 92% 60%;
-    --mod-treino: 0 80% 65%;
-    --mod-biblia: 270 55% 65%;
-    --mod-sono: 215 75% 60%;
-    --mod-saude: 152 60% 52%;
+    --mod-rotina: 45 90% 58%;
+    --mod-treino: 0 72% 52%;
+    --mod-biblia: 38 47% 60%;
+    --mod-sono: 38 35% 50%;
+    --mod-saude: 38 47% 60%;
 
     /* Score tokens */
-    --score-excellent: 152 60% 52%;
-    --score-good: 80 55% 50%;
-    --score-medium: 38 92% 60%;
+    --score-excellent: 38 47% 60%;
+    --score-good: 45 90% 58%;
+    --score-medium: 38 70% 55%;
     --score-low: 20 75% 55%;
-    --score-critical: 0 65% 55%;
+    --score-critical: 0 72% 52%;
   }
 
   .light {
