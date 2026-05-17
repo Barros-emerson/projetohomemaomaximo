@@ -161,6 +161,36 @@ const DevocionalPremium = ({
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Modal de referência cruzada
+  const [crossRefAberta, setCrossRefAberta] = useState<string | null>(null);
+  const [crossRefTexto, setCrossRefTexto] = useState<ChapterResult[]>([]);
+  const [crossRefLoading, setCrossRefLoading] = useState(false);
+
+  const abrirCrossRef = useCallback(
+    async (ref: string) => {
+      setCrossRefAberta(ref);
+      setCrossRefTexto([]);
+      setCrossRefLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("buscar-biblia", {
+          body: { passagem: ref, versao: versaoBiblia },
+        });
+        if (error) throw error;
+        if (data?.chapters) setCrossRefTexto(data.chapters);
+      } catch {
+        toast.error("Não foi possível carregar a referência");
+      } finally {
+        setCrossRefLoading(false);
+      }
+    },
+    [versaoBiblia]
+  );
+
+  const fecharCrossRef = useCallback(() => {
+    setCrossRefAberta(null);
+    setCrossRefTexto([]);
+  }, []);
+
   useEffect(() => {
     localStorage.setItem("ham-dev-fontsize", String(fontSize));
   }, [fontSize]);
