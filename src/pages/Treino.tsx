@@ -636,33 +636,39 @@ const Treino = () => {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    {suggestions[ex.name] && (
-                      <button
-                        onClick={() => {
-                          const wasOpen = showSuggestion[ex.id];
-                          setShowSuggestion(prev => ({ ...prev, [ex.id]: !prev[ex.id] }));
-                          if (!wasOpen) {
-                            const suggested = String(suggestions[ex.name].suggestedLoad);
-                            setLoads(prev => {
-                              const exLoads = { ...(prev[ex.id] || {}) };
-                              for (let i = 0; i < setsCount; i++) {
-                                if (!exLoads[i]) exLoads[i] = suggested;
-                              }
-                              return { ...prev, [ex.id]: exLoads };
-                            });
-                            toast.success(`${suggested}kg aplicado em ${ex.name}`);
-                          }
-                        }}
-                        className={`flex items-center gap-1 px-2 py-1 rounded-lg font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95 ${
-                          showSuggestion[ex.id]
-                            ? "bg-primary/15 text-primary"
-                            : "bg-secondary text-muted-foreground"
-                        }`}
-                      >
-                        <Brain size={10} />
-                        {suggestions[ex.name].suggestedLoad}kg
-                      </button>
-                    )}
+                    {suggestions[ex.name] && (() => {
+                      const rawSuggested = suggestions[ex.name].suggestedLoad;
+                      const adjusted = isLowReadiness
+                        ? Math.round((rawSuggested * 0.85) / 2.5) * 2.5
+                        : rawSuggested;
+                      return (
+                        <button
+                          onClick={() => {
+                            const wasOpen = showSuggestion[ex.id];
+                            setShowSuggestion(prev => ({ ...prev, [ex.id]: !prev[ex.id] }));
+                            if (!wasOpen) {
+                              const suggested = String(adjusted);
+                              setLoads(prev => {
+                                const exLoads = { ...(prev[ex.id] || {}) };
+                                for (let i = 0; i < setsCount; i++) {
+                                  if (!exLoads[i]) exLoads[i] = suggested;
+                                }
+                                return { ...prev, [ex.id]: exLoads };
+                              });
+                              toast.success(`${suggested}kg aplicado em ${ex.name}`);
+                            }
+                          }}
+                          className={`flex items-center gap-1 px-2 py-1 rounded-lg font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95 ${
+                            showSuggestion[ex.id]
+                              ? "bg-primary/15 text-primary"
+                              : "bg-secondary text-muted-foreground"
+                          }`}
+                        >
+                          <Brain size={10} />
+                          {adjusted}kg
+                        </button>
+                      );
+                    })()}
                     <span className={`font-mono text-lg font-extrabold ${day.colorClass}`}>
                       {ex.sets}x{ex.reps}
                     </span>
