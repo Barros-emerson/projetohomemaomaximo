@@ -680,9 +680,14 @@ const Treino = () => {
                     estimated1RM={suggestions[ex.name].estimated1RM}
                     targetPct={suggestions[ex.name].targetPct}
                     calculatedLoad={suggestions[ex.name].calculatedLoad}
-                    suggestedLoad={suggestions[ex.name].suggestedLoad}
+                    suggestedLoad={
+                      isLowReadiness
+                        ? Math.round((suggestions[ex.name].suggestedLoad * 0.85) / 2.5) * 2.5
+                        : suggestions[ex.name].suggestedLoad
+                    }
                     isChestExercise={suggestions[ex.name].isChestExercise}
                     weekNumber={weekNumber}
+                    phase={phase}
                   />
                 )}
 
