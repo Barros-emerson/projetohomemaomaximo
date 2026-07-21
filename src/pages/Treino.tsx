@@ -577,21 +577,46 @@ const Treino = () => {
         </motion.div>
       )}
 
-      {/* Exercises or OFF content */}
+      {/* Exercises or OFF or Recovery Mode */}
       {isOff ? (
         <div className={`surface-card p-6 text-center border ${day.borderClass}`}>
-          <span className="text-4xl mb-3 block">{day.emoji}</span>
-          <p className={`font-mono text-sm font-bold ${day.colorClass}`}>
-            {day.type === "OPCIONAL"
-              ? "Ombro leve, braço moderado ou Jiu-Jitsu"
-              : day.dayIndex === 6
-              ? "Descanso total. Recuperação."
-              : "Caminhada + Mobilidade + Sol"}
+          <p className={`font-mono text-xs font-black tracking-widest ${day.colorClass}`}>
+            {day.code}
           </p>
+          <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
+            {day.intent || (day.dayIndex === 6 ? "Descanso total. Recuperação." : "Caminhada + Mobilidade + Sol")}
+          </p>
+        </div>
+      ) : recoveryMode ? (
+        <div className="surface-card p-5 border border-red-400/25 bg-red-400/5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Activity size={14} className="text-red-400" />
+            <p className="font-mono text-[10px] font-black tracking-widest text-red-400">
+              SESSÃO DE RECUPERAÇÃO OBRIGATÓRIA
+            </p>
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Readiness abaixo de 40. Treino de força bloqueado hoje. Recuperar é operar.
+          </p>
+          <ul className="space-y-1.5 text-[11px] text-foreground/90 font-mono">
+            <li>· Caminhada leve 30 min</li>
+            <li>· Mobilidade de quadril e ombro 10 min</li>
+            <li>· Alongamento passivo 10 min</li>
+            <li>· Sol na pele 15 min</li>
+            <li>· Hidratação e sono priorizado</li>
+          </ul>
         </div>
       ) : (
         <div className="space-y-2">
-          {day.exercises.map((ex, ei) => {
+          {isLowReadiness && (
+            <div className="rounded-lg border border-amber-400/30 bg-amber-400/5 p-2.5 flex items-center gap-2">
+              <Activity size={12} className="text-amber-400 shrink-0" />
+              <p className="text-[10px] text-amber-400/90 leading-relaxed">
+                Readiness {Math.round(readinessScore!)} — acessórios cortados, cargas reduzidas ~15%.
+              </p>
+            </div>
+          )}
+          {effectiveExercises.map((ex, ei) => {
             const setsCount = parseInt(ex.sets);
             const exSets = completedSets[ex.id] || new Set();
 
