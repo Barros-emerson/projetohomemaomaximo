@@ -85,7 +85,7 @@ const getTreinoStorageKey = (dayIdx: number) => {
 const Treino = () => {
   const navigate = useNavigate();
   const { data: readiness } = useReadiness();
-  const { suggestions, weekNumber } = useLoadSuggestions();
+  const { suggestions, weekNumber, phase } = useLoadSuggestions();
   const [showSuggestion, setShowSuggestion] = useState<Record<string, boolean>>({});
   const [selectedDay, setSelectedDay] = useState(getTodayIndex());
   const [completedSets, setCompletedSets] = useState<Record<string, Set<number>>>(() => {
