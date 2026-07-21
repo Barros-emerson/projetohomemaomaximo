@@ -193,7 +193,7 @@ const Treino = () => {
       if (exSets.has(setIdx)) exSets.delete(setIdx);
       else {
         exSets.add(setIdx);
-        setRestSeconds(day.focus === "FORÇA" ? 90 : 60);
+        setRestSeconds(day.restSeconds ?? (day.focus === "FORÇA" || day.focus === "PERFORMANCE" ? 120 : 60));
         setShowTimer(true);
       }
       return { ...prev, [exId]: exSets };
