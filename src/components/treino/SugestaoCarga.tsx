@@ -8,9 +8,10 @@ interface Props {
   suggestedLoad: number;
   isChestExercise: boolean;
   weekNumber: number;
+  phase?: string;
 }
 
-const SugestaoCarga = ({ estimated1RM, targetPct, calculatedLoad, suggestedLoad, isChestExercise, weekNumber }: Props) => {
+const SugestaoCarga = ({ estimated1RM, targetPct, calculatedLoad, suggestedLoad, isChestExercise, weekNumber, phase }: Props) => {
   return (
     <motion.div
       initial={{ opacity: 0, height: 0 }}
@@ -20,7 +21,7 @@ const SugestaoCarga = ({ estimated1RM, targetPct, calculatedLoad, suggestedLoad,
       <div className="flex items-center gap-1.5">
         <Brain size={11} className="text-primary" />
         <span className="font-mono text-[9px] font-bold tracking-widest text-muted-foreground">
-          CARGA SUGERIDA · SEMANA {weekNumber}
+          CARGA SUGERIDA · W{weekNumber}{phase ? ` · ${phase}` : ""}
         </span>
       </div>
 
