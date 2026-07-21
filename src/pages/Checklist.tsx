@@ -380,7 +380,7 @@ const Checklist = () => {
       <motion.div key={selectedDay} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="surface-card p-5 border-glow">
         <div className="flex items-center justify-between mb-1">
           <div>
-            <p className="font-mono text-xs text-muted-foreground tracking-widest">ROTINA — {day.dayLabel.toUpperCase()}</p>
+            <p className="font-mono text-xs text-muted-foreground tracking-widest">MISSÕES DIÁRIAS — {day.dayLabel.toUpperCase()}</p>
             <div className="flex gap-1.5 mt-1.5 flex-wrap">
               {day.badges.map((b) => (
                 <span key={b.label} className="text-[9px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-md" style={{ color: b.color, background: b.bg }}>{b.label}</span>
@@ -403,10 +403,21 @@ const Checklist = () => {
             initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.4 }} />
         </div>
         <div className="flex items-center justify-between mt-3">
-          <span className="font-mono text-3xl font-extrabold text-glow"
-            style={{ color: isDiaEspecial && isToday ? tipoConfig.color : "hsl(var(--primary))" }}>
-            {isDiaEspecial && isToday ? tipoConfig.emoji : `${pct}%`}
-          </span>
+          {pct === 100 && isToday && !isDiaEspecial ? (
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-2xl font-black tracking-widest" style={{ color: "hsl(var(--primary))" }}>
+                DIA VENCIDO
+              </span>
+              <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded border" style={{ color: "hsl(var(--primary))", borderColor: "hsl(var(--primary) / 0.4)", background: "hsl(var(--primary) / 0.1)" }}>
+                ✓ 100%
+              </span>
+            </div>
+          ) : (
+            <span className="font-mono text-3xl font-extrabold text-glow"
+              style={{ color: isDiaEspecial && isToday ? tipoConfig.color : "hsl(var(--primary))" }}>
+              {isDiaEspecial && isToday ? tipoConfig.emoji : `${pct}%`}
+            </span>
+          )}
           <span className="font-mono text-[10px] text-muted-foreground text-right max-w-[65%] leading-relaxed">{getPhrase(pct)}</span>
         </div>
       </motion.div>

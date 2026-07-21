@@ -679,7 +679,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Zap size={14} className="text-amber-400" />
-            <p className="text-[10px] font-mono font-bold tracking-widest text-muted-foreground">ROTINA DE HOJE</p>
+            <p className="text-[10px] font-mono font-bold tracking-widest text-muted-foreground">MISSÕES DE HOJE</p>
           </div>
           <button onClick={() => navigate("/rotina")} className="text-[10px] font-mono text-primary font-medium active:scale-95">
             VER TUDO →
