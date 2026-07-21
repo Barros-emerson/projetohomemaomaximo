@@ -85,7 +85,7 @@ const getTreinoStorageKey = (dayIdx: number) => {
 const Treino = () => {
   const navigate = useNavigate();
   const { data: readiness } = useReadiness();
-  const { suggestions, weekNumber } = useLoadSuggestions();
+  const { suggestions, weekNumber, phase } = useLoadSuggestions();
   const [showSuggestion, setShowSuggestion] = useState<Record<string, boolean>>({});
   const [selectedDay, setSelectedDay] = useState(getTodayIndex());
   const [completedSets, setCompletedSets] = useState<Record<string, Set<number>>>(() => {
@@ -131,7 +131,22 @@ const Treino = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const day = weekPlan[selectedDay];
+  const readinessScore = readiness?.score ?? null;
+  const isLowReadiness = readinessScore !== null && readinessScore < 60 && readinessScore >= 40;
+  const isVeryLowReadiness = readinessScore !== null && readinessScore < 40;
+
+  // Auto-adjust: <60 → cut last 30% of exercises (drop accessories)
+  const effectiveExercises = (() => {
+    if (isVeryLowReadiness) return [];
+    if (isLowReadiness && day.exercises.length > 2) {
+      const keep = Math.ceil(day.exercises.length * 0.7);
+      return day.exercises.slice(0, keep);
+    }
+    return day.exercises;
+  })();
+
   const isOff = day.exercises.length === 0;
+  const recoveryMode = isVeryLowReadiness && !isOff;
 
   // Persist completed sets
   useEffect(() => {
@@ -178,7 +193,7 @@ const Treino = () => {
       if (exSets.has(setIdx)) exSets.delete(setIdx);
       else {
         exSets.add(setIdx);
-        setRestSeconds(day.focus === "FORÇA" ? 90 : 60);
+        setRestSeconds(day.restSeconds ?? (day.focus === "FORÇA" || day.focus === "PERFORMANCE" ? 120 : 60));
         setShowTimer(true);
       }
       return { ...prev, [exId]: exSets };
@@ -381,19 +396,29 @@ const Treino = () => {
         animate={{ opacity: 1, y: 0 }}
         className={`surface-card p-4 border ${day.borderClass}`}
       >
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{day.emoji}</span>
-          <div className="flex-1">
+        <div className="flex items-start gap-3">
+          <div className={`shrink-0 px-2 py-1 rounded-md border ${day.borderClass} ${day.bgClass}`}>
+            <span className={`font-mono text-[10px] font-black tracking-widest ${day.colorClass}`}>
+              W{weekNumber}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
             <h2 className={`font-mono text-sm font-extrabold tracking-wider ${day.colorClass}`}>
-              {day.label} — {day.type} {day.focus}
+              {day.code}
             </h2>
+            {day.intent && (
+              <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
+                {day.intent}
+              </p>
+            )}
             {!isOff && (
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                {day.exercises.length} exercícios · Descanso {day.focus === "FORÇA" ? "90s" : "60s"}
+              <p className="text-[9px] text-muted-foreground/70 mt-1 font-mono tracking-wider">
+                {effectiveExercises.length}/{day.exercises.length} EX · REST {day.restSeconds ?? 90}s · FASE {phase}
               </p>
             )}
           </div>
         </div>
+
 
         {!isOff && (
           <div className="mt-3 flex items-center gap-3">
@@ -552,21 +577,46 @@ const Treino = () => {
         </motion.div>
       )}
 
-      {/* Exercises or OFF content */}
+      {/* Exercises or OFF or Recovery Mode */}
       {isOff ? (
         <div className={`surface-card p-6 text-center border ${day.borderClass}`}>
-          <span className="text-4xl mb-3 block">{day.emoji}</span>
-          <p className={`font-mono text-sm font-bold ${day.colorClass}`}>
-            {day.type === "OPCIONAL"
-              ? "Ombro leve, braço moderado ou Jiu-Jitsu"
-              : day.dayIndex === 6
-              ? "Descanso total. Recuperação."
-              : "Caminhada + Mobilidade + Sol"}
+          <p className={`font-mono text-xs font-black tracking-widest ${day.colorClass}`}>
+            {day.code}
           </p>
+          <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
+            {day.intent || (day.dayIndex === 6 ? "Descanso total. Recuperação." : "Caminhada + Mobilidade + Sol")}
+          </p>
+        </div>
+      ) : recoveryMode ? (
+        <div className="surface-card p-5 border border-red-400/25 bg-red-400/5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Activity size={14} className="text-red-400" />
+            <p className="font-mono text-[10px] font-black tracking-widest text-red-400">
+              SESSÃO DE RECUPERAÇÃO OBRIGATÓRIA
+            </p>
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Readiness abaixo de 40. Treino de força bloqueado hoje. Recuperar é operar.
+          </p>
+          <ul className="space-y-1.5 text-[11px] text-foreground/90 font-mono">
+            <li>· Caminhada leve 30 min</li>
+            <li>· Mobilidade de quadril e ombro 10 min</li>
+            <li>· Alongamento passivo 10 min</li>
+            <li>· Sol na pele 15 min</li>
+            <li>· Hidratação e sono priorizado</li>
+          </ul>
         </div>
       ) : (
         <div className="space-y-2">
-          {day.exercises.map((ex, ei) => {
+          {isLowReadiness && (
+            <div className="rounded-lg border border-amber-400/30 bg-amber-400/5 p-2.5 flex items-center gap-2">
+              <Activity size={12} className="text-amber-400 shrink-0" />
+              <p className="text-[10px] text-amber-400/90 leading-relaxed">
+                Readiness {Math.round(readinessScore!)} — acessórios cortados, cargas reduzidas ~15%.
+              </p>
+            </div>
+          )}
+          {effectiveExercises.map((ex, ei) => {
             const setsCount = parseInt(ex.sets);
             const exSets = completedSets[ex.id] || new Set();
 
@@ -586,33 +636,39 @@ const Treino = () => {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    {suggestions[ex.name] && (
-                      <button
-                        onClick={() => {
-                          const wasOpen = showSuggestion[ex.id];
-                          setShowSuggestion(prev => ({ ...prev, [ex.id]: !prev[ex.id] }));
-                          if (!wasOpen) {
-                            const suggested = String(suggestions[ex.name].suggestedLoad);
-                            setLoads(prev => {
-                              const exLoads = { ...(prev[ex.id] || {}) };
-                              for (let i = 0; i < setsCount; i++) {
-                                if (!exLoads[i]) exLoads[i] = suggested;
-                              }
-                              return { ...prev, [ex.id]: exLoads };
-                            });
-                            toast.success(`${suggested}kg aplicado em ${ex.name}`);
-                          }
-                        }}
-                        className={`flex items-center gap-1 px-2 py-1 rounded-lg font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95 ${
-                          showSuggestion[ex.id]
-                            ? "bg-primary/15 text-primary"
-                            : "bg-secondary text-muted-foreground"
-                        }`}
-                      >
-                        <Brain size={10} />
-                        {suggestions[ex.name].suggestedLoad}kg
-                      </button>
-                    )}
+                    {suggestions[ex.name] && (() => {
+                      const rawSuggested = suggestions[ex.name].suggestedLoad;
+                      const adjusted = isLowReadiness
+                        ? Math.round((rawSuggested * 0.85) / 2.5) * 2.5
+                        : rawSuggested;
+                      return (
+                        <button
+                          onClick={() => {
+                            const wasOpen = showSuggestion[ex.id];
+                            setShowSuggestion(prev => ({ ...prev, [ex.id]: !prev[ex.id] }));
+                            if (!wasOpen) {
+                              const suggested = String(adjusted);
+                              setLoads(prev => {
+                                const exLoads = { ...(prev[ex.id] || {}) };
+                                for (let i = 0; i < setsCount; i++) {
+                                  if (!exLoads[i]) exLoads[i] = suggested;
+                                }
+                                return { ...prev, [ex.id]: exLoads };
+                              });
+                              toast.success(`${suggested}kg aplicado em ${ex.name}`);
+                            }
+                          }}
+                          className={`flex items-center gap-1 px-2 py-1 rounded-lg font-mono text-[9px] font-bold tracking-wider transition-all active:scale-95 ${
+                            showSuggestion[ex.id]
+                              ? "bg-primary/15 text-primary"
+                              : "bg-secondary text-muted-foreground"
+                          }`}
+                        >
+                          <Brain size={10} />
+                          {adjusted}kg
+                        </button>
+                      );
+                    })()}
                     <span className={`font-mono text-lg font-extrabold ${day.colorClass}`}>
                       {ex.sets}x{ex.reps}
                     </span>
@@ -624,9 +680,14 @@ const Treino = () => {
                     estimated1RM={suggestions[ex.name].estimated1RM}
                     targetPct={suggestions[ex.name].targetPct}
                     calculatedLoad={suggestions[ex.name].calculatedLoad}
-                    suggestedLoad={suggestions[ex.name].suggestedLoad}
+                    suggestedLoad={
+                      isLowReadiness
+                        ? Math.round((suggestions[ex.name].suggestedLoad * 0.85) / 2.5) * 2.5
+                        : suggestions[ex.name].suggestedLoad
+                    }
                     isChestExercise={suggestions[ex.name].isChestExercise}
                     weekNumber={weekNumber}
+                    phase={phase}
                   />
                 )}
 
