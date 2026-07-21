@@ -131,7 +131,22 @@ const Treino = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const day = weekPlan[selectedDay];
+  const readinessScore = readiness?.score ?? null;
+  const isLowReadiness = readinessScore !== null && readinessScore < 60 && readinessScore >= 40;
+  const isVeryLowReadiness = readinessScore !== null && readinessScore < 40;
+
+  // Auto-adjust: <60 → cut last 30% of exercises (drop accessories)
+  const effectiveExercises = (() => {
+    if (isVeryLowReadiness) return [];
+    if (isLowReadiness && day.exercises.length > 2) {
+      const keep = Math.ceil(day.exercises.length * 0.7);
+      return day.exercises.slice(0, keep);
+    }
+    return day.exercises;
+  })();
+
   const isOff = day.exercises.length === 0;
+  const recoveryMode = isVeryLowReadiness && !isOff;
 
   // Persist completed sets
   useEffect(() => {
