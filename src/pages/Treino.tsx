@@ -396,19 +396,29 @@ const Treino = () => {
         animate={{ opacity: 1, y: 0 }}
         className={`surface-card p-4 border ${day.borderClass}`}
       >
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{day.emoji}</span>
-          <div className="flex-1">
+        <div className="flex items-start gap-3">
+          <div className={`shrink-0 px-2 py-1 rounded-md border ${day.borderClass} ${day.bgClass}`}>
+            <span className={`font-mono text-[10px] font-black tracking-widest ${day.colorClass}`}>
+              W{weekNumber}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
             <h2 className={`font-mono text-sm font-extrabold tracking-wider ${day.colorClass}`}>
-              {day.label} — {day.type} {day.focus}
+              {day.code}
             </h2>
+            {day.intent && (
+              <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
+                {day.intent}
+              </p>
+            )}
             {!isOff && (
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                {day.exercises.length} exercícios · Descanso {day.focus === "FORÇA" ? "90s" : "60s"}
+              <p className="text-[9px] text-muted-foreground/70 mt-1 font-mono tracking-wider">
+                {effectiveExercises.length}/{day.exercises.length} EX · REST {day.restSeconds ?? 90}s · FASE {phase}
               </p>
             )}
           </div>
         </div>
+
 
         {!isOff && (
           <div className="mt-3 flex items-center gap-3">
